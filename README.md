@@ -1,8 +1,8 @@
 # dex
 
 [![CI](https://github.com/ychaparala/dex/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ychaparala/dex/actions/workflows/ci.yml)
-[![PyPI](https://img.shields.io/pypi/v/dex-cli)](https://pypi.org/project/dex-cli/)
-[![Python](https://img.shields.io/pypi/pyversions/dex-cli)](https://pypi.org/project/dex-cli/)
+[![PyPI](https://img.shields.io/pypi/v/dex-cli?label=PyPI)](https://pypi.org/project/dex-cli/)
+[![Python](https://img.shields.io/pypi/pyversions/dex-cli?label=Python)](https://pypi.org/project/dex-cli/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](https://github.com/ychaparala/dex/blob/main/LICENSE)
 
 Type what you want in plain English and get back one ready-to-edit shell command for the data engineering CLIs you
