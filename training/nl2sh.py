@@ -102,6 +102,15 @@ AWS_V2_ONLY = [("logs", "tail"), ("logs", "start-live-tail"), ("sso", "login"), 
 # credentials are set and --help never contacts a service.
 HELP_PARSE_BINS = {"databricks", "confluent", "astro", "argo", "rpk"}
 
+
+def usage_depth(help_text: str) -> int | None:
+    """How many command words the first Usage: line names ('Usage:  docker image ls [OPTIONS]' is 3), or None."""
+    m = re.search(r"Usage:\s*(\S[^\n]*)", help_text)
+    if not m:
+        return None
+    words = m.group(1).split()
+    return next((i for i, w in enumerate(words) if not re.fullmatch(r"[a-z0-9][\w.-]*", w)), len(words))
+
 VAR_REF = re.compile(r"\$\{?([A-Z][A-Z0-9_]*)\}?")
 INTENT_REF = re.compile(r"\{([A-Z][A-Z0-9_]*)\}")
 PLACEHOLDER = re.compile(r"^<([a-z0-9][a-z0-9-]*)>$")
@@ -473,6 +482,7 @@ class Validators:
         self.tmp = Path(tempfile.mkdtemp(prefix="nl2sh-val-"))
         self.spark_opts: dict[str, set] = {}
         self._duck = None
+        self._help_cache: dict[tuple, tuple[int, str]] = {}
         (self.tmp / "home").mkdir()
         (self.tmp / "aws").mkdir()
         (self.tmp / "aws" / "config").write_text(
@@ -586,34 +596,58 @@ class Validators:
         return "ok", None
 
     def help_parse(self, exe: str, argv: list[str]):
-        """Go CLIs (cobra): append --help; flags and subcommands are still parsed, nothing is executed."""
+        """Go CLIs (cobra): --help right after the command path; flags and subcommands are still parsed, nothing
+        is executed."""
         if "--" in argv:  # everything after -- belongs to another program; check only our part
             argv = argv[:argv.index("--")]
         words = [a for a in argv[1:] if not a.startswith("-")]
         if Path(exe).name == "astro" and words[:2] in (["dev", "run"], ["dev", "bash"]):
             return "skipped-passthrough", None  # the rest of the line is an airflow command run in the container
-        env = {"PATH": os.environ.get("PATH", ""), "HOME": str(self.tmp / "home"), "NO_COLOR": "1",
-               "DATABRICKS_CONFIG_FILE": str(self.tmp / "home" / ".databrickscfg")}
+        # Find the command path one word at a time and put --help straight after it: a --help at the end can land in
+        # arguments passed on to another program (docker run IMAGE CMD --help) and run the command for real.
         try:
-            r = subprocess.run([exe] + argv[1:] + ["--help"], env=env, capture_output=True, text=True, timeout=30,
-                               cwd=self.tmp, stdin=subprocess.DEVNULL)
+            code, out = self._help(exe, ["--help"])
+            path: list[str] = []
+            for w in argv[1:]:
+                if w.startswith("-"):
+                    break
+                c, o = self._help(exe, path + [w, "--help"])
+                if c != 0 or usage_depth(o) != (usage_depth(out) or 0) + 1:
+                    break
+                path, out = path + [w], o
+            rest = argv[1 + len(path):]
+            if rest and not rest[0].startswith("-") and (
+                    re.search(r"(?m)^[A-Z][\w ]*Commands\b[^\n]*:\s*$", out)):
+                return "fail", f"unknown command {rest[0]!r} under {' '.join([Path(exe).name] + path)}"
+            code, out = self._help(exe, path + ["--help"] + rest)
         except subprocess.TimeoutExpired:
             return "skipped", None
-        out = (r.stdout + r.stderr)
         bad = re.search(r"(unknown (shorthand )?flag:.*|unknown command .*|Error: unknown.*|"
                         r"flag provided but not defined.*|invalid argument .* for .*flag.*|"
                         r"Error: accepts .* arg\(s\).*|flag needs an argument.*)", out)
         if re.search(r"no such file or directory", out, re.I) and not re.search(r"unknown (shorthand )?flag", out):
             return "ok", None  # a missing local @file named in the command is not a syntax problem
-        if bad or r.returncode != 0:
+        if bad or code != 0:
             return "fail", (bad.group(0) if bad else out.strip().splitlines()[-1] if out.strip() else "exit "
-                            + str(r.returncode))[:200]
-        # cobra prints the parent's help for an unknown subcommand path under some configs; make sure the help
-        # shown is for the deepest command we asked for
-        words = [a for a in argv[1:] if not a.startswith("-") and "/" not in a and "=" not in a][:2]
-        if words and not re.search(r"(?m)^\s*Usage:", out):
+                            + str(code))[:200]
+        if usage_depth(out) is None:
             return "fail", "no usage printed"
         return "ok", None
+
+    def _help(self, exe: str, args: list[str]) -> tuple[int, str]:
+        """Run a Go CLI's help, cut off from real services: no PATH (so no kubectl plugin runs), a scratch HOME,
+        and docker, kube and Kafka addresses that lead nowhere. Cached, since every command walks its path."""
+        key = (exe, tuple(args))
+        if key not in self._help_cache:
+            home = self.tmp / "home"
+            env = {"PATH": "", "HOME": str(home), "NO_COLOR": "1",
+                   "DATABRICKS_CONFIG_FILE": str(home / ".databrickscfg"),
+                   "DOCKER_HOST": "unix:///nonexistent/docker.sock", "KUBECONFIG": str(home / "no-kubeconfig"),
+                   "RPK_BROKERS": "127.0.0.1:9"}
+            r = subprocess.run([exe] + args, env=env, capture_output=True, text=True, timeout=30, cwd=self.tmp,
+                               stdin=subprocess.DEVNULL)
+            self._help_cache[key] = (r.returncode, r.stdout + r.stderr)
+        return self._help_cache[key]
 
     def jq(self, exe: str, cmd: str, vals: dict):
         bad = None
