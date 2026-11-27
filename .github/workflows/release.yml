@@ -1,0 +1,29 @@
+name: release
+
+# Pushing a tag like v0.1.0 builds dex-cli and publishes it to PyPI through trusted publishing,
+# so no API token is stored in the repo.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.4.0
+      - name: The tag matches both version strings
+        run: |
+          v="${GITHUB_REF_NAME#v}"
+          grep -qx "version = \"$v\"" pyproject.toml
+          grep -qx "__version__ = \"$v\"" src/dex/__init__.py
+      - run: uv sync --locked
+      - run: uv run pytest
+      - run: uv build
+      - run: uv publish

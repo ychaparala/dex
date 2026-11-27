@@ -36,4 +36,6 @@ and are skipped when zsh isn't installed.
 
 ## Releases
 
-Bump `__version__` in `src/dex/__init__.py` and `version` in `pyproject.toml`, then `uv build`.
+Bump `__version__` in `src/dex/__init__.py` and `version` in `pyproject.toml` and merge that. Then tag the merge
+commit and push the tag (`git tag v0.1.0 && git push origin v0.1.0`): the release workflow checks the tag matches
+both versions, runs the tests and publishes to PyPI through trusted publishing.
