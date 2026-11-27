@@ -1,0 +1,261 @@
+tool: dagster
+binaries:
+- dagster
+- dg
+- dagster-daemon
+- create-dagster
+category: orchestration
+priority: standard
+target_pairs: 100
+version_note: Dagster 1.13 (dagster CLI + dg CLI from dagster-dg-cli)
+install:
+- binaries: ["dagster", "dagster-daemon"]
+  any: ["uv tool install dagster --with dagster-webserver", "pipx install dagster && pipx inject dagster dagster-webserver"]
+  source: ["https://docs.dagster.io/getting-started/installation", "https://github.com/dagster-io/dagster/blob/master/python_modules/dagster/pyproject.toml", "https://docs.astral.sh/uv/guides/tools/", "https://pipx.pypa.io/stable/"]
+- binaries: ["dg"]
+  any: ["uv tool install dagster-dg-cli", "pipx install dagster-dg-cli"]
+  source: ["https://github.com/dagster-io/dagster/blob/master/python_modules/libraries/dagster-dg-cli/pyproject.toml", "https://docs.astral.sh/uv/guides/tools/", "https://pipx.pypa.io/stable/"]
+- binaries: ["create-dagster"]
+  any: ["uv tool install create-dagster", "pipx install create-dagster"]
+  source: ["https://github.com/dagster-io/dagster/blob/master/python_modules/libraries/create-dagster/pyproject.toml", "https://docs.astral.sh/uv/guides/tools/", "https://pipx.pypa.io/stable/"]
+sources:
+- url: https://github.com/dagster-io/dagster/blob/master/python_modules/dagster/dagster/_cli/dev.py
+  license: Apache-2.0 (repo)
+- url: https://github.com/dagster-io/dagster/blob/master/python_modules/dagster/dagster/_cli/asset.py
+  license: Apache-2.0 (repo)
+- url: https://github.com/dagster-io/dagster/blob/master/python_modules/dagster/dagster/_cli/job.py
+  license: Apache-2.0 (repo)
+- url: https://github.com/dagster-io/dagster/blob/master/python_modules/dagster/dagster/_cli/definitions.py
+  license: Apache-2.0 (repo)
+- url: https://github.com/dagster-io/dagster/blob/master/python_modules/dagster/dagster/_cli/instance.py
+  license: Apache-2.0 (repo)
+- url: https://github.com/dagster-io/dagster/blob/master/python_modules/libraries/dagster-shared/dagster_shared/cli/__init__.py
+  license: Apache-2.0 (repo)
+- url: https://github.com/dagster-io/dagster/blob/master/python_modules/libraries/dagster-dg-cli/dagster_dg_cli/cli/launch.py
+  license: Apache-2.0 (repo)
+- url: https://github.com/dagster-io/dagster/blob/master/python_modules/libraries/dagster-dg-cli/dagster_dg_cli/cli/list.py
+  license: Apache-2.0 (repo)
+- url: https://github.com/dagster-io/dagster/blob/master/docs/docs/getting-started/installation.md
+  license: Apache-2.0 (repo)
+destructive_patterns:
+- \bdagster\s+asset\s+wipe\b
+- \bdagster\s+schedule\s+wipe\b
+templates:
+- id: dagster.install.pip
+  group: setup
+  intents:
+  - install dagster with pip
+  - pip install dagster and the web ui
+  - set up dagster, webserver and dg cli
+  - get dagster installed in this venv
+  vars: []
+  body: pip install dagster dagster-webserver dagster-dg-cli
+  destructive: false
+  source: https://github.com/dagster-io/dagster/blob/master/docs/docs/getting-started/installation.md
+  verified: docs
+- id: dagster.create_project
+  group: setup
+  intents:
+  - create a new dagster project called {PROJECT}
+  - scaffold a dagster project with uvx
+  - start a dagster project
+  - create-dagster project
+  vars:
+  - {name: PROJECT, default: my-project, samples: [analytics-pipelines, dagster-etl]}
+  body: uvx create-dagster@latest project "$PROJECT"
+  destructive: false
+  source: https://github.com/dagster-io/dagster/blob/master/docs/docs/getting-started/installation.md
+  verified: docs
+- id: dagster.version
+  group: setup
+  intents:
+  - dagster version
+  - which dagster is installed
+  - check the dagster version
+  - show dagster cli version
+  vars: []
+  body: dagster --version
+  destructive: false
+  source: https://github.com/dagster-io/dagster/blob/master/python_modules/dagster/dagster/_cli/__init__.py
+  verified: source
+- id: dagster.dg.dev
+  group: dev
+  intents:
+  - start dagster locally with dg
+  - run the dagster ui for this project
+  - dg dev
+  - launch local dagster webserver and daemon
+  vars: []
+  body: dg dev
+  destructive: false
+  source: https://github.com/dagster-io/dagster/blob/master/python_modules/libraries/dagster-dg-cli/dagster_dg_cli/cli/dev.py
+  verified: source
+- id: dagster.dev.file
+  group: dev
+  intents:
+  - run dagster dev on {FILE}
+  - start the dagster ui loading definitions from a file
+  - dagster dev with a python file
+  - launch local dagster for {FILE}
+  vars:
+  - {name: FILE, default: definitions.py, samples: [defs.py, src/my_project/definitions.py], ctx: local_file}
+  body: dagster dev -f "$FILE"
+  destructive: false
+  source: https://github.com/dagster-io/dagster/blob/master/python_modules/dagster/dagster/_cli/dev.py
+  verified: source
+- id: dagster.dev.module.port
+  group: dev
+  intents:
+  - start dagster dev for module {MODULE} on port {PORT}
+  - run the dagster ui on a different port
+  - dagster dev with a module and port
+  - launch dagster webserver on port {PORT}
+  vars:
+  - {name: MODULE, default: my_project.definitions, samples: [analytics.defs, etl_pipelines]}
+  - {name: PORT, default: '3000', samples: ['3001', '8080']}
+  body: dagster dev -m "$MODULE" -p "$PORT"
+  destructive: false
+  source: https://github.com/dagster-io/dagster/blob/master/python_modules/dagster/dagster/_cli/dev.py
+  verified: source
+- id: dagster.dg.list_defs
+  group: defs
+  intents:
+  - list dagster definitions
+  - show all assets jobs and schedules with dg
+  - dg list defs
+  - what definitions does this dagster project have
+  vars: []
+  body: dg list defs
+  destructive: false
+  source: https://github.com/dagster-io/dagster/blob/master/python_modules/libraries/dagster-dg-cli/dagster_dg_cli/cli/list.py
+  verified: source
+- id: dagster.dg.check_defs
+  group: defs
+  intents:
+  - validate dagster definitions with dg
+  - check my dagster defs load
+  - dg check defs
+  - do the definitions have errors
+  vars: []
+  body: dg check defs
+  destructive: false
+  source: https://github.com/dagster-io/dagster/blob/master/python_modules/libraries/dagster-dg-cli/dagster_dg_cli/cli/check.py
+  verified: source
+- id: dagster.definitions.validate
+  group: defs
+  intents:
+  - validate definitions in {FILE}
+  - check that dagster can load this file
+  - dagster definitions validate
+  - test code location loads without errors
+  vars:
+  - {name: FILE, default: definitions.py, samples: [defs.py, src/my_project/definitions.py], ctx: local_file}
+  body: dagster definitions validate -f "$FILE"
+  destructive: false
+  source: https://github.com/dagster-io/dagster/blob/master/python_modules/dagster/dagster/_cli/definitions.py
+  verified: source
+- id: dagster.dg.launch.assets
+  group: run
+  intents:
+  - materialize asset {ASSET} with dg
+  - launch a run for {ASSET}
+  - dg launch assets
+  - run a dagster asset from the cli
+  vars:
+  - {name: ASSET, default: orders, samples: [daily_sales, customer_dim, raw_events]}
+  body: dg launch --assets "$ASSET"
+  destructive: false
+  source: https://github.com/dagster-io/dagster/blob/master/python_modules/libraries/dagster-dg-cli/dagster_dg_cli/cli/launch.py
+  verified: source
+- id: dagster.dg.launch.partition
+  group: run
+  intents:
+  - materialize {ASSET} for partition {PARTITION}
+  - run one partition of an asset
+  - dg launch an asset partition
+  - backfill a single day of {ASSET}
+  vars:
+  - {name: ASSET, default: daily_sales, samples: [orders, events]}
+  - {name: PARTITION, default: '2025-06-01', samples: ['2025-01-31', '2024-12-25']}
+  body: dg launch --assets "$ASSET" --partition "$PARTITION"
+  destructive: false
+  source: https://github.com/dagster-io/dagster/blob/master/python_modules/libraries/dagster-dg-cli/dagster_dg_cli/cli/launch.py
+  verified: source
+- id: dagster.asset.materialize
+  group: run
+  intents:
+  - materialize {ASSET} from module {MODULE}
+  - dagster asset materialize
+  - run an asset with the dagster cli
+  - materialize assets selected by name
+  vars:
+  - {name: ASSET, default: orders, samples: [daily_sales, customer_dim]}
+  - {name: MODULE, default: my_project.definitions, samples: [analytics.defs, etl_pipelines]}
+  body: dagster asset materialize --select "$ASSET" -m "$MODULE"
+  destructive: false
+  source: https://github.com/dagster-io/dagster/blob/master/python_modules/dagster/dagster/_cli/asset.py
+  verified: source
+- id: dagster.asset.list
+  group: defs
+  intents:
+  - list assets in {FILE}
+  - dagster asset list
+  - show all asset keys
+  - which assets are defined
+  vars:
+  - {name: FILE, default: definitions.py, samples: [defs.py, src/my_project/definitions.py], ctx: local_file}
+  body: dagster asset list -f "$FILE"
+  destructive: false
+  source: https://github.com/dagster-io/dagster/blob/master/python_modules/dagster/dagster/_cli/asset.py
+  verified: source
+- id: dagster.job.list
+  group: run
+  intents:
+  - list jobs in {FILE}
+  - dagster job list
+  - what jobs are defined
+  - show dagster jobs
+  vars:
+  - {name: FILE, default: definitions.py, samples: [defs.py, src/my_project/definitions.py], ctx: local_file}
+  body: dagster job list -f "$FILE"
+  destructive: false
+  source: https://github.com/dagster-io/dagster/blob/master/python_modules/dagster/dagster/_cli/job.py
+  verified: source
+- id: dagster.job.execute
+  group: run
+  intents:
+  - execute job {JOB} from {FILE}
+  - run a dagster job in process
+  - dagster job execute
+  - run job {JOB} locally
+  vars:
+  - {name: FILE, default: definitions.py, samples: [defs.py, src/my_project/definitions.py], ctx: local_file}
+  - {name: JOB, default: daily_refresh, samples: [etl_job, backfill_job]}
+  body: dagster job execute -f "$FILE" -j "$JOB"
+  destructive: false
+  source: https://github.com/dagster-io/dagster/blob/master/python_modules/dagster/dagster/_cli/job.py
+  verified: source
+- id: dagster.instance.info
+  group: setup
+  intents:
+  - show dagster instance info
+  - where is the dagster instance storing data
+  - dagster instance info
+  - print DAGSTER_HOME instance config
+  vars: []
+  body: dagster instance info
+  destructive: false
+  source: https://github.com/dagster-io/dagster/blob/master/python_modules/dagster/dagster/_cli/instance.py
+  verified: source
+- id: dagster.daemon.run
+  group: dev
+  intents:
+  - start the dagster daemon
+  - run schedules and sensors daemon
+  - dagster-daemon run
+  - launch the daemon process for production
+  vars: []
+  body: dagster-daemon run
+  destructive: false
+  source: https://github.com/dagster-io/dagster/blob/master/python_modules/dagster/dagster/_daemon/cli/__init__.py
+  verified: source

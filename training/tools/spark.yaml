@@ -1,0 +1,1018 @@
+tool: spark
+binaries: [spark-submit, spark-sql, pyspark, spark-shell, spark-class, start-history-server.sh, stop-history-server.sh, start-connect-server.sh, yarn, pip, curl]
+category: compute
+priority: core
+target_pairs: 450
+version_note: Apache Spark 4.x (Scala 2.13 artifacts); package versions pinned for Spark 4.0 (Delta 4.0, Iceberg 1.10, hadoop-aws 3.4.1); yarn = Hadoop 3.x CLI
+version_cmd: spark-submit --version
+version_label: spark
+versions:
+- {version: "4.3.0", install: "pip:pyspark==4.3.0"}
+- {version: "3.5.10", install: "pip:pyspark==3.5.10", python: "3.12"}
+install:
+- binaries: ["spark-submit", "spark-sql", "pyspark", "spark-shell", "spark-class"]
+  macos: ["brew install apache-spark"]
+  source: ["https://github.com/Homebrew/homebrew-core/blob/HEAD/Formula/a/apache-spark.rb"]
+sources:
+- url: https://github.com/apache/spark/blob/master/launcher/src/main/java/org/apache/spark/launcher/SparkSubmitOptionParser.java
+  license: Apache-2.0 (repo); flags checked with local spark-submit --help, pyspark 4.3.0
+- url: https://github.com/apache/spark/blob/master/sql/hive-thriftserver/src/main/scala/org/apache/spark/sql/hive/thriftserver/SparkSQLCLIDriver.scala
+  license: Apache-2.0 (repo); flags checked with local spark-sql --help, pyspark 4.3.0
+- url: https://spark.apache.org/docs/latest/submitting-applications.html
+  license: Apache-2.0 (apache/spark docs)
+- url: https://spark.apache.org/docs/latest/configuration.html
+  license: Apache-2.0 (apache/spark docs)
+- url: https://spark.apache.org/docs/latest/running-on-yarn.html
+  license: Apache-2.0 (apache/spark docs)
+- url: https://spark.apache.org/docs/latest/running-on-kubernetes.html
+  license: Apache-2.0 (apache/spark docs)
+- url: https://spark.apache.org/docs/latest/spark-standalone.html
+  license: Apache-2.0 (apache/spark docs)
+- url: https://spark.apache.org/docs/latest/monitoring.html
+  license: Apache-2.0 (apache/spark docs)
+- url: https://spark.apache.org/docs/latest/sql-distributed-sql-engine-spark-sql-cli.html
+  license: Apache-2.0 (apache/spark docs)
+- url: https://spark.apache.org/docs/latest/spark-connect-overview.html
+  license: Apache-2.0 (apache/spark docs)
+- url: https://spark.apache.org/docs/latest/streaming/structured-streaming-kafka-integration.html
+  license: Apache-2.0 (apache/spark docs)
+- url: https://spark.apache.org/docs/latest/api/python/tutorial/python_packaging.html
+  license: Apache-2.0 (apache/spark docs)
+- url: https://spark.apache.org/docs/latest/api/python/getting_started/install.html
+  license: Apache-2.0 (apache/spark docs)
+- url: https://spark.apache.org/downloads.html
+  license: Apache-2.0 (apache/spark docs)
+- url: https://docs.delta.io/latest/quick-start.html
+  license: Apache-2.0 (delta-io/delta docs); facts only
+- url: https://github.com/apache/iceberg/blob/main/docs/docs/spark-getting-started.md
+  license: Apache-2.0 (apache/iceberg repo)
+- url: https://hadoop.apache.org/docs/stable/hadoop-yarn/hadoop-yarn-site/YarnCommands.html
+  license: Apache-2.0 (Apache Hadoop docs)
+destructive_patterns:
+- \byarn\s+app(lication)?\s+.*-kill\b
+- \bspark-submit\b.*--kill\b
+templates:
+- id: spark.install.pip
+  group: setup
+  intents:
+  - install pyspark with pip
+  - pip install spark for python
+  - get spark-submit and pyspark on my laptop
+  - set up pyspark locally
+  vars: []
+  body: pip install pyspark
+  destructive: false
+  source: https://spark.apache.org/docs/latest/api/python/getting_started/install.html
+  verified: docs
+- id: spark.install.tarball
+  group: setup
+  intents:
+  - download and extract the spark {SPARK_VERSION} binary release
+  - install apache spark from the tarball
+  - get the spark distribution prebuilt for hadoop 3
+  - fetch spark binaries with curl
+  vars:
+  - name: SPARK_VERSION
+    default: 4.0.1
+    samples: [4.1.1, 4.3.0, 3.5.6]
+  body: curl -fLO "https://archive.apache.org/dist/spark/spark-$SPARK_VERSION/spark-$SPARK_VERSION-bin-hadoop3.tgz" && tar -xzf "spark-$SPARK_VERSION-bin-hadoop3.tgz"
+  destructive: false
+  source: https://spark.apache.org/downloads.html
+  verified: docs
+- id: spark.version
+  group: setup
+  intents:
+  - what version of spark is installed
+  - check spark version
+  - spark-submit version
+  - which spark and scala version do i have
+  vars: []
+  body: spark-submit --version
+  destructive: false
+  source: https://github.com/apache/spark/blob/master/launcher/src/main/java/org/apache/spark/launcher/SparkSubmitOptionParser.java
+  verified: help
+- id: spark.submit.local
+  group: submit-local
+  intents:
+  - run {APP_PY} locally with spark using all cores
+  - spark-submit a python script in local mode
+  - test my pyspark job on my machine
+  - run a spark job locally
+  - local[*] spark submit
+  vars:
+  - name: APP_PY
+    default: app.py
+    samples: [jobs/daily_orders.py, etl/load_events.py, main.py]
+    ctx: local_file
+  body: spark-submit --master "local[*]" "$APP_PY"
+  destructive: false
+  source: https://spark.apache.org/docs/latest/submitting-applications.html
+  verified: docs
+- id: spark.submit.local_cores_mem
+  group: submit-local
+  intents:
+  - run {APP_PY} locally on {CORES} cores with {DRIVER_MEM} driver memory
+  - local spark job with limited cores and more driver memory
+  - spark-submit local with driver memory
+  - give my local spark run more memory
+  vars:
+  - name: CORES
+    default: '4'
+    samples: ['2', '8']
+  - name: DRIVER_MEM
+    default: 2g
+    samples: [4g, 8g]
+  - name: APP_PY
+    default: app.py
+    samples: [jobs/daily_orders.py, etl/load_events.py, main.py]
+    ctx: local_file
+  body: spark-submit --master "local[$CORES]" --driver-memory "$DRIVER_MEM" "$APP_PY"
+  destructive: false
+  source: https://github.com/apache/spark/blob/master/launcher/src/main/java/org/apache/spark/launcher/SparkSubmitOptionParser.java
+  verified: help
+- id: spark.submit.local_args
+  group: submit-local
+  intents:
+  - run {APP_PY} locally with input {INPUT} and output {OUTPUT}
+  - pass application arguments to a spark job
+  - spark-submit with script args
+  - run a pyspark job and give it input and output paths
+  vars:
+  - name: APP_PY
+    default: app.py
+    samples: [jobs/daily_orders.py, etl/load_events.py, main.py]
+    ctx: local_file
+  - name: INPUT
+    default: data/input.parquet
+    samples: ['s3a://my-bucket/raw/2026-11-25/', /data/events/]
+  - name: OUTPUT
+    default: data/output
+    samples: ['s3a://my-bucket/curated/orders/', /tmp/out]
+  body: spark-submit --master "local[*]" "$APP_PY" "$INPUT" "$OUTPUT"
+  destructive: false
+  source: https://spark.apache.org/docs/latest/submitting-applications.html
+  verified: docs
+- id: spark.submit.jar_class
+  group: submit-local
+  intents:
+  - run main class {CLASS} from {JAR} with spark
+  - submit a scala or java spark jar
+  - spark-submit a jar with --class
+  - run a compiled spark application locally
+  vars:
+  - name: CLASS
+    default: com.example.etl.Main
+    samples: [com.example.OrdersJob, org.example.DailyAggregates]
+  - name: JAR
+    default: target/scala-2.13/etl-assembly-1.0.jar
+    samples: [build/libs/orders-job-all.jar, jobs/spark-etl.jar]
+    ctx: local_file
+  body: spark-submit --class "$CLASS" --master "local[*]" "$JAR"
+  destructive: false
+  source: https://spark.apache.org/docs/latest/submitting-applications.html
+  verified: docs
+- id: spark.submit.verbose
+  group: submit-local
+  intents:
+  - spark-submit {APP_PY} with verbose output to debug config
+  - show which spark configs and jars are used at submit time
+  - debug spark-submit arguments
+  - verbose spark submit
+  vars:
+  - name: APP_PY
+    default: app.py
+    samples: [jobs/daily_orders.py, etl/load_events.py, main.py]
+    ctx: local_file
+  body: spark-submit --verbose --master "local[*]" "$APP_PY"
+  destructive: false
+  source: https://github.com/apache/spark/blob/master/launcher/src/main/java/org/apache/spark/launcher/SparkSubmitOptionParser.java
+  verified: help
+- id: spark.submit.py_files
+  group: dependencies
+  intents:
+  - submit {APP_PY} with helper modules from {PY_FILES}
+  - ship a zip of python modules with my spark job
+  - spark-submit --py-files
+  - add extra python code to the executors
+  vars:
+  - name: PY_FILES
+    default: deps.zip
+    samples: [libs.zip, 'utils.py,transforms.py', dist/common-0.3.0-py3-none-any.zip]
+  - name: APP_PY
+    default: app.py
+    samples: [jobs/daily_orders.py, etl/load_events.py, main.py]
+    ctx: local_file
+  body: spark-submit --py-files "$PY_FILES" "$APP_PY"
+  destructive: false
+  source: https://spark.apache.org/docs/latest/submitting-applications.html
+  verified: docs
+- id: spark.submit.jars
+  group: dependencies
+  intents:
+  - submit {APP_PY} with extra jar {JARS} like a jdbc driver
+  - add a local jar to the spark classpath
+  - spark-submit --jars postgres driver
+  - include extra jars on driver and executors
+  vars:
+  - name: JARS
+    default: postgresql-42.7.4.jar
+    samples: [mysql-connector-j-9.1.0.jar, lib/ojdbc11.jar]
+    ctx: local_file
+  - name: APP_PY
+    default: app.py
+    samples: [jobs/daily_orders.py, etl/load_events.py, main.py]
+    ctx: local_file
+  body: spark-submit --jars "$JARS" "$APP_PY"
+  destructive: false
+  source: https://spark.apache.org/docs/latest/submitting-applications.html
+  verified: docs
+- id: spark.submit.kafka
+  group: dependencies
+  intents:
+  - run {APP_PY} with the spark kafka connector
+  - spark-submit with spark-sql-kafka package
+  - structured streaming job that reads kafka
+  - add the kafka source to my spark job
+  - include spark-sql-kafka-0-10 for spark {SPARK_VERSION}
+  vars:
+  - name: SPARK_VERSION
+    default: 4.0.1
+    samples: [4.1.1, 4.3.0, 3.5.6]
+  - name: APP_PY
+    default: app.py
+    samples: [jobs/daily_orders.py, etl/load_events.py, main.py]
+    ctx: local_file
+  body: spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.13:"$SPARK_VERSION" "$APP_PY"
+  destructive: false
+  source: https://spark.apache.org/docs/latest/streaming/structured-streaming-kafka-integration.html
+  verified: docs
+- id: spark.submit.s3a
+  group: dependencies
+  intents:
+  - run {APP_PY} with hadoop-aws so it can read s3a paths
+  - spark-submit with s3 support
+  - add hadoop-aws package to read from s3
+  - spark job reading s3a without emr
+  vars:
+  - name: APP_PY
+    default: app.py
+    samples: [jobs/daily_orders.py, etl/load_events.py, main.py]
+    ctx: local_file
+  body: spark-submit --packages org.apache.hadoop:hadoop-aws:3.4.1 "$APP_PY"
+  destructive: false
+  source: https://spark.apache.org/docs/latest/submitting-applications.html
+  verified: docs
+- id: spark.submit.delta
+  group: dependencies
+  intents:
+  - run {APP_PY} with delta lake enabled
+  - spark-submit with the delta package and catalog configs
+  - use delta tables in my spark job
+  - add delta-spark to a submit
+  vars:
+  - name: APP_PY
+    default: app.py
+    samples: [jobs/daily_orders.py, etl/load_events.py, main.py]
+    ctx: local_file
+  body: spark-submit --packages io.delta:delta-spark_2.13:4.0.0 --conf spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension --conf spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog "$APP_PY"
+  destructive: false
+  source: https://docs.delta.io/latest/quick-start.html
+  verified: docs
+- id: spark.submit.iceberg
+  group: dependencies
+  intents:
+  - run {APP_PY} with apache iceberg support
+  - spark-submit with the iceberg runtime and extensions
+  - add iceberg to a spark job
+  - use iceberg tables from spark-submit
+  vars:
+  - name: APP_PY
+    default: app.py
+    samples: [jobs/daily_orders.py, etl/load_events.py, main.py]
+    ctx: local_file
+  body: spark-submit --packages org.apache.iceberg:iceberg-spark-runtime-4.0_2.13:1.10.0 --conf spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions "$APP_PY"
+  destructive: false
+  source: https://github.com/apache/iceberg/blob/main/docs/docs/spark-getting-started.md
+  verified: docs
+- id: spark.submit.files
+  group: dependencies
+  intents:
+  - ship config file {CONF_FILE} to the executors with {APP_PY}
+  - send a yaml or json config along with my spark job
+  - spark-submit --files
+  - make a file available in every executor's working dir
+  vars:
+  - name: CONF_FILE
+    default: config.yaml
+    samples: [settings.json, conf/job.properties]
+    ctx: local_file
+  - name: APP_PY
+    default: app.py
+    samples: [jobs/daily_orders.py, etl/load_events.py, main.py]
+    ctx: local_file
+  body: spark-submit --files "$CONF_FILE" "$APP_PY"
+  destructive: false
+  source: https://spark.apache.org/docs/latest/submitting-applications.html
+  verified: docs
+- id: spark.submit.venv_archive
+  group: dependencies
+  intents:
+  - run {APP_PY} on yarn with a packed virtualenv {VENV_ARCHIVE}
+  - ship a venv-pack or conda-pack archive as the python environment
+  - use my own python dependencies on the cluster via --archives
+  - spark-submit with a packed python environment
+  vars:
+  - name: VENV_ARCHIVE
+    default: pyspark_venv.tar.gz
+    samples: [env.tar.gz, conda_env.tar.gz]
+    ctx: local_file
+  - name: APP_PY
+    default: app.py
+    samples: [jobs/daily_orders.py, etl/load_events.py, main.py]
+    ctx: local_file
+  body: spark-submit --master yarn --deploy-mode cluster --archives "$VENV_ARCHIVE#environment" --conf spark.pyspark.python=./environment/bin/python "$APP_PY"
+  destructive: false
+  source: https://spark.apache.org/docs/latest/api/python/tutorial/python_packaging.html
+  verified: docs
+- id: spark.submit.properties_file
+  group: config
+  intents:
+  - submit {APP_PY} using spark settings from {PROPS}
+  - load spark confs from a properties file
+  - spark-submit --properties-file
+  - use a saved spark-defaults style file for this job
+  vars:
+  - name: PROPS
+    default: job.conf
+    samples: [conf/prod.conf, spark-etl.properties]
+    ctx: local_file
+  - name: APP_PY
+    default: app.py
+    samples: [jobs/daily_orders.py, etl/load_events.py, main.py]
+    ctx: local_file
+  body: spark-submit --properties-file "$PROPS" "$APP_PY"
+  destructive: false
+  source: https://github.com/apache/spark/blob/master/launcher/src/main/java/org/apache/spark/launcher/SparkSubmitOptionParser.java
+  verified: help
+- id: spark.conf.executor_resources
+  group: tuning
+  intents:
+  - run {APP_PY} with {EXEC_MEM} executor memory and {EXEC_CORES} cores per executor
+  - set executor memory and cores through --conf
+  - spark conf executor memory and cores
+  - size the executors for my spark job
+  vars:
+  - name: EXEC_MEM
+    default: 4g
+    samples: [2g, 8g, 16g]
+  - name: EXEC_CORES
+    default: '2'
+    samples: ['4', '5', '8']
+  - name: APP_PY
+    default: app.py
+    samples: [jobs/daily_orders.py, etl/load_events.py, main.py]
+    ctx: local_file
+  body: spark-submit --conf spark.executor.memory="$EXEC_MEM" --conf spark.executor.cores="$EXEC_CORES" "$APP_PY"
+  destructive: false
+  source: https://spark.apache.org/docs/latest/configuration.html
+  verified: docs
+- id: spark.conf.memory_overhead
+  group: tuning
+  intents:
+  - give executors {OVERHEAD} of memory overhead for {APP_PY}
+  - fix container killed for exceeding memory limits
+  - raise spark executor memory overhead
+  - more off-heap headroom for pyspark executors
+  vars:
+  - name: OVERHEAD
+    default: 2g
+    samples: [1g, 4g]
+  - name: APP_PY
+    default: app.py
+    samples: [jobs/daily_orders.py, etl/load_events.py, main.py]
+    ctx: local_file
+  body: spark-submit --conf spark.executor.memoryOverhead="$OVERHEAD" "$APP_PY"
+  destructive: false
+  source: https://spark.apache.org/docs/latest/configuration.html
+  verified: docs
+- id: spark.conf.dynamic_allocation
+  group: tuning
+  intents:
+  - run {APP_PY} with dynamic allocation between {MIN} and {MAX} executors
+  - let spark scale executors up and down automatically
+  - enable dynamic allocation with shuffle tracking
+  - autoscale executors for this job
+  vars:
+  - name: MIN
+    default: '2'
+    samples: ['1', '5']
+  - name: MAX
+    default: '50'
+    samples: ['20', '100']
+  - name: APP_PY
+    default: app.py
+    samples: [jobs/daily_orders.py, etl/load_events.py, main.py]
+    ctx: local_file
+  body: spark-submit --conf spark.dynamicAllocation.enabled=true --conf spark.dynamicAllocation.shuffleTracking.enabled=true --conf spark.dynamicAllocation.minExecutors="$MIN" --conf spark.dynamicAllocation.maxExecutors="$MAX" "$APP_PY"
+  destructive: false
+  source: https://spark.apache.org/docs/latest/configuration.html
+  verified: docs
+- id: spark.conf.shuffle_partitions
+  group: tuning
+  intents:
+  - run {APP_PY} with {N} shuffle partitions
+  - change spark.sql.shuffle.partitions
+  - too many small tasks, lower shuffle partitions
+  - set the number of partitions for joins and aggregations
+  vars:
+  - name: N
+    default: '400'
+    samples: ['64', '200', '2000']
+  - name: APP_PY
+    default: app.py
+    samples: [jobs/daily_orders.py, etl/load_events.py, main.py]
+    ctx: local_file
+  body: spark-submit --conf spark.sql.shuffle.partitions="$N" "$APP_PY"
+  destructive: false
+  source: https://spark.apache.org/docs/latest/configuration.html
+  verified: docs
+- id: spark.conf.aqe
+  group: tuning
+  intents:
+  - run {APP_PY} with adaptive query execution and skew join handling
+  - turn on spark aqe
+  - enable adaptive partition coalescing and skew joins
+  - let spark optimize shuffles at runtime
+  vars:
+  - name: APP_PY
+    default: app.py
+    samples: [jobs/daily_orders.py, etl/load_events.py, main.py]
+    ctx: local_file
+  body: spark-submit --conf spark.sql.adaptive.enabled=true --conf spark.sql.adaptive.coalescePartitions.enabled=true --conf spark.sql.adaptive.skewJoin.enabled=true "$APP_PY"
+  destructive: false
+  source: https://spark.apache.org/docs/latest/configuration.html
+  verified: docs
+- id: spark.conf.event_log
+  group: tuning
+  intents:
+  - run {APP_PY} with event logging to s3 bucket {BUCKET}
+  - write spark event logs so the history server can show the job
+  - enable spark event log
+  - keep the spark ui history for this run
+  vars:
+  - name: BUCKET
+    default: <bucket>
+    samples: [my-data-lake, acme-spark-logs, analytics-dev]
+    ctx: s3_bucket
+  - name: APP_PY
+    default: app.py
+    samples: [jobs/daily_orders.py, etl/load_events.py, main.py]
+    ctx: local_file
+  body: spark-submit --conf spark.eventLog.enabled=true --conf spark.eventLog.dir="s3a://$BUCKET/spark-events" "$APP_PY"
+  destructive: false
+  source: https://spark.apache.org/docs/latest/monitoring.html
+  verified: docs
+- id: spark.yarn.client
+  group: yarn
+  intents:
+  - submit {APP_PY} to yarn in client mode
+  - run a spark job on the hadoop cluster with the driver here
+  - spark-submit master yarn client mode
+  - run on yarn so i can see driver output in my terminal
+  vars:
+  - name: APP_PY
+    default: app.py
+    samples: [jobs/daily_orders.py, etl/load_events.py, main.py]
+    ctx: local_file
+  body: spark-submit --master yarn --deploy-mode client "$APP_PY"
+  destructive: false
+  source: https://spark.apache.org/docs/latest/running-on-yarn.html
+  verified: docs
+- id: spark.yarn.cluster
+  group: yarn
+  intents:
+  - submit {APP_PY} to yarn cluster mode as {NAME} in queue {QUEUE}
+  - run spark on yarn with the driver inside the cluster
+  - spark-submit cluster mode with an app name and queue
+  - production yarn submit for a pyspark job
+  vars:
+  - name: NAME
+    default: daily-orders
+    samples: [events-etl, sessionize-clicks, backfill-2026-11]
+  - name: QUEUE
+    default: default
+    samples: [etl, adhoc, prod]
+  - name: APP_PY
+    default: app.py
+    samples: [jobs/daily_orders.py, etl/load_events.py, main.py]
+    ctx: local_file
+  body: spark-submit --master yarn --deploy-mode cluster --name "$NAME" --queue "$QUEUE" "$APP_PY"
+  destructive: false
+  source: https://spark.apache.org/docs/latest/running-on-yarn.html
+  verified: docs
+- id: spark.yarn.resources
+  group: yarn
+  intents:
+  - run {APP_PY} on yarn with {NUM_EXEC} executors of {EXEC_CORES} cores and {EXEC_MEM}
+  - spark-submit with num-executors, executor-cores and executor-memory
+  - size a yarn spark job explicitly
+  - request a fixed number of executors on yarn
+  vars:
+  - name: NUM_EXEC
+    default: '10'
+    samples: ['4', '20', '50']
+  - name: EXEC_CORES
+    default: '2'
+    samples: ['4', '5', '8']
+  - name: EXEC_MEM
+    default: 4g
+    samples: [2g, 8g, 16g]
+  - name: APP_PY
+    default: app.py
+    samples: [jobs/daily_orders.py, etl/load_events.py, main.py]
+    ctx: local_file
+  body: spark-submit --master yarn --deploy-mode cluster --num-executors "$NUM_EXEC" --executor-cores "$EXEC_CORES" --executor-memory "$EXEC_MEM" --driver-memory 4g "$APP_PY"
+  destructive: false
+  source: https://github.com/apache/spark/blob/master/launcher/src/main/java/org/apache/spark/launcher/SparkSubmitOptionParser.java
+  verified: help
+- id: spark.yarn.jar
+  group: yarn
+  intents:
+  - submit {JAR} with class {CLASS} to yarn cluster mode
+  - run a scala spark job on yarn
+  - yarn cluster submit with main class and jar
+  - deploy a spark jar to the hadoop cluster
+  vars:
+  - name: CLASS
+    default: com.example.etl.Main
+    samples: [com.example.OrdersJob, org.example.DailyAggregates]
+  - name: JAR
+    default: target/scala-2.13/etl-assembly-1.0.jar
+    samples: [build/libs/orders-job-all.jar, jobs/spark-etl.jar]
+    ctx: local_file
+  body: spark-submit --master yarn --deploy-mode cluster --class "$CLASS" "$JAR"
+  destructive: false
+  source: https://spark.apache.org/docs/latest/running-on-yarn.html
+  verified: docs
+- id: spark.yarn.max_attempts
+  group: yarn
+  intents:
+  - submit {APP_PY} to yarn and don't retry on failure
+  - only one application attempt on yarn
+  - disable yarn am retries for spark
+  - fail fast without a second attempt
+  vars:
+  - name: APP_PY
+    default: app.py
+    samples: [jobs/daily_orders.py, etl/load_events.py, main.py]
+    ctx: local_file
+  body: spark-submit --master yarn --deploy-mode cluster --conf spark.yarn.maxAppAttempts=1 "$APP_PY"
+  destructive: false
+  source: https://spark.apache.org/docs/latest/running-on-yarn.html
+  verified: docs
+- id: spark.yarn.app_list
+  group: yarn
+  intents:
+  - list running yarn applications
+  - show spark jobs running on yarn
+  - what's running on the cluster right now
+  - yarn application list running
+  vars: []
+  body: yarn application -list -appStates RUNNING
+  destructive: false
+  source: https://hadoop.apache.org/docs/stable/hadoop-yarn/hadoop-yarn-site/YarnCommands.html
+  verified: docs
+- id: spark.yarn.app_list_spark
+  group: yarn
+  intents:
+  - list only spark applications on yarn
+  - show yarn apps of type spark
+  - filter yarn application list to spark
+  - which spark apps are on yarn
+  vars: []
+  body: yarn application -list -appTypes SPARK
+  destructive: false
+  source: https://hadoop.apache.org/docs/stable/hadoop-yarn/hadoop-yarn-site/YarnCommands.html
+  verified: docs
+- id: spark.yarn.app_failed
+  group: yarn
+  intents:
+  - show failed and killed yarn applications
+  - which yarn jobs failed recently
+  - list failed spark apps on yarn
+  - yarn apps that didn't finish
+  vars: []
+  body: yarn application -list -appStates FAILED,KILLED
+  destructive: false
+  source: https://hadoop.apache.org/docs/stable/hadoop-yarn/hadoop-yarn-site/YarnCommands.html
+  verified: docs
+- id: spark.yarn.app_status
+  group: yarn
+  intents:
+  - status of yarn application {APP_ID}
+  - check progress and final state of a yarn app
+  - yarn application status
+  - is my spark job still running on yarn
+  vars:
+  - name: APP_ID
+    default: <application-id>
+    samples: [application_1764000000000_0042, application_1731000000000_1187]
+  body: yarn application -status "$APP_ID"
+  destructive: false
+  source: https://hadoop.apache.org/docs/stable/hadoop-yarn/hadoop-yarn-site/YarnCommands.html
+  verified: docs
+- id: spark.yarn.app_kill
+  group: yarn
+  intents:
+  - kill yarn application {APP_ID}
+  - stop a running spark job on yarn
+  - yarn application kill
+  - terminate a stuck spark app
+  vars:
+  - name: APP_ID
+    default: <application-id>
+    samples: [application_1764000000000_0042, application_1731000000000_1187]
+  body: yarn application -kill "$APP_ID"
+  destructive: true
+  source: https://hadoop.apache.org/docs/stable/hadoop-yarn/hadoop-yarn-site/YarnCommands.html
+  verified: docs
+- id: spark.yarn.logs
+  group: yarn
+  intents:
+  - show logs of yarn application {APP_ID}
+  - fetch aggregated driver and executor logs
+  - yarn logs for my spark job
+  - read spark container logs after the job finished
+  vars:
+  - name: APP_ID
+    default: <application-id>
+    samples: [application_1764000000000_0042, application_1731000000000_1187]
+  body: yarn logs -applicationId "$APP_ID" | less
+  destructive: false
+  source: https://hadoop.apache.org/docs/stable/hadoop-yarn/hadoop-yarn-site/YarnCommands.html
+  verified: docs
+- id: spark.yarn.logs_errors
+  group: yarn
+  intents:
+  - find errors in the logs of {APP_ID}
+  - grep yarn logs for exceptions
+  - why did my spark job fail, show exceptions from the logs
+  - search aggregated logs for errors
+  vars:
+  - name: APP_ID
+    default: <application-id>
+    samples: [application_1764000000000_0042, application_1731000000000_1187]
+  body: yarn logs -applicationId "$APP_ID" | grep -iE 'error|exception' | head -50
+  destructive: false
+  source: https://hadoop.apache.org/docs/stable/hadoop-yarn/hadoop-yarn-site/YarnCommands.html
+  verified: docs
+- id: spark.k8s.submit
+  group: kubernetes
+  intents:
+  - submit {APP} to kubernetes at {K8S_API} using image {IMAGE}
+  - run spark on k8s in cluster mode
+  - spark-submit to a kubernetes cluster
+  - launch a spark driver pod
+  vars:
+  - name: K8S_API
+    default: k8s://https://k8s-api.example.com:6443
+    samples: ['k8s://https://10.0.0.1:443', 'k8s://https://127.0.0.1:6443']
+  - name: IMAGE
+    default: apache/spark:4.0.1
+    samples: ['example.com/data/spark-py:1.4.0', 'registry.example.com/spark:4.0.1-python3']
+  - name: APP
+    default: local:///opt/spark/work-dir/app.py
+    samples: ['local:///opt/app/jobs/etl.py', 's3a://my-bucket/jobs/main.py']
+  body: spark-submit --master "$K8S_API" --deploy-mode cluster --name spark-job --conf spark.kubernetes.container.image="$IMAGE" "$APP"
+  destructive: false
+  source: https://spark.apache.org/docs/latest/running-on-kubernetes.html
+  verified: docs
+- id: spark.k8s.submit_ns
+  group: kubernetes
+  intents:
+  - submit {APP} to kubernetes namespace {NAMESPACE} with service account spark
+  - spark on k8s with namespace and driver service account
+  - run spark job in a specific k8s namespace
+  - k8s spark submit with rbac service account
+  vars:
+  - name: K8S_API
+    default: k8s://https://k8s-api.example.com:6443
+    samples: ['k8s://https://10.0.0.1:443', 'k8s://https://127.0.0.1:6443']
+  - name: NAMESPACE
+    default: spark
+    samples: [data-eng, spark-jobs, default]
+    ctx: k8s_namespace
+  - name: IMAGE
+    default: apache/spark:4.0.1
+    samples: ['example.com/data/spark-py:1.4.0', 'registry.example.com/spark:4.0.1-python3']
+  - name: APP
+    default: local:///opt/spark/work-dir/app.py
+    samples: ['local:///opt/app/jobs/etl.py']
+  body: spark-submit --master "$K8S_API" --deploy-mode cluster --conf spark.kubernetes.namespace="$NAMESPACE" --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark --conf spark.kubernetes.container.image="$IMAGE" "$APP"
+  destructive: false
+  source: https://spark.apache.org/docs/latest/running-on-kubernetes.html
+  verified: docs
+- id: spark.k8s.status
+  group: kubernetes
+  intents:
+  - status of spark driver {DRIVER_POD} in {NAMESPACE}
+  - check a spark on k8s submission
+  - spark-submit --status on kubernetes
+  - is my kubernetes spark job done
+  vars:
+  - name: NAMESPACE
+    default: spark
+    samples: [data-eng, spark-jobs, default]
+    ctx: k8s_namespace
+  - name: DRIVER_POD
+    default: spark-job-driver
+    samples: [daily-orders-1764000000000-driver]
+  - name: K8S_API
+    default: k8s://https://k8s-api.example.com:6443
+    samples: ['k8s://https://10.0.0.1:443', 'k8s://https://127.0.0.1:6443']
+  body: spark-submit --status "$NAMESPACE:$DRIVER_POD" --master "$K8S_API"
+  destructive: false
+  source: https://spark.apache.org/docs/latest/running-on-kubernetes.html
+  verified: docs
+- id: spark.k8s.kill
+  group: kubernetes
+  intents:
+  - kill spark driver {DRIVER_POD} in {NAMESPACE}
+  - stop a spark job running on kubernetes
+  - spark-submit --kill on k8s
+  - terminate the kubernetes spark application
+  vars:
+  - name: NAMESPACE
+    default: spark
+    samples: [data-eng, spark-jobs, default]
+    ctx: k8s_namespace
+  - name: DRIVER_POD
+    default: spark-job-driver
+    samples: [daily-orders-1764000000000-driver]
+  - name: K8S_API
+    default: k8s://https://k8s-api.example.com:6443
+    samples: ['k8s://https://10.0.0.1:443', 'k8s://https://127.0.0.1:6443']
+  body: spark-submit --kill "$NAMESPACE:$DRIVER_POD" --master "$K8S_API"
+  destructive: true
+  source: https://spark.apache.org/docs/latest/running-on-kubernetes.html
+  verified: docs
+- id: spark.standalone.submit
+  group: standalone
+  intents:
+  - submit {APP_PY} to the standalone master {MASTER_URL} with {TOTAL_CORES} total cores
+  - run on a spark standalone cluster
+  - spark-submit to spark://
+  - cap the total cores my job takes on standalone
+  vars:
+  - name: MASTER_URL
+    default: spark://spark-master.example.com:7077
+    samples: ['spark://10.0.0.5:7077', 'spark://localhost:7077']
+  - name: TOTAL_CORES
+    default: '16'
+    samples: ['8', '32']
+  - name: APP_PY
+    default: app.py
+    samples: [jobs/daily_orders.py, etl/load_events.py, main.py]
+    ctx: local_file
+  body: spark-submit --master "$MASTER_URL" --total-executor-cores "$TOTAL_CORES" "$APP_PY"
+  destructive: false
+  source: https://spark.apache.org/docs/latest/spark-standalone.html
+  verified: docs
+- id: spark.standalone.supervise
+  group: standalone
+  intents:
+  - submit {JAR} to standalone cluster mode and restart the driver on failure
+  - supervised spark driver on a standalone cluster
+  - spark-submit --supervise
+  - keep a streaming driver alive automatically
+  vars:
+  - name: MASTER_URL
+    default: spark://spark-master.example.com:7077
+    samples: ['spark://10.0.0.5:7077', 'spark://localhost:7077']
+  - name: CLASS
+    default: com.example.etl.Main
+    samples: [com.example.OrdersJob, org.example.DailyAggregates]
+  - name: JAR
+    default: target/scala-2.13/etl-assembly-1.0.jar
+    samples: [build/libs/orders-job-all.jar, jobs/spark-etl.jar]
+    ctx: local_file
+  body: spark-submit --master "$MASTER_URL" --deploy-mode cluster --supervise --class "$CLASS" "$JAR"
+  destructive: false
+  source: https://spark.apache.org/docs/latest/spark-standalone.html
+  verified: docs
+- id: spark.standalone.worker
+  group: standalone
+  intents:
+  - start a spark standalone worker attached to {MASTER_URL}
+  - run a spark worker in the foreground with spark-class
+  - join this machine to a standalone spark master
+  - spark-class worker
+  vars:
+  - name: MASTER_URL
+    default: spark://spark-master.example.com:7077
+    samples: ['spark://10.0.0.5:7077', 'spark://localhost:7077']
+  body: spark-class org.apache.spark.deploy.worker.Worker "$MASTER_URL"
+  destructive: false
+  source: https://spark.apache.org/docs/latest/spark-standalone.html
+  verified: docs
+- id: spark.sql.e
+  group: sql
+  intents:
+  - run the query {QUERY} with spark-sql
+  - execute a sql statement from the command line with spark
+  - spark-sql -e
+  - one-off spark sql query in the terminal
+  vars:
+  - name: QUERY
+    default: SELECT count(*) FROM orders
+    samples: [SHOW TABLES, SELECT * FROM events LIMIT 10, DESCRIBE TABLE sales]
+  body: spark-sql -e "$QUERY"
+  destructive: false
+  source: https://github.com/apache/spark/blob/master/sql/hive-thriftserver/src/main/scala/org/apache/spark/sql/hive/thriftserver/SparkSQLCLIDriver.scala
+  verified: help
+- id: spark.sql.f_conf
+  group: sql
+  intents:
+  - run the sql file {SQL_FILE} with spark-sql and {N} shuffle partitions
+  - execute a spark sql script with custom conf
+  - spark-sql -f with --conf
+  - run a .sql file on spark
+  vars:
+  - name: N
+    default: '200'
+    samples: ['64', '400']
+  - name: SQL_FILE
+    default: transform.sql
+    samples: [queries/daily_agg.sql, build_marts.sql]
+    ctx: local_file
+  body: spark-sql --conf spark.sql.shuffle.partitions="$N" -f "$SQL_FILE"
+  destructive: false
+  source: https://github.com/apache/spark/blob/master/sql/hive-thriftserver/src/main/scala/org/apache/spark/sql/hive/thriftserver/SparkSQLCLIDriver.scala
+  verified: help
+- id: spark.sql.hivevar
+  group: sql
+  intents:
+  - run {SQL_FILE} with spark-sql setting run_date to {RUN_DATE}
+  - pass a variable into a spark sql script
+  - spark-sql hivevar substitution
+  - parameterize a spark sql file with a date
+  vars:
+  - name: RUN_DATE
+    default: '2026-11-25'
+    samples: ['2026-01-01', '2026-06-30']
+  - name: SQL_FILE
+    default: daily.sql
+    samples: [queries/backfill.sql]
+    ctx: local_file
+  body: spark-sql --hivevar run_date="$RUN_DATE" -f "$SQL_FILE"
+  destructive: false
+  source: https://github.com/apache/spark/blob/master/sql/hive-thriftserver/src/main/scala/org/apache/spark/sql/hive/thriftserver/SparkSQLCLIDriver.scala
+  verified: help
+- id: spark.sql.silent_head
+  group: sql
+  intents:
+  - quietly run {QUERY} in spark-sql and show the first rows
+  - spark-sql without log noise, just results
+  - silent spark sql query piped to head
+  - get only the output of a spark sql query
+  vars:
+  - name: QUERY
+    default: SELECT * FROM orders
+    samples: [SELECT * FROM events, SHOW DATABASES]
+  body: spark-sql -S -e "$QUERY" | head -20
+  destructive: false
+  source: https://github.com/apache/spark/blob/master/sql/hive-thriftserver/src/main/scala/org/apache/spark/sql/hive/thriftserver/SparkSQLCLIDriver.scala
+  verified: help
+- id: spark.pyspark.local
+  group: shell
+  intents:
+  - open a pyspark shell
+  - start interactive pyspark locally
+  - pyspark repl with all cores
+  - launch the python spark shell
+  vars: []
+  body: pyspark --master "local[*]"
+  destructive: false
+  source: https://spark.apache.org/docs/latest/submitting-applications.html
+  verified: docs
+- id: spark.pyspark.kafka
+  group: shell
+  intents:
+  - open pyspark with the kafka connector for spark {SPARK_VERSION}
+  - pyspark shell with packages
+  - interactive pyspark that can read kafka
+  - start pyspark with spark-sql-kafka
+  vars:
+  - name: SPARK_VERSION
+    default: 4.0.1
+    samples: [4.1.1, 4.3.0, 3.5.6]
+  body: pyspark --packages org.apache.spark:spark-sql-kafka-0-10_2.13:"$SPARK_VERSION"
+  destructive: false
+  source: https://spark.apache.org/docs/latest/streaming/structured-streaming-kafka-integration.html
+  verified: docs
+- id: spark.pyspark.delta
+  group: shell
+  intents:
+  - open pyspark with delta lake
+  - pyspark shell that can read delta tables
+  - interactive delta lake session
+  - start pyspark with the delta package
+  vars: []
+  body: pyspark --packages io.delta:delta-spark_2.13:4.0.0 --conf spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension --conf spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog
+  destructive: false
+  source: https://docs.delta.io/latest/quick-start.html
+  verified: docs
+- id: spark.pyspark.driver_mem
+  group: shell
+  intents:
+  - open pyspark with {DRIVER_MEM} driver memory
+  - pyspark shell keeps running out of memory, give it more
+  - start pyspark with a bigger driver
+  - interactive pyspark with more ram
+  vars:
+  - name: DRIVER_MEM
+    default: 2g
+    samples: [4g, 8g]
+  body: pyspark --driver-memory "$DRIVER_MEM"
+  destructive: false
+  source: https://github.com/apache/spark/blob/master/launcher/src/main/java/org/apache/spark/launcher/SparkSubmitOptionParser.java
+  verified: help
+- id: spark.shell.local
+  group: shell
+  intents:
+  - open the scala spark shell
+  - start spark-shell locally
+  - scala repl for spark
+  - launch spark-shell with all cores
+  vars: []
+  body: spark-shell --master "local[*]"
+  destructive: false
+  source: https://spark.apache.org/docs/latest/submitting-applications.html
+  verified: docs
+- id: spark.shell.jars
+  group: shell
+  intents:
+  - open spark-shell with jar {JARS} on the classpath
+  - scala spark shell with an extra jar
+  - spark-shell --jars
+  - load my library jar into the spark shell
+  vars:
+  - name: JARS
+    default: target/scala-2.13/mylib_2.13-0.1.jar
+    samples: [postgresql-42.7.4.jar]
+    ctx: local_file
+  body: spark-shell --jars "$JARS"
+  destructive: false
+  source: https://spark.apache.org/docs/latest/submitting-applications.html
+  verified: docs
+- id: spark.history.start
+  group: history
+  intents:
+  - start the spark history server
+  - launch the history ui for finished spark apps
+  - start-history-server.sh
+  - bring up the spark history server on port 18080
+  vars: []
+  body: start-history-server.sh
+  destructive: false
+  source: https://spark.apache.org/docs/latest/monitoring.html
+  verified: docs
+- id: spark.history.stop
+  group: history
+  intents:
+  - stop the spark history server
+  - shut down the spark history ui
+  - stop-history-server.sh
+  - turn off the history server
+  vars: []
+  body: stop-history-server.sh
+  destructive: false
+  source: https://spark.apache.org/docs/latest/monitoring.html
+  verified: docs
+- id: spark.connect.start
+  group: connect
+  intents:
+  - start a spark connect server
+  - launch spark connect so clients can attach remotely
+  - run start-connect-server.sh
+  - bring up a spark connect endpoint
+  vars: []
+  body: start-connect-server.sh
+  destructive: false
+  source: https://spark.apache.org/docs/latest/spark-connect-overview.html
+  verified: docs
+- id: spark.connect.pyspark
+  group: connect
+  intents:
+  - connect pyspark to the spark connect server at {REMOTE}
+  - open a pyspark shell against spark connect
+  - pyspark --remote
+  - use spark connect from my laptop
+  vars:
+  - name: REMOTE
+    default: sc://localhost:15002
+    samples: ['sc://spark-connect.example.com:15002', 'sc://10.0.0.8:15002']
+  body: pyspark --remote "$REMOTE"
+  destructive: false
+  source: https://spark.apache.org/docs/latest/spark-connect-overview.html
+  verified: docs

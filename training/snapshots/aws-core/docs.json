@@ -1,0 +1,26 @@
+{
+ "https://github.com/aws/aws-cli/blob/v2/awscli/customizations/configure/configure.py": {
+  "sha256": "38c761154052696b03f30341576dd5f874301ce63bfd785d1e258dc9800652e2",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/aws/aws-cli/blob/v2/awscli/customizations/configure/listprofiles.py": {
+  "sha256": "c54caddaf1939cb9ab1c230dd3fdf164ef31acd60bac87efc0006aec1315b400",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/aws/aws-cli/blob/v2/awscli/customizations/configure/exportcreds.py": {
+  "sha256": "6755804719174d312e6ee04c5dec4a77cc727ad51b0977690be10c8adff6885e",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/aws/aws-cli/blob/v2/awscli/customizations/sso/login.py": {
+  "sha256": "32ab48cd321a644c55b9005d981eee543dff9bfbfd786c770a1d39d7e0783fe5",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/aws/aws-cli/blob/v2/awscli/customizations/logs/tail.py": {
+  "sha256": "71e0b198872378816f764ead9c1bc57f25c27e694b04dfbea059f56925819cee",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/aws/aws-cli/blob/v2/awscli/data/cli.json": {
+  "sha256": "127682e38a377ed1dc29c81aaec7d8af9faf2f493229b576947f1f4efa0b93d4",
+  "fetched": "2026-11-26"
+ }
+}

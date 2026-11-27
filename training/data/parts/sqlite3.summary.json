@@ -1,0 +1,12 @@
+{
+ "templates": 10,
+ "pairs": 79,
+ "dropped_templates": {},
+ "versions_pinned": [],
+ "versions_checked": [],
+ "per_version_status": {
+  "None": {
+   "ok": 79
+  }
+ }
+}

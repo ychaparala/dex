@@ -1,0 +1,14 @@
+{
+ "https://github.com/mysql/mysql-server/blob/trunk/client/mysql.cc": {
+  "sha256": "51b3eb408c8472721eb974f16b3313547eda5ac79c7b5e5e21e410fd6017ce0f",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/mysql/mysql-server/blob/trunk/client/mysqldump.cc": {
+  "sha256": "25f23fdc9e86bf027e034aca29664602cff7d974f1e2f057e093e4d6677d7fa4",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/Homebrew/homebrew-core/blob/HEAD/Formula/m/mysql-client.rb": {
+  "sha256": "9ee1c2756902142675961ab4d7379b566e73f310145063da18fd15d6872de886",
+  "fetched": "2026-11-26"
+ }
+}

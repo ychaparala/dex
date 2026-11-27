@@ -1,0 +1,366 @@
+tool: rpk
+binaries: [rpk]
+category: streaming
+priority: standard
+target_pairs: 100
+version_note: Redpanda rpk 25.x/26.x; works against any Kafka-API cluster for topic/group commands
+version_cmd: rpk version
+version_label: rpk
+versions:
+- {version: "26.2.2", install: "go:github.com/redpanda-data/redpanda@v26.2.2 (src/go/rpk ./cmd/rpk)"}
+install:
+- macos: ["brew install redpanda-data/tap/redpanda"]
+  source: ["https://docs.redpanda.com/current/get-started/rpk-install/"]
+sources:
+- url: https://docs.redpanda.com/current/get-started/rpk-install/
+  license: vendor docs, all rights reserved; facts only
+- url: https://github.com/redpanda-data/redpanda/tree/dev/src/go/rpk/pkg/cli/topic
+  license: Business Source License 1.1 (repo); facts only
+- url: https://github.com/redpanda-data/redpanda/tree/dev/src/go/rpk/pkg/cli/group
+  license: Business Source License 1.1 (repo); facts only
+- url: https://github.com/redpanda-data/redpanda/tree/dev/src/go/rpk/pkg/cli/cluster
+  license: Business Source License 1.1 (repo); facts only
+- url: https://github.com/redpanda-data/redpanda/tree/dev/src/go/rpk/pkg/cli/container
+  license: Business Source License 1.1 (repo); facts only
+- url: https://github.com/redpanda-data/redpanda/tree/dev/src/go/rpk/pkg/cli/profile
+  license: Business Source License 1.1 (repo); facts only
+destructive_patterns:
+- \brpk\s+topic\s+delete\b
+- \brpk\s+group\s+(delete|seek)\b
+- \brpk\s+container\s+purge\b
+templates:
+- id: rpk.install.brew
+  group: setup
+  intents:
+  - install rpk with homebrew
+  - brew install the redpanda cli
+  - get rpk on macos
+  - set up redpanda rpk
+  vars: []
+  body: brew install redpanda-data/tap/redpanda
+  destructive: false
+  source: https://docs.redpanda.com/current/get-started/rpk-install/
+  verified: docs
+- id: rpk.version
+  group: setup
+  intents:
+  - what rpk version do i have
+  - check redpanda cli version
+  - rpk version
+  - print the installed rpk version
+  vars: []
+  body: rpk --version
+  destructive: false
+  source: https://docs.redpanda.com/current/get-started/rpk-install/
+  verified: docs
+- id: rpk.profile.create
+  group: setup
+  intents:
+  - create an rpk profile {NAME} pointing at {BOOTSTRAP}
+  - save broker addresses in an rpk profile
+  - configure rpk to talk to my cluster
+  - rpk profile create with brokers
+  vars:
+  - name: NAME
+    default: dev
+    samples: [staging, local, prod-ro]
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'redpanda.internal.example.com:9092', 'localhost:19092']
+    ctx: kafka_bootstrap
+  body: rpk profile create "$NAME" --set kafka_api.brokers="$BOOTSTRAP"
+  destructive: false
+  source: https://github.com/redpanda-data/redpanda/tree/dev/src/go/rpk/pkg/cli/profile
+  verified: source
+- id: rpk.container.start
+  group: local
+  intents:
+  - start a local redpanda cluster in docker
+  - spin up redpanda with rpk container
+  - run a single node redpanda for testing
+  - rpk container start
+  vars: []
+  body: rpk container start -n 1
+  destructive: false
+  source: https://github.com/redpanda-data/redpanda/tree/dev/src/go/rpk/pkg/cli/container
+  verified: source
+- id: rpk.container.purge
+  group: local
+  intents:
+  - stop and remove the local rpk redpanda containers
+  - tear down the rpk container cluster
+  - delete the local redpanda docker cluster
+  - rpk container purge
+  vars: []
+  body: rpk container purge
+  destructive: true
+  source: https://github.com/redpanda-data/redpanda/tree/dev/src/go/rpk/pkg/cli/container
+  verified: source
+- id: rpk.cluster.info
+  group: cluster
+  intents:
+  - show redpanda cluster info
+  - list brokers and topics with rpk
+  - rpk cluster info
+  - what brokers are in this cluster
+  vars: []
+  body: rpk cluster info
+  destructive: false
+  source: https://github.com/redpanda-data/redpanda/tree/dev/src/go/rpk/pkg/cli/cluster
+  verified: source
+- id: rpk.cluster.health
+  group: cluster
+  intents:
+  - is the redpanda cluster healthy
+  - check redpanda cluster health
+  - rpk health check
+  - any down nodes or leaderless partitions
+  vars: []
+  body: rpk cluster health
+  destructive: false
+  source: https://github.com/redpanda-data/redpanda/tree/dev/src/go/rpk/pkg/cli/cluster
+  verified: source
+- id: rpk.topic.list
+  group: topics
+  intents:
+  - list topics with rpk on {BOOTSTRAP}
+  - show redpanda topics
+  - rpk topic list
+  - what topics are on the cluster
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'redpanda.internal.example.com:9092', 'localhost:19092']
+    ctx: kafka_bootstrap
+  body: rpk topic list -X brokers="$BOOTSTRAP"
+  destructive: false
+  source: https://github.com/redpanda-data/redpanda/tree/dev/src/go/rpk/pkg/cli/topic
+  verified: source
+- id: rpk.topic.create
+  group: topics
+  intents:
+  - create topic {TOPIC} with {PARTITIONS} partitions using rpk
+  - make a new redpanda topic
+  - rpk topic create with partitions and replicas
+  - add a topic with rpk
+  vars:
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  - name: PARTITIONS
+    default: '6'
+    samples: ['3', '12']
+  - name: REPLICAS
+    default: '3'
+    samples: ['1']
+  body: rpk topic create "$TOPIC" -p "$PARTITIONS" -r "$REPLICAS"
+  destructive: false
+  source: https://github.com/redpanda-data/redpanda/tree/dev/src/go/rpk/pkg/cli/topic
+  verified: source
+- id: rpk.topic.create_compacted
+  group: topics
+  intents:
+  - create a compacted topic {TOPIC} with rpk
+  - rpk topic with cleanup.policy compact
+  - make a log compacted redpanda topic
+  - new compacted topic
+  vars:
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: rpk topic create "$TOPIC" -c cleanup.policy=compact
+  destructive: false
+  source: https://github.com/redpanda-data/redpanda/tree/dev/src/go/rpk/pkg/cli/topic
+  verified: source
+- id: rpk.topic.describe
+  group: topics
+  intents:
+  - describe topic {TOPIC} with rpk
+  - show topic configs and partitions
+  - rpk topic describe
+  - inspect a redpanda topic
+  vars:
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: rpk topic describe "$TOPIC"
+  destructive: false
+  source: https://github.com/redpanda-data/redpanda/tree/dev/src/go/rpk/pkg/cli/topic
+  verified: source
+- id: rpk.topic.alter_retention
+  group: topics
+  intents:
+  - set retention.ms on {TOPIC} to {RETENTION_MS} with rpk
+  - change topic retention in redpanda
+  - rpk alter topic config
+  - update how long a topic keeps data
+  vars:
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  - name: RETENTION_MS
+    default: '604800000'
+    samples: ['86400000', '259200000']
+  body: rpk topic alter-config "$TOPIC" --set retention.ms="$RETENTION_MS"
+  destructive: false
+  source: https://github.com/redpanda-data/redpanda/tree/dev/src/go/rpk/pkg/cli/topic
+  verified: source
+- id: rpk.topic.add_partitions
+  group: topics
+  intents:
+  - add {NUM} partitions to {TOPIC} with rpk
+  - increase the partition count of a redpanda topic
+  - rpk add partitions
+  - grow a topic's partitions
+  vars:
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  - name: NUM
+    default: '3'
+    samples: ['6', '12']
+  body: rpk topic add-partitions "$TOPIC" --num "$NUM"
+  destructive: false
+  source: https://github.com/redpanda-data/redpanda/tree/dev/src/go/rpk/pkg/cli/topic
+  verified: source
+- id: rpk.topic.delete
+  group: topics
+  intents:
+  - delete topic {TOPIC} with rpk
+  - remove a redpanda topic
+  - rpk topic delete
+  - drop this topic
+  vars:
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: rpk topic delete "$TOPIC"
+  destructive: true
+  source: https://github.com/redpanda-data/redpanda/tree/dev/src/go/rpk/pkg/cli/topic
+  verified: source
+- id: rpk.topic.consume
+  group: consume
+  intents:
+  - read the first {N} messages of {TOPIC} with rpk
+  - consume from the start with rpk
+  - rpk consume a few messages
+  - peek at a topic using rpk
+  vars:
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  - name: N
+    default: '10'
+    samples: ['1', '100']
+  body: rpk topic consume "$TOPIC" -o start -n "$N"
+  destructive: false
+  source: https://github.com/redpanda-data/redpanda/tree/dev/src/go/rpk/pkg/cli/topic
+  verified: source
+- id: rpk.topic.consume_format
+  group: consume
+  intents:
+  - consume {TOPIC} printing key and value with rpk
+  - rpk consume with a custom format
+  - show key and value of each message on one line
+  - rpk print keys
+  vars:
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: rpk topic consume "$TOPIC" -o start -f '%k\t%v\n'
+  destructive: false
+  source: https://github.com/redpanda-data/redpanda/tree/dev/src/go/rpk/pkg/cli/topic
+  verified: source
+- id: rpk.topic.consume_group
+  group: consume
+  intents:
+  - consume {TOPIC} as group {GROUP} with rpk
+  - rpk consume with a consumer group
+  - read a topic and commit offsets for a group
+  - join consumer group using rpk
+  vars:
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  - name: GROUP
+    default: orders-consumer
+    samples: [billing-service, etl-loader]
+  body: rpk topic consume "$TOPIC" -g "$GROUP"
+  destructive: false
+  source: https://github.com/redpanda-data/redpanda/tree/dev/src/go/rpk/pkg/cli/topic
+  verified: source
+- id: rpk.topic.produce
+  group: produce
+  intents:
+  - produce messages to {TOPIC} with rpk
+  - send lines to a redpanda topic
+  - rpk produce
+  - open a producer with rpk
+  vars:
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: rpk topic produce "$TOPIC"
+  destructive: false
+  source: https://github.com/redpanda-data/redpanda/tree/dev/src/go/rpk/pkg/cli/topic
+  verified: source
+- id: rpk.topic.produce_key
+  group: produce
+  intents:
+  - produce to {TOPIC} with key {KEY} using rpk
+  - send messages with a fixed key
+  - rpk produce with key
+  - write records that all share one key
+  vars:
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  - name: KEY
+    default: customer-42
+    samples: [order-1, tenant-a]
+  body: rpk topic produce "$TOPIC" -k "$KEY"
+  destructive: false
+  source: https://github.com/redpanda-data/redpanda/tree/dev/src/go/rpk/pkg/cli/topic
+  verified: source
+- id: rpk.group.list
+  group: consumer-groups
+  intents:
+  - list consumer groups with rpk
+  - show redpanda consumer groups
+  - rpk group list
+  - what groups exist
+  vars: []
+  body: rpk group list
+  destructive: false
+  source: https://github.com/redpanda-data/redpanda/tree/dev/src/go/rpk/pkg/cli/group
+  verified: source
+- id: rpk.group.describe
+  group: consumer-groups
+  intents:
+  - describe consumer group {GROUP} with rpk
+  - show lag for a group using rpk
+  - rpk group lag
+  - how far behind is this consumer group
+  vars:
+  - name: GROUP
+    default: orders-consumer
+    samples: [billing-service, etl-loader]
+  body: rpk group describe "$GROUP"
+  destructive: false
+  source: https://github.com/redpanda-data/redpanda/tree/dev/src/go/rpk/pkg/cli/group
+  verified: source
+- id: rpk.group.seek_start
+  group: consumer-groups
+  intents:
+  - rewind consumer group {GROUP} to the start with rpk
+  - reset a group to the earliest offsets using rpk
+  - rpk group seek to start
+  - make the group reprocess from the beginning
+  vars:
+  - name: GROUP
+    default: orders-consumer
+    samples: [billing-service, etl-loader]
+  body: rpk group seek "$GROUP" --to start
+  destructive: true
+  source: https://github.com/redpanda-data/redpanda/tree/dev/src/go/rpk/pkg/cli/group
+  verified: source

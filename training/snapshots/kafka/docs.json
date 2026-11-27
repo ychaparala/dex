@@ -1,0 +1,50 @@
+{
+ "https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/TopicCommand.java": {
+  "sha256": "c384b37cdd7abfaba6db9c432f47d4c95cfb3cdd280c779bfa34f0e39be4ed83",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/consumer/ConsoleConsumerOptions.java": {
+  "sha256": "687246121671e10e41595fcf5551e7fce87f53295a403573ad07a9956b53161a",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/consumer/DefaultMessageFormatter.java": {
+  "sha256": "21fe351c28f25322dcd9740c27d022ef75c570ea3f78bdf52da28a69d0ee12de",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/ConsoleProducer.java": {
+  "sha256": "04f68e28ae7125494b7e4633b5c5939b3c49a230e8dbc146d4e12b613c329d9a",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/LineMessageReader.java": {
+  "sha256": "7f3ff9b9fe9016e36bc192a4d5ee7d103370e97870f861527040d3cff75136e0",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/consumer/group/ConsumerGroupCommandOptions.java": {
+  "sha256": "76d5c0d676bd7c53aed415513296488ab57e71cb27ea1ceace4617bf77154dcc",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/consumer/group/ConsumerGroupCommand.java": {
+  "sha256": "5fdb0e633aa42eb535755d1c1fd76211bdf27c2ea9d5e905e632dc208c6c9615",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/ConfigCommand.java": {
+  "sha256": "712ef104ad29928552791bd0a4299bb0862eb2426e1e0d7c46db1f0e031cf47b",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/GetOffsetShell.java": {
+  "sha256": "a2d92239f019b92bc5506efe62ba932cb448d08d6dc477765aa05c827b38768a",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/LogDirsCommand.java": {
+  "sha256": "131953a324f910f5c741664f2dccdc924744495a4dc7de49f54d3fd011c08d81",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/MetadataQuorumCommand.java": {
+  "sha256": "75f0bde2d72300312db244ee9363908deda8bb7a78ac2eee0ee762866175bcc3",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/apache/kafka/blob/trunk/core/src/main/scala/kafka/tools/StorageTool.scala": {
+  "sha256": "251f27354f03951ab5104dffe98464df7697f5ba96736e38d8b0dc9199d2e0df",
+  "fetched": "2026-11-26"
+ }
+}

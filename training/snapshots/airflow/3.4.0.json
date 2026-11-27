@@ -1,0 +1,1084 @@
+{
+"airflow": [
+"--help",
+"-h"
+],
+"airflow api-server": [
+"--apps",
+"--daemon",
+"--dev",
+"--help",
+"--host",
+"--log-config",
+"--log-file",
+"--pid",
+"--port",
+"--proxy-headers",
+"--ssl-ca-file",
+"--ssl-cert",
+"--ssl-cert-reqs",
+"--ssl-ciphers",
+"--ssl-key",
+"--stderr",
+"--stdout",
+"--worker-timeout",
+"--workers",
+"-D",
+"-H",
+"-d",
+"-h",
+"-l",
+"-p",
+"-t",
+"-w"
+],
+"airflow assets": [
+"--help",
+"-h"
+],
+"airflow assets details": [
+"--alias",
+"--help",
+"--name",
+"--output",
+"--uri",
+"--verbose",
+"-h",
+"-o",
+"-v"
+],
+"airflow assets list": [
+"--alias",
+"--columns",
+"--help",
+"--output",
+"--verbose",
+"-h",
+"-o",
+"-v"
+],
+"airflow assets materialize": [
+"--help",
+"--name",
+"--output",
+"--uri",
+"--verbose",
+"-h",
+"-o",
+"-v"
+],
+"airflow backfill": [
+"--help",
+"-h"
+],
+"airflow backfill create": [
+"--dag-id",
+"--dag-run-conf",
+"--dry-run",
+"--from-date",
+"--help",
+"--max-active-runs",
+"--no-run-on-latest-version",
+"--reprocess-behavior",
+"--run-backwards",
+"--run-on-latest-version",
+"--to-date",
+"-h"
+],
+"airflow cheat-sheet": [
+"--help",
+"--verbose",
+"-h",
+"-v"
+],
+"airflow config": [
+"--help",
+"-h"
+],
+"airflow config get-value": [
+"--help",
+"--verbose",
+"-h",
+"-v"
+],
+"airflow config lint": [
+"--help",
+"--ignore-option",
+"--ignore-section",
+"--option",
+"--section",
+"--verbose",
+"-h",
+"-v"
+],
+"airflow config list": [
+"--color",
+"--comment-out-everything",
+"--defaults",
+"--exclude-providers",
+"--help",
+"--hide-sensitive",
+"--include-descriptions",
+"--include-env-vars",
+"--include-examples",
+"--include-sources",
+"--section",
+"--show-values",
+"--verbose",
+"-V",
+"-a",
+"-c",
+"-d",
+"-e",
+"-h",
+"-p",
+"-s",
+"-v"
+],
+"airflow config update": [
+"--all-recommendations",
+"--fix",
+"--help",
+"--ignore-option",
+"--ignore-section",
+"--option",
+"--section",
+"--verbose",
+"-h",
+"-v"
+],
+"airflow connections": [
+"--help",
+"-h"
+],
+"airflow connections add": [
+"--conn-description",
+"--conn-extra",
+"--conn-host",
+"--conn-json",
+"--conn-login",
+"--conn-password",
+"--conn-port",
+"--conn-schema",
+"--conn-type",
+"--conn-uri",
+"--help",
+"-h"
+],
+"airflow connections create-default-connections": [
+"--help",
+"--verbose",
+"-h",
+"-v"
+],
+"airflow connections delete": [
+"--color",
+"--help",
+"--verbose",
+"-h",
+"-v"
+],
+"airflow connections export": [
+"--file-format",
+"--format",
+"--help",
+"--serialization-format",
+"--verbose",
+"-h",
+"-v"
+],
+"airflow connections get": [
+"--color",
+"--help",
+"--output",
+"--verbose",
+"-h",
+"-o",
+"-v"
+],
+"airflow connections import": [
+"--help",
+"--overwrite",
+"--verbose",
+"-h",
+"-v"
+],
+"airflow connections list": [
+"--help",
+"--hide-sensitive",
+"--output",
+"--show-values",
+"--verbose",
+"-h",
+"-o",
+"-v"
+],
+"airflow connections test": [
+"--help",
+"--verbose",
+"-h",
+"-v"
+],
+"airflow dag-processor": [
+"--bundle-name",
+"--daemon",
+"--dev",
+"--help",
+"--log-file",
+"--num-runs",
+"--pid",
+"--stderr",
+"--stdout",
+"--verbose",
+"-B",
+"-D",
+"-d",
+"-h",
+"-l",
+"-n",
+"-v"
+],
+"airflow dags": [
+"--help",
+"-h"
+],
+"airflow dags clear": [
+"--help",
+"--only-failed",
+"--only-running",
+"--partition-date-end",
+"--partition-date-start",
+"--partition-key",
+"--run-id",
+"--verbose",
+"--yes",
+"-f",
+"-h",
+"-r",
+"-v",
+"-y"
+],
+"airflow dags delete": [
+"--help",
+"--verbose",
+"--yes",
+"-h",
+"-v",
+"-y"
+],
+"airflow dags details": [
+"--help",
+"--output",
+"--verbose",
+"-h",
+"-o",
+"-v"
+],
+"airflow dags list": [
+"--bundle-name",
+"--columns",
+"--help",
+"--local",
+"--output",
+"--verbose",
+"-B",
+"-h",
+"-l",
+"-o",
+"-v"
+],
+"airflow dags list-import-errors": [
+"--bundle-name",
+"--help",
+"--local",
+"--output",
+"--verbose",
+"-B",
+"-h",
+"-l",
+"-o",
+"-v"
+],
+"airflow dags list-jobs": [
+"--dag-id",
+"--help",
+"--limit",
+"--output",
+"--state",
+"--verbose",
+"-d",
+"-h",
+"-o",
+"-v"
+],
+"airflow dags list-runs": [
+"--end-date",
+"--help",
+"--limit",
+"--no-backfill",
+"--output",
+"--start-date",
+"--state",
+"--verbose",
+"-e",
+"-h",
+"-o",
+"-s",
+"-v"
+],
+"airflow dags next-execution": [
+"--field",
+"--help",
+"--num-executions",
+"--table",
+"--verbose",
+"-h",
+"-n",
+"-v"
+],
+"airflow dags pause": [
+"--help",
+"--output",
+"--treat-dag-id-as-regex",
+"--verbose",
+"--yes",
+"-h",
+"-o",
+"-v",
+"-y"
+],
+"airflow dags report": [
+"--bundle-name",
+"--help",
+"--output",
+"--verbose",
+"-B",
+"-h",
+"-o",
+"-v"
+],
+"airflow dags reserialize": [
+"--bundle-name",
+"--help",
+"--verbose",
+"-B",
+"-h",
+"-v"
+],
+"airflow dags show": [
+"--help",
+"--imgcat",
+"--save",
+"--verbose",
+"-h",
+"-s",
+"-v"
+],
+"airflow dags show-dependencies": [
+"--help",
+"--imgcat",
+"--save",
+"--verbose",
+"-h",
+"-s",
+"-v"
+],
+"airflow dags state": [
+"--help",
+"--verbose",
+"-h",
+"-v"
+],
+"airflow dags test": [
+"--bundle-name",
+"--conf",
+"--dagfile-path",
+"--help",
+"--imgcat-dagrun",
+"--mark-success-pattern",
+"--save-dagrun",
+"--show-dagrun",
+"--use-executor",
+"--verbose",
+"-B",
+"-c",
+"-f",
+"-h",
+"-v"
+],
+"airflow dags trigger": [
+"--conf",
+"--help",
+"--logical-date",
+"--no-replace-microseconds",
+"--output",
+"--run-id",
+"--verbose",
+"-c",
+"-h",
+"-l",
+"-o",
+"-r",
+"-v"
+],
+"airflow dags unpause": [
+"--help",
+"--output",
+"--treat-dag-id-as-regex",
+"--verbose",
+"--yes",
+"-h",
+"-o",
+"-v",
+"-y"
+],
+"airflow db": [
+"--help",
+"-h"
+],
+"airflow db check": [
+"--help",
+"--retry",
+"--retry-delay",
+"--verbose",
+"-h",
+"-v"
+],
+"airflow db check-migrations": [
+"--help",
+"--migration-wait-timeout",
+"--verbose",
+"-h",
+"-t",
+"-v"
+],
+"airflow db clean": [
+"--asset-ids",
+"--batch-size",
+"--clean-before-timestamp",
+"--dag-ids",
+"--dry-run",
+"--error-on-cleanup-failure",
+"--exclude-dag-ids",
+"--help",
+"--skip-archive",
+"--tables",
+"--verbose",
+"--yes",
+"-h",
+"-t",
+"-v",
+"-y"
+],
+"airflow db downgrade": [
+"--from-revision",
+"--from-version",
+"--help",
+"--show-sql-only",
+"--to-revision",
+"--to-version",
+"--verbose",
+"--yes",
+"-h",
+"-n",
+"-r",
+"-s",
+"-v",
+"-y"
+],
+"airflow db drop-archived": [
+"--help",
+"--tables",
+"--yes",
+"-h",
+"-t",
+"-y"
+],
+"airflow db export-archived": [
+"--drop-archives",
+"--export-format",
+"--help",
+"--output-path",
+"--tables",
+"--yes",
+"-h",
+"-t",
+"-y"
+],
+"airflow db migrate": [
+"--from-revision",
+"--from-version",
+"--help",
+"--show-sql-only",
+"--to-revision",
+"--to-version",
+"--use-migration-files",
+"--verbose",
+"-h",
+"-m",
+"-n",
+"-r",
+"-s",
+"-v"
+],
+"airflow db reset": [
+"--help",
+"--skip-init",
+"--use-migration-files",
+"--verbose",
+"--yes",
+"-h",
+"-m",
+"-s",
+"-v",
+"-y"
+],
+"airflow db shell": [
+"--help",
+"--verbose",
+"-h",
+"-v"
+],
+"airflow db-manager": [
+"--help",
+"-h"
+],
+"airflow db-manager downgrade": [
+"--from-revision",
+"--from-version",
+"--help",
+"--show-sql-only",
+"--to-revision",
+"--to-version",
+"--verbose",
+"--yes",
+"-h",
+"-n",
+"-r",
+"-s",
+"-v",
+"-y"
+],
+"airflow db-manager migrate": [
+"--from-revision",
+"--from-version",
+"--help",
+"--show-sql-only",
+"--to-revision",
+"--to-version",
+"--use-migration-files",
+"--verbose",
+"-h",
+"-m",
+"-n",
+"-r",
+"-s",
+"-v"
+],
+"airflow db-manager reset": [
+"--help",
+"--skip-init",
+"--use-migration-files",
+"--verbose",
+"--yes",
+"-h",
+"-m",
+"-s",
+"-v",
+"-y"
+],
+"airflow info": [
+"--anonymize",
+"--help",
+"--output",
+"--verbose",
+"-h",
+"-o",
+"-v"
+],
+"airflow jobs": [
+"--help",
+"-h"
+],
+"airflow jobs check": [
+"--allow-multiple",
+"--help",
+"--hostname",
+"--job-type",
+"--limit",
+"--local",
+"--verbose",
+"-h",
+"-v"
+],
+"airflow kerberos": [
+"--daemon",
+"--help",
+"--keytab",
+"--log-file",
+"--one-time",
+"--pid",
+"--stderr",
+"--stdout",
+"--verbose",
+"-D",
+"-h",
+"-k",
+"-l",
+"-o",
+"-v"
+],
+"airflow partitions": [
+"--help",
+"-h"
+],
+"airflow partitions clear": [
+"--clear-task-instances",
+"--dag-id",
+"--date",
+"--dry-run",
+"--end-date",
+"--help",
+"--partition-key",
+"--run-id",
+"--start-date",
+"--verbose",
+"-d",
+"-e",
+"-h",
+"-k",
+"-r",
+"-s",
+"-v"
+],
+"airflow plugins": [
+"--help",
+"--output",
+"--verbose",
+"-h",
+"-o",
+"-v"
+],
+"airflow pools": [
+"--help",
+"-h"
+],
+"airflow pools delete": [
+"--help",
+"--verbose",
+"-h",
+"-v"
+],
+"airflow pools export": [
+"--help",
+"--verbose",
+"-h",
+"-v"
+],
+"airflow pools get": [
+"--help",
+"--output",
+"--verbose",
+"-h",
+"-o",
+"-v"
+],
+"airflow pools import": [
+"--help",
+"--verbose",
+"-h",
+"-v"
+],
+"airflow pools list": [
+"--help",
+"--output",
+"--verbose",
+"-h",
+"-o",
+"-v"
+],
+"airflow pools set": [
+"--help",
+"--include-deferred",
+"--team-name",
+"--verbose",
+"-h",
+"-v"
+],
+"airflow providers": [
+"--help",
+"-h"
+],
+"airflow providers auth-managers": [
+"--help",
+"--output",
+"--verbose",
+"-h",
+"-o",
+"-v"
+],
+"airflow providers behaviours": [
+"--help",
+"--output",
+"--verbose",
+"-h",
+"-o",
+"-v"
+],
+"airflow providers configs": [
+"--help",
+"--output",
+"--verbose",
+"-h",
+"-o",
+"-v"
+],
+"airflow providers executors": [
+"--help",
+"--output",
+"--verbose",
+"-h",
+"-o",
+"-v"
+],
+"airflow providers get": [
+"--color",
+"--full",
+"--help",
+"--output",
+"--verbose",
+"-f",
+"-h",
+"-o",
+"-v"
+],
+"airflow providers hooks": [
+"--help",
+"--output",
+"--verbose",
+"-h",
+"-o",
+"-v"
+],
+"airflow providers lazy-loaded": [
+"--help",
+"--verbose",
+"-h",
+"-v"
+],
+"airflow providers links": [
+"--help",
+"--output",
+"--verbose",
+"-h",
+"-o",
+"-v"
+],
+"airflow providers list": [
+"--help",
+"--output",
+"--verbose",
+"-h",
+"-o",
+"-v"
+],
+"airflow providers logging": [
+"--help",
+"--output",
+"--verbose",
+"-h",
+"-o",
+"-v"
+],
+"airflow providers notifications": [
+"--help",
+"--output",
+"--verbose",
+"-h",
+"-o",
+"-v"
+],
+"airflow providers queues": [
+"--help",
+"--output",
+"--verbose",
+"-h",
+"-o",
+"-v"
+],
+"airflow providers secrets": [
+"--help",
+"--output",
+"--verbose",
+"-h",
+"-o",
+"-v"
+],
+"airflow providers triggers": [
+"--help",
+"--output",
+"--verbose",
+"-h",
+"-o",
+"-v"
+],
+"airflow providers widgets": [
+"--help",
+"--output",
+"--verbose",
+"-h",
+"-o",
+"-v"
+],
+"airflow rotate-fernet-key": [
+"--help",
+"-h"
+],
+"airflow scheduler": [
+"--daemon",
+"--dev",
+"--help",
+"--log-file",
+"--num-runs",
+"--only-idle",
+"--pid",
+"--skip-serve-logs",
+"--stderr",
+"--stdout",
+"--verbose",
+"-D",
+"-d",
+"-h",
+"-i",
+"-l",
+"-n",
+"-s",
+"-v"
+],
+"airflow standalone": [
+"--help",
+"-h"
+],
+"airflow state-store": [
+"--help",
+"-h"
+],
+"airflow state-store clean": [
+"--dry-run",
+"--help",
+"--verbose",
+"-h",
+"-v"
+],
+"airflow tasks": [
+"--help",
+"-h"
+],
+"airflow tasks clear": [
+"--bundle-name",
+"--dag-regex",
+"--downstream",
+"--end-date",
+"--help",
+"--only-failed",
+"--only-running",
+"--start-date",
+"--task-regex",
+"--upstream",
+"--verbose",
+"--yes",
+"-B",
+"-R",
+"-d",
+"-e",
+"-f",
+"-h",
+"-r",
+"-s",
+"-t",
+"-u",
+"-v",
+"-y"
+],
+"airflow tasks failed-deps": [
+"--bundle-name",
+"--help",
+"--map-index",
+"--verbose",
+"-B",
+"-h",
+"-v"
+],
+"airflow tasks list": [
+"--bundle-name",
+"--help",
+"--verbose",
+"-B",
+"-h",
+"-v"
+],
+"airflow tasks render": [
+"--bundle-name",
+"--help",
+"--map-index",
+"--verbose",
+"-B",
+"-h",
+"-v"
+],
+"airflow tasks state": [
+"--bundle-name",
+"--help",
+"--map-index",
+"--verbose",
+"-B",
+"-h",
+"-v"
+],
+"airflow tasks states-for-dag-run": [
+"--help",
+"--output",
+"--verbose",
+"-h",
+"-o",
+"-v"
+],
+"airflow tasks test": [
+"--bundle-name",
+"--env-vars",
+"--help",
+"--map-index",
+"--post-mortem",
+"--task-params",
+"--verbose",
+"-B",
+"-h",
+"-m",
+"-t",
+"-v"
+],
+"airflow teams": [
+"--help",
+"-h"
+],
+"airflow teams create": [
+"--help",
+"--verbose",
+"-h",
+"-v"
+],
+"airflow teams delete": [
+"--help",
+"--verbose",
+"--yes",
+"-h",
+"-v",
+"-y"
+],
+"airflow teams inspect": [
+"--help",
+"--output",
+"--verbose",
+"-h",
+"-o",
+"-v"
+],
+"airflow teams list": [
+"--help",
+"--output",
+"--verbose",
+"-h",
+"-o",
+"-v"
+],
+"airflow teams sync": [
+"--dry-run",
+"--help",
+"--verbose",
+"-h",
+"-v"
+],
+"airflow teams verify": [
+"--help",
+"--verbose",
+"-h",
+"-v"
+],
+"airflow triggerer": [
+"--capacity",
+"--daemon",
+"--dev",
+"--help",
+"--log-file",
+"--pid",
+"--queues",
+"--skip-serve-logs",
+"--stderr",
+"--stdout",
+"--team-name",
+"--verbose",
+"-D",
+"-d",
+"-h",
+"-l",
+"-s",
+"-v"
+],
+"airflow variables": [
+"--help",
+"-h"
+],
+"airflow variables delete": [
+"--help",
+"--verbose",
+"-h",
+"-v"
+],
+"airflow variables export": [
+"--help",
+"--verbose",
+"-h",
+"-v"
+],
+"airflow variables get": [
+"--default",
+"--help",
+"--json",
+"--verbose",
+"-d",
+"-h",
+"-j",
+"-v"
+],
+"airflow variables import": [
+"--action-on-existing-key",
+"--help",
+"--verbose",
+"-a",
+"-h",
+"-v"
+],
+"airflow variables list": [
+"--help",
+"--hide-sensitive",
+"--output",
+"--show-values",
+"--verbose",
+"-h",
+"-o",
+"-v"
+],
+"airflow variables set": [
+"--description",
+"--help",
+"--json",
+"--verbose",
+"-h",
+"-j",
+"-v"
+],
+"airflow version": [
+"--help",
+"-h"
+]
+}

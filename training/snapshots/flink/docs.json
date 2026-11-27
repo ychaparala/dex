@@ -1,0 +1,18 @@
+{
+ "https://github.com/apache/flink/blob/master/docs/content/docs/deployment/cli.md": {
+  "sha256": "07f4c0b9f9e7f0516666f6b151b8a517b4feb33a8af7b66729416733b940645e",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/apache/flink/blob/master/flink-clients/src/main/java/org/apache/flink/client/cli/CliFrontendParser.java": {
+  "sha256": "1d100afb87dda0cff578ca7c83015609ba28850f2cace1153ddf9713f7f22d8b",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/apache/flink/blob/master/flink-clients/src/main/java/org/apache/flink/client/cli/CliFrontend.java": {
+  "sha256": "d6bf424462365326214ecc97072f7dd2341a9dc4f1bcbfdc042f83798c64179f",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/apache/flink/blob/master/flink-table/flink-sql-client/src/main/java/org/apache/flink/table/client/cli/CliOptionsParser.java": {
+  "sha256": "64e00d1ee2c4299f9467da1ae32e44e6d2098dc76b55c11bcba248e594f4b723",
+  "fetched": "2026-11-26"
+ }
+}

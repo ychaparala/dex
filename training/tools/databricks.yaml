@@ -1,0 +1,1043 @@
+tool: databricks
+binaries:
+- databricks
+category: warehouses
+priority: core
+target_pairs: 350
+version_note: Databricks CLI v0.2xx (Go-based databricks/cli; not the legacy pip databricks-cli)
+version_cmd: databricks --version
+version_label: databricks
+versions:
+- {version: "1.28.0", install: "go:github.com/databricks/cli@v1.28.0"}
+- {version: "0.299.2", install: "go:github.com/databricks/cli@v0.299.2"}
+install:
+- macos: ["brew install databricks/tap/databricks"]
+  docs: "https://docs.databricks.com/aws/en/dev-tools/cli/install"
+  source: ["https://github.com/databricks/homebrew-tap/blob/main/README.md", "https://github.com/databricks/setup-cli/blob/main/README.md", "https://docs.databricks.com/aws/en/dev-tools/cli/install"]
+sources:
+- url: https://github.com/databricks/cli/blob/main/cmd/workspace/jobs/jobs.go
+  license: Databricks License (repo); facts only
+- url: https://github.com/databricks/cli/blob/main/cmd/workspace/clusters/clusters.go
+  license: Databricks License (repo); facts only
+- url: https://github.com/databricks/cli/blob/main/cmd/workspace/workspace/overrides.go
+  license: Databricks License (repo); facts only
+- url: https://github.com/databricks/cli/blob/main/cmd/workspace/secrets/put_secret.go
+  license: Databricks License (repo); facts only
+- url: https://github.com/databricks/cli/blob/main/cmd/workspace/warehouses/warehouses.go
+  license: Databricks License (repo); facts only
+- url: https://github.com/databricks/cli/blob/main/cmd/fs/cp.go
+  license: Databricks License (repo); facts only
+- url: https://github.com/databricks/cli/blob/main/cmd/auth/login.go
+  license: Databricks License (repo); facts only
+- url: https://github.com/databricks/cli/blob/main/cmd/configure/flags.go
+  license: Databricks License (repo); facts only
+- url: https://github.com/databricks/cli/blob/main/cmd/bundle/deploy.go
+  license: Databricks License (repo); facts only
+- url: https://github.com/databricks/cli/blob/main/bundle/run/job_options.go
+  license: Databricks License (repo); facts only
+- url: https://github.com/databricks/cli/blob/main/cmd/root/io.go
+  license: Databricks License (repo); facts only
+- url: https://github.com/databricks/homebrew-tap/blob/main/README.md
+  license: repo README; facts only
+- url: https://github.com/databricks/setup-cli/blob/main/README.md
+  license: repo README; facts only
+destructive_patterns:
+- \bclusters\s+(delete|permanent-delete)\b
+- \bfs\s+rm\b
+- \bbundle\s+destroy\b
+- \bjobs\s+(delete|cancel-run|cancel-all-runs)\b
+- \bsecrets\s+delete-(scope|secret)\b
+- \bworkspace\s+delete\b
+- --overwrite\b
+templates:
+- id: databricks.install.brew
+  group: setup
+  intents:
+  - install the databricks cli with homebrew
+  - brew install databricks cli
+  - set up the new databricks command line on my mac
+  - how do i get the databricks cli via brew
+  vars: []
+  body: brew install databricks/tap/databricks
+  destructive: false
+  source: https://github.com/databricks/homebrew-tap/blob/main/README.md
+  verified: docs
+- id: databricks.install.curl
+  group: setup
+  intents:
+  - install databricks cli with the official install script
+  - curl install the databricks cli on linux
+  - get the go databricks cli without brew
+  - one-liner to install databricks cli
+  vars: []
+  body: curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
+  destructive: false
+  source: https://github.com/databricks/setup-cli/blob/main/README.md
+  verified: docs
+- id: databricks.version
+  group: setup
+  intents:
+  - what version of the databricks cli do i have
+  - databricks cli version
+  - check databricks cli is installed
+  - show the installed databricks version
+  vars: []
+  body: databricks version
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/version/version.go
+  verified: source
+- id: databricks.auth.login
+  group: auth
+  intents:
+  - log in to databricks workspace {WORKSPACE_HOST}
+  - databricks oauth login
+  - authenticate the databricks cli against {WORKSPACE_HOST}
+  - sign in to my databricks workspace from the terminal
+  - auth login with host
+  vars:
+  - name: WORKSPACE_HOST
+    default: https://<workspace>.cloud.databricks.com
+    samples:
+    - https://dbc-a1b2c3d4-e5f6.cloud.databricks.com
+    - https://adb-1234567890123456.7.azuredatabricks.net
+  body: databricks auth login --host "$WORKSPACE_HOST"
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/auth/login.go
+  verified: source
+- id: databricks.auth.login.profile
+  group: auth
+  intents:
+  - log in to {WORKSPACE_HOST} and save it as profile {PROFILE}
+  - create a databricks profile called {PROFILE}
+  - databricks auth login with a named profile
+  - add a new workspace profile to databrickscfg
+  vars:
+  - name: WORKSPACE_HOST
+    default: https://<workspace>.cloud.databricks.com
+    samples:
+    - https://dbc-a1b2c3d4-e5f6.cloud.databricks.com
+    - https://adb-1234567890123456.7.azuredatabricks.net
+  - name: PROFILE
+    default: DEFAULT
+    samples:
+    - dev
+    - prod
+    - staging
+    ctx: databricks_profile
+  body: databricks auth login --host "$WORKSPACE_HOST" --profile "$PROFILE"
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/auth/login.go
+  verified: source
+- id: databricks.auth.profiles
+  group: auth
+  intents:
+  - list my databricks profiles
+  - which databricks workspaces am i configured for
+  - show profiles in ~/.databrickscfg
+  - databricks auth profiles
+  - are my databricks logins still valid
+  vars: []
+  body: databricks auth profiles
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/auth/profiles.go
+  verified: source
+- id: databricks.auth.describe
+  group: auth
+  intents:
+  - show how databricks auth is resolved for profile {PROFILE}
+  - describe databricks auth config
+  - which host and auth type does profile {PROFILE} use
+  - debug databricks authentication
+  vars:
+  - name: PROFILE
+    default: DEFAULT
+    samples:
+    - dev
+    - prod
+    - staging
+    ctx: databricks_profile
+  body: databricks auth describe --profile "$PROFILE"
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/auth/describe.go
+  verified: source
+- id: databricks.auth.token
+  group: auth
+  intents:
+  - print an oauth access token for profile {PROFILE}
+  - get a databricks bearer token from my login
+  - databricks auth token
+  - fetch the current access token for the workspace
+  vars:
+  - name: PROFILE
+    default: DEFAULT
+    samples:
+    - dev
+    - prod
+    - staging
+    ctx: databricks_profile
+  body: databricks auth token --profile "$PROFILE" | jq -r .access_token
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/auth/token.go
+  verified: source
+- id: databricks.configure.pat
+  group: auth
+  intents:
+  - configure databricks cli with a personal access token for {WORKSPACE_HOST}
+  - databricks configure with a PAT
+  - set up token auth for databricks
+  - save a databricks host and token to my config
+  vars:
+  - name: WORKSPACE_HOST
+    default: https://<workspace>.cloud.databricks.com
+    samples:
+    - https://dbc-a1b2c3d4-e5f6.cloud.databricks.com
+    - https://adb-1234567890123456.7.azuredatabricks.net
+  body: databricks configure --host "$WORKSPACE_HOST"
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/configure/flags.go
+  verified: source
+- id: databricks.env.check
+  group: auth
+  intents:
+  - which DATABRICKS_ env vars are set
+  - show my databricks environment variables
+  - is DATABRICKS_HOST set in this shell
+  - list databricks auth env vars
+  vars: []
+  body: env | grep '^DATABRICKS_'
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/libs/auth/env.go
+  verified: source
+- id: databricks.whoami
+  group: auth
+  intents:
+  - who am i logged in as on databricks
+  - databricks current user
+  - show my databricks username
+  - check which user profile {PROFILE} authenticates as
+  - whoami databricks
+  vars:
+  - name: PROFILE
+    default: DEFAULT
+    samples:
+    - dev
+    - prod
+    - staging
+    ctx: databricks_profile
+  body: databricks current-user me --profile "$PROFILE" -o json | jq -r .userName
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/workspace/current-user/current-user.go
+  verified: source
+- id: databricks.jobs.list
+  group: jobs
+  intents:
+  - list databricks jobs
+  - show all jobs in the workspace
+  - what jobs exist in databricks
+  - databricks jobs list for profile {PROFILE}
+  - list jobs in {PROFILE}
+  vars:
+  - name: PROFILE
+    default: DEFAULT
+    samples:
+    - dev
+    - prod
+    - staging
+    ctx: databricks_profile
+  body: databricks jobs list --profile "$PROFILE"
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/workspace/jobs/jobs.go
+  verified: source
+- id: databricks.jobs.list.ids
+  group: jobs
+  intents:
+  - list job ids and names as tsv
+  - print every databricks job id with its name
+  - jobs list json piped to jq for id and name
+  - dump job names and ids
+  vars: []
+  body: databricks jobs list -o json | jq -r '.[] | "\(.job_id)\t\(.settings.name)"'
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/workspace/jobs/jobs.go
+  verified: source
+- id: databricks.jobs.find
+  group: jobs
+  intents:
+  - find the job id for the job named {JOB_NAME}
+  - get job id by name
+  - look up databricks job {JOB_NAME}
+  - what is the id of job {JOB_NAME}
+  vars:
+  - name: JOB_NAME
+    default: <job-name>
+    samples:
+    - daily_sales_etl
+    - orders-ingest
+    - refresh_gold_tables
+  body: databricks jobs list --name "$JOB_NAME" -o json | jq -r '.[].job_id'
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/workspace/jobs/jobs.go
+  verified: source
+- id: databricks.jobs.get
+  group: jobs
+  intents:
+  - show the definition of job {JOB_ID}
+  - get databricks job settings
+  - describe job {JOB_ID}
+  - dump job {JOB_ID} config as json
+  vars:
+  - name: JOB_ID
+    default: <job-id>
+    samples:
+    - '123456789'
+    - '987654321012'
+    - '42'
+  body: databricks jobs get "$JOB_ID" -o json | jq .settings
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/workspace/jobs/jobs.go
+  verified: source
+- id: databricks.jobs.run_now
+  group: jobs
+  intents:
+  - run databricks job {JOB_ID} and wait for it
+  - trigger job {JOB_ID}
+  - kick off a job run now
+  - start job {JOB_ID} and block until done
+  - run-now a databricks job
+  vars:
+  - name: JOB_ID
+    default: <job-id>
+    samples:
+    - '123456789'
+    - '987654321012'
+    - '42'
+  body: databricks jobs run-now "$JOB_ID"
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/workspace/jobs/jobs.go
+  verified: source
+- id: databricks.jobs.run_now.nowait
+  group: jobs
+  intents:
+  - trigger job {JOB_ID} without waiting
+  - fire and forget databricks job run
+  - start job {JOB_ID} in the background and return the run id
+  - run-now no wait
+  vars:
+  - name: JOB_ID
+    default: <job-id>
+    samples:
+    - '123456789'
+    - '987654321012'
+    - '42'
+  body: databricks jobs run-now "$JOB_ID" --no-wait -o json | jq .run_id
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/workspace/jobs/jobs.go
+  verified: source
+- id: databricks.jobs.run_now.params
+  group: jobs
+  intents:
+  - run job {JOB_ID} with job parameter run_date={RUN_DATE}
+  - trigger a job with parameters
+  - pass run_date to a databricks job run
+  - run-now with job_parameters json
+  - rerun job {JOB_ID} for {RUN_DATE}
+  vars:
+  - name: JOB_ID
+    default: <job-id>
+    samples:
+    - '123456789'
+    - '987654321012'
+    - '42'
+  - name: RUN_DATE
+    default: '2025-01-31'
+    samples:
+    - '2025-06-30'
+    - '2024-12-01'
+    - '2026-03-15'
+  body: 'databricks jobs run-now --json "{\"job_id\": $JOB_ID, \"job_parameters\": {\"run_date\": \"$RUN_DATE\"}}"'
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/workspace/jobs/jobs.go
+  verified: source
+- id: databricks.jobs.run_now.file
+  group: jobs
+  intents:
+  - run a job using the request body in {FILE}
+  - run-now with a json file
+  - trigger job from a params file
+  - start a databricks run from {FILE}
+  vars:
+  - name: FILE
+    default: run.json
+    samples:
+    - params.json
+    - backfill_run.json
+    ctx: local_file
+  body: databricks jobs run-now --json @"$FILE"
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/workspace/jobs/jobs.go
+  verified: source
+- id: databricks.jobs.get_run
+  group: jobs
+  intents:
+  - what is the status of run {RUN_ID}
+  - check databricks run state
+  - did run {RUN_ID} succeed
+  - get run state for a job run
+  - is my databricks run still running
+  vars:
+  - name: RUN_ID
+    default: <run-id>
+    samples:
+    - '1122334455'
+    - '998877665544'
+    - '31337'
+  body: databricks jobs get-run "$RUN_ID" -o json | jq .state
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/workspace/jobs/jobs.go
+  verified: source
+- id: databricks.jobs.list_runs
+  group: jobs
+  intents:
+  - show the last {LIMIT} runs of job {JOB_ID}
+  - list runs for a job
+  - recent run history for job {JOB_ID}
+  - databricks job run history
+  vars:
+  - name: JOB_ID
+    default: <job-id>
+    samples:
+    - '123456789'
+    - '987654321012'
+    - '42'
+  - name: LIMIT
+    default: '10'
+    samples:
+    - '5'
+    - '20'
+    - '50'
+  body: databricks jobs list-runs --job-id "$JOB_ID" --limit "$LIMIT"
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/workspace/jobs/jobs.go
+  verified: source
+- id: databricks.jobs.list_runs.active
+  group: jobs
+  intents:
+  - what databricks runs are active right now
+  - list running job runs
+  - show active runs only
+  - anything running in databricks jobs
+  vars: []
+  body: databricks jobs list-runs --active-only
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/workspace/jobs/jobs.go
+  verified: source
+- id: databricks.jobs.run_output
+  group: jobs
+  intents:
+  - get the output of task run {RUN_ID}
+  - show notebook output for a run
+  - fetch error and logs for run {RUN_ID}
+  - databricks run output
+  vars:
+  - name: RUN_ID
+    default: <run-id>
+    samples:
+    - '1122334455'
+    - '998877665544'
+    - '31337'
+  body: databricks jobs get-run-output "$RUN_ID" -o json | jq '{error, logs}'
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/workspace/jobs/jobs.go
+  verified: source
+- id: databricks.jobs.cancel_run
+  group: jobs
+  intents:
+  - cancel run {RUN_ID}
+  - stop a running databricks job run
+  - kill job run {RUN_ID}
+  - abort the databricks run
+  vars:
+  - name: RUN_ID
+    default: <run-id>
+    samples:
+    - '1122334455'
+    - '998877665544'
+    - '31337'
+  body: databricks jobs cancel-run "$RUN_ID"
+  destructive: true
+  source: https://github.com/databricks/cli/blob/main/cmd/workspace/jobs/jobs.go
+  verified: source
+- id: databricks.jobs.submit
+  group: jobs
+  intents:
+  - submit a one-time run from {FILE}
+  - run a one-off databricks job without creating it
+  - jobs submit with json spec
+  - submit an ad hoc run
+  vars:
+  - name: FILE
+    default: submit.json
+    samples:
+    - one_off_run.json
+    - adhoc.json
+    ctx: local_file
+  body: databricks jobs submit --json @"$FILE"
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/workspace/jobs/jobs.go
+  verified: source
+- id: databricks.clusters.list
+  group: clusters
+  intents:
+  - list databricks clusters
+  - show clusters in profile {PROFILE}
+  - what clusters do we have
+  - databricks clusters list
+  vars:
+  - name: PROFILE
+    default: DEFAULT
+    samples:
+    - dev
+    - prod
+    - staging
+    ctx: databricks_profile
+  body: databricks clusters list --profile "$PROFILE"
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/workspace/clusters/clusters.go
+  verified: source
+- id: databricks.clusters.running
+  group: clusters
+  intents:
+  - which clusters are running
+  - show only running clusters with ids
+  - list running databricks clusters as tsv
+  - find clusters in RUNNING state
+  vars: []
+  body: databricks clusters list -o json | jq -r '.[] | select(.state=="RUNNING") | "\(.cluster_id)\t\(.cluster_name)"'
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/workspace/clusters/clusters.go
+  verified: source
+- id: databricks.clusters.get
+  group: clusters
+  intents:
+  - show details of cluster {CLUSTER_ID}
+  - get cluster config
+  - what state is cluster {CLUSTER_ID} in
+  - describe a databricks cluster
+  vars:
+  - name: CLUSTER_ID
+    default: <cluster-id>
+    samples:
+    - 0123-456789-abcde123
+    - 1105-093012-xyz98765
+  body: databricks clusters get "$CLUSTER_ID"
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/workspace/clusters/clusters.go
+  verified: source
+- id: databricks.clusters.start
+  group: clusters
+  intents:
+  - start cluster {CLUSTER_ID}
+  - turn on a terminated databricks cluster
+  - boot up the cluster
+  - start cluster {CLUSTER_ID} and wait until running
+  vars:
+  - name: CLUSTER_ID
+    default: <cluster-id>
+    samples:
+    - 0123-456789-abcde123
+    - 1105-093012-xyz98765
+  body: databricks clusters start "$CLUSTER_ID"
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/workspace/clusters/clusters.go
+  verified: source
+- id: databricks.clusters.terminate
+  group: clusters
+  intents:
+  - terminate cluster {CLUSTER_ID}
+  - stop a databricks cluster
+  - shut down the cluster to save money
+  - clusters delete (terminate) {CLUSTER_ID}
+  vars:
+  - name: CLUSTER_ID
+    default: <cluster-id>
+    samples:
+    - 0123-456789-abcde123
+    - 1105-093012-xyz98765
+  body: databricks clusters delete "$CLUSTER_ID"
+  destructive: true
+  source: https://github.com/databricks/cli/blob/main/cmd/workspace/clusters/clusters.go
+  verified: source
+- id: databricks.clusters.permanent_delete
+  group: clusters
+  intents:
+  - permanently delete cluster {CLUSTER_ID}
+  - remove a cluster for good
+  - purge the cluster definition
+  - delete cluster permanently so it can't be restarted
+  vars:
+  - name: CLUSTER_ID
+    default: <cluster-id>
+    samples:
+    - 0123-456789-abcde123
+    - 1105-093012-xyz98765
+  body: databricks clusters permanent-delete "$CLUSTER_ID"
+  destructive: true
+  source: https://github.com/databricks/cli/blob/main/cmd/workspace/clusters/clusters.go
+  verified: source
+- id: databricks.fs.ls
+  group: files
+  intents:
+  - list files in {REMOTE_PATH}
+  - ls a unity catalog volume
+  - what's in this dbfs folder
+  - databricks fs ls with sizes
+  vars:
+  - name: REMOTE_PATH
+    default: dbfs:/Volumes/main/raw/landing/
+    samples:
+    - dbfs:/Volumes/main/bronze/files/
+    - dbfs:/tmp/exports/
+    - dbfs:/FileStore/tables/
+  body: databricks fs ls -l "$REMOTE_PATH"
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/fs/ls.go
+  verified: source
+- id: databricks.fs.upload
+  group: files
+  intents:
+  - upload {LOCAL_FILE} to {REMOTE_PATH}
+  - copy a local file to a databricks volume
+  - put a csv into dbfs
+  - databricks fs cp local to remote
+  vars:
+  - name: LOCAL_FILE
+    default: data.csv
+    samples:
+    - orders_2025.csv
+    - lookup.parquet
+    ctx: local_file
+  - name: REMOTE_PATH
+    default: dbfs:/Volumes/main/raw/landing/
+    samples:
+    - dbfs:/Volumes/main/bronze/files/
+    - dbfs:/tmp/exports/
+    - dbfs:/FileStore/tables/
+  body: databricks fs cp "$LOCAL_FILE" "$REMOTE_PATH"
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/fs/cp.go
+  verified: source
+- id: databricks.fs.upload.dir
+  group: files
+  intents:
+  - recursively upload folder {LOCAL_DIR} to {REMOTE_PATH} overwriting
+  - copy a whole directory to a volume
+  - sync a local folder into dbfs replacing files
+  - fs cp recursive overwrite
+  vars:
+  - name: LOCAL_DIR
+    default: ./data
+    samples:
+    - ./exports
+    - ./fixtures
+  - name: REMOTE_PATH
+    default: dbfs:/Volumes/main/raw/landing/
+    samples:
+    - dbfs:/Volumes/main/bronze/files/
+    - dbfs:/tmp/exports/
+    - dbfs:/FileStore/tables/
+  body: databricks fs cp -r "$LOCAL_DIR" "$REMOTE_PATH" --overwrite
+  destructive: true
+  source: https://github.com/databricks/cli/blob/main/cmd/fs/cp.go
+  verified: source
+- id: databricks.fs.download
+  group: files
+  intents:
+  - download {REMOTE_FILE} to the current directory
+  - copy a file from a volume to local
+  - pull a file down from dbfs
+  - fs cp remote to local
+  vars:
+  - name: REMOTE_FILE
+    default: dbfs:/Volumes/main/raw/landing/data.csv
+    samples:
+    - dbfs:/tmp/exports/report.csv
+    - dbfs:/Volumes/main/gold/out/part-0.parquet
+  body: databricks fs cp "$REMOTE_FILE" .
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/fs/cp.go
+  verified: source
+- id: databricks.fs.cat
+  group: files
+  intents:
+  - show the first lines of {REMOTE_FILE}
+  - cat a file stored in dbfs
+  - peek at a csv on a volume
+  - print a remote databricks file
+  vars:
+  - name: REMOTE_FILE
+    default: dbfs:/Volumes/main/raw/landing/data.csv
+    samples:
+    - dbfs:/tmp/log.txt
+    - dbfs:/Volumes/main/raw/files/header.csv
+  body: databricks fs cat "$REMOTE_FILE" | head -20
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/fs/cat.go
+  verified: source
+- id: databricks.fs.rm
+  group: files
+  intents:
+  - delete the folder {REMOTE_PATH} recursively
+  - remove files from a volume
+  - rm -r a dbfs directory
+  - clean up the dbfs tmp folder
+  vars:
+  - name: REMOTE_PATH
+    default: dbfs:/tmp/exports/
+    samples:
+    - dbfs:/Volumes/main/bronze/files/
+    - dbfs:/tmp/exports/
+    - dbfs:/FileStore/tables/
+  body: databricks fs rm -r "$REMOTE_PATH"
+  destructive: true
+  source: https://github.com/databricks/cli/blob/main/cmd/fs/rm.go
+  verified: source
+- id: databricks.workspace.list
+  group: workspace
+  intents:
+  - list notebooks in {WS_PATH}
+  - show workspace folder contents
+  - what's in the shared workspace folder
+  - databricks workspace ls
+  vars:
+  - name: WS_PATH
+    default: /Users/<user>/etl
+    samples:
+    - /Shared/pipelines
+    - /Workspace/Users/me@example.com/notebooks
+  body: databricks workspace list "$WS_PATH"
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/workspace/workspace/workspace.go
+  verified: source
+- id: databricks.workspace.export
+  group: workspace
+  intents:
+  - export notebook {WS_PATH} to {LOCAL_FILE}
+  - download a notebook as source
+  - save a workspace notebook locally
+  - export notebook source code
+  vars:
+  - name: WS_PATH
+    default: /Shared/etl/load_orders
+    samples:
+    - /Users/me@example.com/explore
+    - /Shared/jobs/daily
+  - name: LOCAL_FILE
+    default: load_orders.py
+    samples:
+    - explore.py
+    - daily.sql
+    ctx: local_file
+  body: databricks workspace export "$WS_PATH" --format SOURCE --file "$LOCAL_FILE"
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/workspace/workspace/overrides.go
+  verified: source
+- id: databricks.workspace.export_dir
+  group: workspace
+  intents:
+  - export the whole folder {WS_PATH} to {LOCAL_DIR}
+  - back up a workspace directory
+  - download all notebooks in a folder
+  - export-dir from databricks
+  vars:
+  - name: WS_PATH
+    default: /Users/<user>/etl
+    samples:
+    - /Shared/pipelines
+    - /Workspace/Users/me@example.com/notebooks
+  - name: LOCAL_DIR
+    default: ./notebooks
+    samples:
+    - ./backup
+    - ./src
+  body: databricks workspace export-dir "$WS_PATH" "$LOCAL_DIR"
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/workspace/workspace/export_dir.go
+  verified: source
+- id: databricks.workspace.import
+  group: workspace
+  intents:
+  - import {LOCAL_FILE} as a notebook at {WS_PATH}
+  - upload a python file to the workspace
+  - push a local notebook to databricks
+  - workspace import file
+  vars:
+  - name: WS_PATH
+    default: /Shared/etl/etl
+    samples:
+    - /Users/me@example.com/transform
+    - /Shared/reports/report
+  - name: LOCAL_FILE
+    default: etl.py
+    samples:
+    - transform.py
+    - report.sql
+    ctx: local_file
+  body: databricks workspace import "$WS_PATH" --file "$LOCAL_FILE" --format AUTO
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/workspace/workspace/overrides.go
+  verified: source
+- id: databricks.bundle.init
+  group: bundles
+  intents:
+  - create a new asset bundle project
+  - scaffold a databricks bundle from the python template
+  - databricks bundle init
+  - start a new DAB project
+  vars: []
+  body: databricks bundle init default-python
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/bundle/init.go
+  verified: source
+- id: databricks.bundle.validate
+  group: bundles
+  intents:
+  - validate the bundle for target {TARGET}
+  - check databricks.yml for errors
+  - bundle validate
+  - lint my asset bundle config
+  vars:
+  - name: TARGET
+    default: dev
+    samples:
+    - dev
+    - staging
+    - prod
+  body: databricks bundle validate -t "$TARGET"
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/bundle/validate.go
+  verified: source
+- id: databricks.bundle.deploy
+  group: bundles
+  intents:
+  - deploy the bundle to {TARGET}
+  - push my asset bundle to the workspace
+  - databricks bundle deploy
+  - ship the DAB to {TARGET}
+  vars:
+  - name: TARGET
+    default: dev
+    samples:
+    - dev
+    - staging
+    - prod
+  body: databricks bundle deploy -t "$TARGET"
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/bundle/deploy.go
+  verified: source
+- id: databricks.bundle.run
+  group: bundles
+  intents:
+  - run bundle resource {RESOURCE} in {TARGET}
+  - run the job defined in my bundle
+  - bundle run a job
+  - execute {RESOURCE} from the asset bundle
+  vars:
+  - name: TARGET
+    default: dev
+    samples:
+    - dev
+    - staging
+    - prod
+  - name: RESOURCE
+    default: <resource-key>
+    samples:
+    - daily_etl
+    - ingest_job
+    - refresh_pipeline
+  body: databricks bundle run -t "$TARGET" "$RESOURCE"
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/bundle/run.go
+  verified: source
+- id: databricks.bundle.run.params
+  group: bundles
+  intents:
+  - run bundle job {RESOURCE} with run_date {RUN_DATE}
+  - bundle run with job parameters
+  - pass params to a bundle job run
+  - run the bundle job for a specific date
+  vars:
+  - name: TARGET
+    default: dev
+    samples:
+    - dev
+    - staging
+    - prod
+  - name: RESOURCE
+    default: <resource-key>
+    samples:
+    - daily_etl
+    - backfill_job
+  - name: RUN_DATE
+    default: '2025-01-31'
+    samples:
+    - '2025-07-01'
+    - '2024-11-30'
+  body: databricks bundle run -t "$TARGET" "$RESOURCE" --params run_date="$RUN_DATE"
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/bundle/run/job_options.go
+  verified: source
+- id: databricks.bundle.destroy
+  group: bundles
+  intents:
+  - destroy the bundle deployment in {TARGET}
+  - tear down everything the bundle deployed
+  - bundle destroy without prompts
+  - remove the DAB resources from {TARGET}
+  vars:
+  - name: TARGET
+    default: dev
+    samples:
+    - dev
+    - staging
+    - prod
+  body: databricks bundle destroy -t "$TARGET" --auto-approve
+  destructive: true
+  source: https://github.com/databricks/cli/blob/main/cmd/bundle/destroy.go
+  verified: source
+- id: databricks.secrets.create_scope
+  group: secrets
+  intents:
+  - create secret scope {SCOPE}
+  - make a new databricks secret scope
+  - add a secrets scope
+  - databricks secrets create-scope
+  vars:
+  - name: SCOPE
+    default: <scope>
+    samples:
+    - etl
+    - kafka-creds
+    - warehouse
+  body: databricks secrets create-scope "$SCOPE"
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/workspace/secrets/secrets.go
+  verified: source
+- id: databricks.secrets.put
+  group: secrets
+  intents:
+  - store a secret {KEY} in scope {SCOPE}
+  - add a secret and type the value at the prompt
+  - put-secret interactively
+  - save a password into a databricks secret scope
+  vars:
+  - name: SCOPE
+    default: <scope>
+    samples:
+    - etl
+    - kafka-creds
+    - warehouse
+  - name: KEY
+    default: <key>
+    samples:
+    - db-password
+    - api-token
+    - s3-secret-key
+  body: databricks secrets put-secret "$SCOPE" "$KEY"
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/workspace/secrets/put_secret.go
+  verified: source
+- id: databricks.secrets.put.file
+  group: secrets
+  intents:
+  - store the contents of {FILE} as secret {KEY}
+  - put a multi-line secret from a file
+  - upload a key file as a databricks secret
+  - pipe a file into put-secret
+  vars:
+  - name: SCOPE
+    default: <scope>
+    samples:
+    - etl
+    - kafka-creds
+    - warehouse
+  - name: KEY
+    default: <key>
+    samples:
+    - service-account-json
+    - ssh-key
+  - name: FILE
+    default: key.json
+    samples:
+    - sa.json
+    - id_rsa
+    ctx: local_file
+  body: databricks secrets put-secret "$SCOPE" "$KEY" < "$FILE"
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/workspace/secrets/put_secret.go
+  verified: source
+- id: databricks.secrets.list
+  group: secrets
+  intents:
+  - list secrets in scope {SCOPE}
+  - what keys are in this secret scope
+  - show secret names
+  - databricks list-secrets
+  vars:
+  - name: SCOPE
+    default: <scope>
+    samples:
+    - etl
+    - kafka-creds
+    - warehouse
+  body: databricks secrets list-secrets "$SCOPE"
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/workspace/secrets/secrets.go
+  verified: source
+- id: databricks.secrets.scopes
+  group: secrets
+  intents:
+  - list secret scopes
+  - what secret scopes exist
+  - show all databricks secret scopes
+  - databricks secrets list-scopes
+  vars: []
+  body: databricks secrets list-scopes
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/workspace/secrets/secrets.go
+  verified: source
+- id: databricks.warehouses.list
+  group: warehouses
+  intents:
+  - list sql warehouses
+  - show databricks sql endpoints
+  - what warehouses exist and their state
+  - warehouses list for {PROFILE}
+  vars:
+  - name: PROFILE
+    default: DEFAULT
+    samples:
+    - dev
+    - prod
+    - staging
+    ctx: databricks_profile
+  body: databricks warehouses list --profile "$PROFILE"
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/workspace/warehouses/warehouses.go
+  verified: source
+- id: databricks.warehouses.start
+  group: warehouses
+  intents:
+  - start sql warehouse {WAREHOUSE_ID}
+  - turn on the databricks sql warehouse
+  - wake up a stopped warehouse
+  - resume warehouse {WAREHOUSE_ID}
+  vars:
+  - name: WAREHOUSE_ID
+    default: <warehouse-id>
+    samples:
+    - 1a2b3c4d5e6f7a8b
+    - abcdef0123456789
+  body: databricks warehouses start "$WAREHOUSE_ID"
+  destructive: false
+  source: https://github.com/databricks/cli/blob/main/cmd/workspace/warehouses/warehouses.go
+  verified: source

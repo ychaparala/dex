@@ -1,0 +1,30 @@
+{
+ "https://github.com/Azure/azure-cli/blob/dev/src/azure-cli/azure/cli/command_modules/storage/_help.py": {
+  "sha256": "d5764c83ff802219bb02a43379f3a9a257153561a664b080b5a3940e317811be",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/Azure/azure-cli/blob/dev/src/azure-cli/azure/cli/command_modules/storage/_params.py": {
+  "sha256": "9daee7da43a555c8af6b6c307dd8adcd26713e5c6f84e5850c71bcc8a1384ff5",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/Azure/azure-cli/blob/dev/src/azure-cli/azure/cli/command_modules/profile/_help.py": {
+  "sha256": "517970e1d2f2cbecc007055827cc2a49c5e4379343eba02c8bdc916fd4b3fbe2",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/Azure/azure-cli/blob/dev/src/azure-cli/azure/cli/command_modules/synapse/manual/_help.py": {
+  "sha256": "4e8007e3c464da7101cd87063d2832c164dabc8a8aee69d5e9eae7f5527749af",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/Azure/azure-cli/blob/dev/src/azure-cli/azure/cli/command_modules/synapse/manual/_params.py": {
+  "sha256": "893d62d174290a4c0ed731e167978656fe3625866816b7eeb318f1ef3bf47c05",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/Azure/azure-cli-extensions/blob/main/src/databricks/azext_databricks/aaz/latest/databricks/workspace/_list.py": {
+  "sha256": "fc0dca3718ec723a76b15f403d073bf1150749c567b302a2565842896af2c812",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/Azure/azure-cli-extensions/blob/main/src/datafactory/azext_datafactory/generated/_help.py": {
+  "sha256": "ca3cc59a09da45ded1cb5debb2f4dfa5ea26ecdf47809c4ad556873491b9564b",
+  "fetched": "2026-11-26"
+ }
+}

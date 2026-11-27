@@ -1,0 +1,10 @@
+{
+ "https://packages.ubuntu.com/noble/postgresql-client": {
+  "sha256": "ceede2ce867497dcc18fa0ce6ff03f2eed0e7519d7f5d7a1a2ae935bcb4fc79f",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/Homebrew/homebrew-core/blob/HEAD/Formula/p/postgresql@17.rb": {
+  "sha256": "b95565b88271939681129c6282a5bde3f35ef595b2688891aad0e06bfb70e3dd",
+  "fetched": "2026-11-26"
+ }
+}

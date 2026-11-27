@@ -1,0 +1,227 @@
+tool: terraform
+binaries: [terraform]
+category: infra
+priority: standard
+target_pairs: 100
+version_note: "Terraform CLI 1.x (docs v1.14.x)"
+install:
+- macos: ["brew tap hashicorp/tap && brew install hashicorp/tap/terraform"]
+  source: ["https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli"]
+sources:
+  - url: https://github.com/hashicorp/web-unified-docs/tree/main/content/terraform/v1.14.x/docs/cli/commands
+    license: "BUSL-1.1 as stated in hashicorp/web-unified-docs LICENSE; facts only"
+destructive_patterns:
+  - '\bterraform\s+destroy\b'
+  - '\bterraform\s+(plan|apply)\b.*\s-destroy\b'
+  - '\bterraform\s+state\s+rm\b'
+  - '\bterraform\s+workspace\s+delete\b'
+templates:
+  - id: terraform.setup.version
+    group: setup
+    intents:
+      - which terraform version is installed
+      - terraform version
+      - check terraform and provider versions
+      - show the terraform cli version
+    body: terraform version
+    destructive: false
+    source: https://github.com/hashicorp/web-unified-docs/blob/main/content/terraform/v1.14.x/docs/cli/commands/version.mdx
+    verified: docs
+
+  - id: terraform.init
+    group: core
+    intents:
+      - initialize this terraform directory
+      - terraform init
+      - download providers and set up the backend
+      - init terraform in the current folder
+    body: terraform init
+    destructive: false
+    source: https://github.com/hashicorp/web-unified-docs/blob/main/content/terraform/v1.14.x/docs/cli/commands/init.mdx
+    verified: docs
+
+  - id: terraform.init_upgrade
+    group: core
+    intents:
+      - re-init terraform and upgrade providers to the newest allowed versions
+      - terraform init -upgrade
+      - update provider versions within constraints
+      - refresh the lock file with newer providers
+    body: terraform init -upgrade
+    destructive: false
+    source: https://github.com/hashicorp/web-unified-docs/blob/main/content/terraform/v1.14.x/docs/cli/commands/init.mdx
+    verified: docs
+
+  - id: terraform.plan_out
+    group: core
+    intents:
+      - make a terraform plan and save it to {PLAN_FILE}
+      - plan changes and write the plan file
+      - terraform plan -out
+      - preview infra changes and keep the plan for apply
+    vars:
+      - {name: PLAN_FILE, default: tfplan, samples: [tfplan, prod.tfplan, plan.out]}
+    body: terraform plan -out="$PLAN_FILE"
+    destructive: false
+    source: https://github.com/hashicorp/web-unified-docs/blob/main/content/terraform/v1.14.x/docs/cli/commands/plan.mdx
+    verified: docs
+
+  - id: terraform.plan_varfile
+    group: core
+    intents:
+      - plan with variables from {VAR_FILE}
+      - terraform plan using a tfvars file for prod
+      - run plan with -var-file and save the plan
+      - plan the {VAR_FILE} environment
+    vars:
+      - {name: VAR_FILE, default: prod.tfvars, samples: [prod.tfvars, dev.tfvars, envs/staging.tfvars], ctx: local_file}
+      - {name: PLAN_FILE, default: tfplan, samples: [prod.tfplan, staging.tfplan]}
+    body: terraform plan -var-file="$VAR_FILE" -out="$PLAN_FILE"
+    destructive: false
+    source: https://github.com/hashicorp/web-unified-docs/blob/main/content/terraform/v1.14.x/docs/cli/commands/plan.mdx
+    verified: docs
+
+  - id: terraform.apply_plan
+    group: core
+    intents:
+      - apply the saved plan {PLAN_FILE}
+      - terraform apply the plan file
+      - make the planned changes happen
+      - apply exactly what I reviewed in the plan
+    vars:
+      - {name: PLAN_FILE, default: tfplan, samples: [tfplan, prod.tfplan]}
+    body: terraform apply "$PLAN_FILE"
+    destructive: false
+    source: https://github.com/hashicorp/web-unified-docs/blob/main/content/terraform/v1.14.x/docs/cli/commands/apply.mdx
+    verified: docs
+
+  - id: terraform.destroy
+    group: core
+    intents:
+      - destroy everything in this terraform config
+      - tear down all the infrastructure terraform manages here
+      - terraform destroy
+      - delete the whole stack built by terraform
+    body: terraform destroy
+    destructive: true
+    source: https://github.com/hashicorp/web-unified-docs/blob/main/content/terraform/v1.14.x/docs/cli/commands/destroy.mdx
+    verified: docs
+
+  - id: terraform.fmt
+    group: quality
+    intents:
+      - format all terraform files recursively
+      - terraform fmt the whole repo
+      - fix indentation in my .tf files
+      - auto format hcl in all subfolders
+    body: terraform fmt -recursive
+    destructive: false
+    source: https://github.com/hashicorp/web-unified-docs/blob/main/content/terraform/v1.14.x/docs/cli/commands/fmt.mdx
+    verified: docs
+
+  - id: terraform.fmt_check
+    group: quality
+    intents:
+      - check terraform formatting in ci without changing files
+      - are my tf files formatted
+      - terraform fmt check and show diff
+      - fail if terraform code is not formatted
+    body: terraform fmt -check -diff -recursive
+    destructive: false
+    source: https://github.com/hashicorp/web-unified-docs/blob/main/content/terraform/v1.14.x/docs/cli/commands/fmt.mdx
+    verified: docs
+
+  - id: terraform.validate
+    group: quality
+    intents:
+      - validate the terraform configuration
+      - check my terraform code for errors
+      - terraform validate
+      - is this tf config syntactically valid
+    body: terraform validate
+    destructive: false
+    source: https://github.com/hashicorp/web-unified-docs/blob/main/content/terraform/v1.14.x/docs/cli/commands/validate.mdx
+    verified: docs
+
+  - id: terraform.state_list
+    group: state
+    intents:
+      - list resources in terraform state
+      - what does terraform currently manage
+      - terraform state list
+      - show all resource addresses in the state, filtered by {PATTERN}
+    vars:
+      - {name: PATTERN, default: aws_s3_bucket, samples: [aws_s3_bucket, google_bigquery_dataset, module.airflow]}
+    body: terraform state list | grep "$PATTERN"
+    destructive: false
+    source: https://github.com/hashicorp/web-unified-docs/blob/main/content/terraform/v1.14.x/docs/cli/commands/state/list.mdx
+    verified: docs
+
+  - id: terraform.output_json
+    group: state
+    intents:
+      - print output {OUTPUT_NAME} as raw json value
+      - get a terraform output with jq
+      - read the {OUTPUT_NAME} terraform output in a script
+      - terraform output -json piped to jq
+    vars:
+      - {name: OUTPUT_NAME, default: bucket_name, samples: [bucket_name, cluster_endpoint, warehouse_id]}
+    body: terraform output -json | jq -r ".$OUTPUT_NAME.value"
+    destructive: false
+    source: https://github.com/hashicorp/web-unified-docs/blob/main/content/terraform/v1.14.x/docs/cli/commands/output.mdx
+    verified: docs
+
+  - id: terraform.output_raw
+    group: state
+    intents:
+      - print just the string value of output {OUTPUT_NAME}
+      - terraform output -raw
+      - get one terraform output without quotes
+      - show an output value plainly
+    vars:
+      - {name: OUTPUT_NAME, default: <output-name>, samples: [bucket_name, kafka_bootstrap, db_host]}
+    body: terraform output -raw "$OUTPUT_NAME"
+    destructive: false
+    source: https://github.com/hashicorp/web-unified-docs/blob/main/content/terraform/v1.14.x/docs/cli/commands/output.mdx
+    verified: docs
+
+  - id: terraform.workspace_select
+    group: workspace
+    intents:
+      - switch to terraform workspace {WORKSPACE}
+      - select the {WORKSPACE} workspace
+      - change terraform workspace
+      - terraform workspace select
+    vars:
+      - {name: WORKSPACE, default: dev, samples: [dev, staging, prod]}
+    body: terraform workspace select "$WORKSPACE"
+    destructive: false
+    source: https://github.com/hashicorp/web-unified-docs/blob/main/content/terraform/v1.14.x/docs/cli/commands/workspace/select.mdx
+    verified: docs
+
+  - id: terraform.workspace_list
+    group: workspace
+    intents:
+      - list terraform workspaces
+      - which workspace am I in
+      - terraform workspace list
+      - show all workspaces
+    body: terraform workspace list
+    destructive: false
+    source: https://github.com/hashicorp/web-unified-docs/blob/main/content/terraform/v1.14.x/docs/cli/commands/workspace/list.mdx
+    verified: docs
+
+  - id: terraform.import
+    group: state
+    intents:
+      - import existing resource {RESOURCE_ID} into {ADDRESS}
+      - bring an existing bucket under terraform management
+      - terraform import a resource
+      - adopt an already-created resource into state
+    vars:
+      - {name: ADDRESS, default: <resource-address>, samples: [aws_s3_bucket.raw, google_bigquery_dataset.analytics, module.kafka.aws_msk_cluster.this]}
+      - {name: RESOURCE_ID, default: <resource-id>, samples: [acme-raw-data, projects/acme-analytics/datasets/analytics]}
+    body: terraform import "$ADDRESS" "$RESOURCE_ID"
+    destructive: false
+    source: https://github.com/hashicorp/web-unified-docs/blob/main/content/terraform/v1.14.x/docs/cli/commands/import.mdx
+    verified: docs

@@ -1,0 +1,269 @@
+tool: docker
+binaries: [docker]
+category: infra
+priority: standard
+target_pairs: 120
+version_note: "Docker Engine CLI 2x (checked on 29.x) with the docker compose v2+ plugin (checked on v5)"
+install:
+- macos: ["brew install --cask docker-desktop"]
+  docs: "https://docs.docker.com/engine/install/ubuntu/"
+  source: ["https://github.com/Homebrew/homebrew-cask/blob/HEAD/Casks/d/docker-desktop.rb", "https://docs.docker.com/engine/install/ubuntu/"]
+sources:
+  - url: "local: docker <command> --help (Docker 29.9.3, Compose v5.7.1)"
+    license: "Apache-2.0 (docker/cli and docker/compose repos)"
+  - url: https://docs.docker.com/engine/install/ubuntu/
+    license: "vendor docs; facts only"
+  - url: https://hub.docker.com/r/apache/airflow
+    license: "vendor page; facts only (image tags)"
+  - url: https://hub.docker.com/r/apache/kafka
+    license: "vendor page; facts only (image tags)"
+destructive_patterns:
+  - '\bdocker\s+(system|volume|image|container)\s+prune\b'
+  - '\bdocker\s+compose\s+down\b.*\s-v\b'
+  - '\bdocker\s+(rm|rmi)\b'
+templates:
+  - id: docker.setup.install
+    group: setup
+    intents:
+      - install docker on linux with the convenience script
+      - get docker engine on a fresh ubuntu box
+      - set up docker quickly on a dev vm
+      - install docker
+    body: curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh
+    destructive: false
+    source: https://docs.docker.com/engine/install/ubuntu/
+    verified: docs
+
+  - id: docker.run.postgres
+    group: run
+    intents:
+      - start a local postgres in docker on port {PORT}
+      - spin up a throwaway postgres database container
+      - run postgres with a password and a data volume
+      - give me a postgres to test my etl against
+    vars:
+      - {name: PORT, default: "5432", samples: ["5432", "5433", "15432"]}
+    body: docker run -d --name pg -e POSTGRES_PASSWORD="$PGPASSWORD" -p "$PORT":5432 -v pgdata:/var/lib/postgresql/data postgres:17
+    destructive: false
+    source: "local: docker run --help"
+    verified: help
+
+  - id: docker.run.kafka
+    group: run
+    intents:
+      - run a single kafka broker locally in docker
+      - start apache kafka on port 9092 for testing
+      - spin up a dev kafka container
+      - local kraft kafka with docker
+    body: docker run -d --name kafka -p 9092:9092 apache/kafka:4.4.0
+    destructive: false
+    source: https://hub.docker.com/r/apache/kafka
+    verified: docs
+
+  - id: docker.run.airflow_standalone
+    group: run
+    intents:
+      - try airflow locally in a single docker container
+      - run airflow standalone in docker on port 8080
+      - quick airflow sandbox with the official image
+      - start the airflow image in standalone mode
+    body: docker run -it --rm -p 8080:8080 apache/airflow:3.4.0 standalone
+    destructive: false
+    source: https://hub.docker.com/r/apache/airflow
+    verified: docs
+
+  - id: docker.run.mount_cwd
+    group: run
+    intents:
+      - run {IMAGE} with my current folder mounted and drop into a shell
+      - start a disposable container with the working dir mounted
+      - interactive container that sees my local files
+      - docker run -it --rm with a bind mount
+    vars:
+      - {name: IMAGE, default: python:3.12-slim, samples: [python:3.12-slim, apache/spark:latest, ubuntu:24.04]}
+    body: docker run -it --rm -v "$PWD":/work -w /work "$IMAGE" bash
+    destructive: false
+    source: "local: docker run --help"
+    verified: help
+
+  - id: docker.ps
+    group: inspect
+    intents:
+      - list all containers including stopped ones
+      - which containers are running
+      - docker ps with names, status and ports
+      - show my containers in a table
+    body: docker ps -a --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
+    destructive: false
+    source: "local: docker ps --help"
+    verified: help
+
+  - id: docker.logs.follow
+    group: logs
+    intents:
+      - follow the logs of container {CONTAINER}
+      - tail docker logs live
+      - show the last 100 lines and keep streaming
+      - docker logs -f
+    vars:
+      - {name: CONTAINER, default: <container>, samples: [kafka, pg, airflow-scheduler-1]}
+    body: docker logs -f --tail 100 "$CONTAINER"
+    destructive: false
+    source: "local: docker logs --help"
+    verified: help
+
+  - id: docker.exec.shell
+    group: exec
+    intents:
+      - open a shell in container {CONTAINER}
+      - exec into a running docker container
+      - get bash inside the container
+      - docker exec -it
+    vars:
+      - {name: CONTAINER, default: <container>, samples: [kafka, pg, airflow-scheduler-1]}
+    body: docker exec -it "$CONTAINER" bash
+    destructive: false
+    source: "local: docker exec --help"
+    verified: help
+
+  - id: docker.exec.psql
+    group: exec
+    intents:
+      - open psql inside the database container
+      - connect to the dockerized postgres as postgres user
+      - run psql in container {CONTAINER}
+      - query the local docker database
+    vars:
+      - {name: CONTAINER, default: pg, samples: [pg, postgres, db-1]}
+    body: docker exec -it "$CONTAINER" psql -U postgres
+    destructive: false
+    source: "local: docker exec --help"
+    verified: help
+
+  - id: docker.compose.up
+    group: compose
+    intents:
+      - start the compose stack in the background
+      - docker compose up detached
+      - bring up all services and rebuild images
+      - launch the local airflow stack with compose
+    body: docker compose up -d --build
+    destructive: false
+    source: "local: docker compose up --help"
+    verified: help
+
+  - id: docker.compose.logs
+    group: compose
+    intents:
+      - follow logs of compose service {SERVICE}
+      - tail the {SERVICE} service logs in the stack
+      - docker compose logs -f
+      - watch what one compose service prints
+    vars:
+      - {name: SERVICE, default: <service>, samples: [airflow-scheduler, kafka, postgres]}
+    body: docker compose logs -f --tail 100 "$SERVICE"
+    destructive: false
+    source: "local: docker compose logs --help"
+    verified: help
+
+  - id: docker.compose.ps
+    group: compose
+    intents:
+      - status of the compose services
+      - which compose containers are up
+      - docker compose ps
+      - is my local stack healthy
+    body: docker compose ps
+    destructive: false
+    source: "local: docker compose ps --help"
+    verified: help
+
+  - id: docker.compose.down
+    group: compose
+    intents:
+      - stop the compose stack
+      - shut down the local services but keep data
+      - docker compose down
+      - bring the stack down
+    body: docker compose down
+    destructive: false
+    source: "local: docker compose down --help"
+    verified: help
+
+  - id: docker.compose.down_volumes
+    group: compose
+    intents:
+      - stop the stack and wipe its volumes
+      - docker compose down -v to reset all data
+      - tear everything down including the database volume
+      - start from scratch, remove compose volumes
+    body: docker compose down -v
+    destructive: true
+    source: "local: docker compose down --help"
+    verified: help
+
+  - id: docker.build
+    group: build
+    intents:
+      - build an image tagged {TAG} from this directory
+      - docker build with a tag
+      - build my etl image
+      - make a docker image from the Dockerfile here
+    vars:
+      - {name: TAG, default: myapp:latest, samples: [etl-job:0.3.1, airflow-custom:3.4.0, spark-app:dev]}
+    body: docker build -t "$TAG" .
+    destructive: false
+    source: "local: docker build --help"
+    verified: help
+
+  - id: docker.images
+    group: build
+    intents:
+      - list docker images
+      - what images do I have locally
+      - show images and their sizes
+      - docker images
+    body: docker images
+    destructive: false
+    source: "local: docker images --help"
+    verified: help
+
+  - id: docker.cp.from_container
+    group: files
+    intents:
+      - copy {SRC_PATH} out of container {CONTAINER}
+      - get a file from inside a docker container
+      - docker cp to my machine
+      - pull a log file out of the container
+    vars:
+      - {name: CONTAINER, default: <container>, samples: [pg, airflow-scheduler-1]}
+      - {name: SRC_PATH, default: /tmp/output.csv, samples: [/opt/airflow/logs, /tmp/dump.sql]}
+      - {name: DEST, default: ., samples: [./logs, ./dump.sql]}
+    body: docker cp "$CONTAINER:$SRC_PATH" "$DEST"
+    destructive: false
+    source: "local: docker cp --help"
+    verified: help
+
+  - id: docker.system.df
+    group: cleanup
+    intents:
+      - how much disk is docker using
+      - show docker disk usage by images, containers and volumes
+      - docker system df
+      - why is my disk full, check docker
+    body: docker system df
+    destructive: false
+    source: "local: docker system df --help"
+    verified: help
+
+  - id: docker.system.prune
+    group: cleanup
+    intents:
+      - clean up all unused docker images, containers and networks
+      - free disk space used by docker
+      - docker system prune everything without asking
+      - remove stopped containers and unused images
+    body: docker system prune -a -f
+    destructive: true
+    source: "local: docker system prune --help"
+    verified: help

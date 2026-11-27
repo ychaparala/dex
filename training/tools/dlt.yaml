@@ -1,0 +1,214 @@
+tool: dlt
+binaries:
+- dlt
+category: ingestion
+priority: standard
+target_pairs: 80
+version_note: dlt 1.x CLI (devel branch, dlt/_workspace/cli)
+install:
+- any: ["uv tool install dlt", "pipx install dlt"]
+  source: ["https://github.com/dlt-hub/dlt/blob/devel/README.md", "https://docs.astral.sh/uv/guides/tools/", "https://pipx.pypa.io/stable/"]
+sources:
+- url: https://github.com/dlt-hub/dlt/blob/devel/dlt/_workspace/cli/commands.py
+  license: Apache-2.0 (repo)
+- url: https://github.com/dlt-hub/dlt/blob/devel/dlt/_workspace/cli/_dlt.py
+  license: Apache-2.0 (repo)
+- url: https://github.com/dlt-hub/dlt/blob/devel/README.md
+  license: Apache-2.0 (repo)
+destructive_patterns:
+- \bdlt\s+pipeline\s+\S+\s+(drop|drop-pending-packages|abort-packages)\b
+templates:
+- id: dlt.install.pip
+  group: setup
+  intents:
+  - install dlt with the {EXTRA} extra
+  - pip install dlt for duckdb
+  - set up dlt with a destination extra
+  - install data load tool
+  vars:
+  - {name: EXTRA, default: duckdb, samples: [bigquery, snowflake, postgres]}
+  body: pip install "dlt[$EXTRA]"
+  destructive: false
+  source: https://github.com/dlt-hub/dlt/blob/devel/README.md
+  verified: docs
+- id: dlt.version
+  group: setup
+  intents:
+  - dlt version
+  - which version of dlt do I have
+  - check dlt version
+  - show dlt cli version
+  vars: []
+  body: dlt --version
+  destructive: false
+  source: https://github.com/dlt-hub/dlt/blob/devel/dlt/_workspace/cli/_dlt.py
+  verified: source
+- id: dlt.init
+  group: setup
+  intents:
+  - create a dlt pipeline from {SOURCE} to {DESTINATION}
+  - dlt init a new pipeline
+  - scaffold a dlt project
+  - start a pipeline loading {SOURCE} into {DESTINATION}
+  vars:
+  - {name: SOURCE, default: rest_api, samples: [sql_database, github, filesystem]}
+  - {name: DESTINATION, default: duckdb, samples: [bigquery, snowflake, postgres]}
+  body: dlt init "$SOURCE" "$DESTINATION"
+  destructive: false
+  source: https://github.com/dlt-hub/dlt/blob/devel/dlt/_workspace/cli/commands.py
+  verified: source
+- id: dlt.init.list_sources
+  group: setup
+  intents:
+  - list available dlt sources
+  - what verified sources can dlt init
+  - dlt init list sources
+  - show the source catalog
+  vars: []
+  body: dlt init --list-sources
+  destructive: false
+  source: https://github.com/dlt-hub/dlt/blob/devel/dlt/_workspace/cli/commands.py
+  verified: source
+- id: dlt.init.list_destinations
+  group: setup
+  intents:
+  - list dlt destinations
+  - which destinations does dlt support
+  - dlt init list destinations
+  - show available destinations
+  vars: []
+  body: dlt init --list-destinations
+  destructive: false
+  source: https://github.com/dlt-hub/dlt/blob/devel/dlt/_workspace/cli/commands.py
+  verified: source
+- id: dlt.pipeline.list
+  group: pipelines
+  intents:
+  - list local dlt pipelines
+  - show pipelines in the working dir
+  - dlt pipeline --list-pipelines
+  - which dlt pipelines have run here
+  vars: []
+  body: dlt pipeline --list-pipelines
+  destructive: false
+  source: https://github.com/dlt-hub/dlt/blob/devel/dlt/_workspace/cli/commands.py
+  verified: source
+- id: dlt.pipeline.info
+  group: pipelines
+  intents:
+  - show info for pipeline {PIPELINE}
+  - what's the state of my dlt pipeline
+  - dlt pipeline info
+  - describe a dlt pipeline
+  vars:
+  - {name: PIPELINE, default: github_pipeline, samples: [chess_pipeline, orders_to_duckdb, rest_api_pipeline]}
+  body: dlt pipeline "$PIPELINE" info
+  destructive: false
+  source: https://github.com/dlt-hub/dlt/blob/devel/dlt/_workspace/cli/commands.py
+  verified: source
+- id: dlt.pipeline.show
+  group: pipelines
+  intents:
+  - open the dashboard for {PIPELINE}
+  - browse loaded data for a dlt pipeline
+  - dlt pipeline show
+  - launch the dlt pipeline explorer
+  vars:
+  - {name: PIPELINE, default: github_pipeline, samples: [chess_pipeline, orders_to_duckdb, rest_api_pipeline]}
+  body: dlt pipeline "$PIPELINE" show
+  destructive: false
+  source: https://github.com/dlt-hub/dlt/blob/devel/dlt/_workspace/cli/commands.py
+  verified: source
+- id: dlt.pipeline.trace
+  group: pipelines
+  intents:
+  - show the last run trace of {PIPELINE}
+  - what happened in the last dlt run
+  - dlt pipeline trace
+  - inspect the most recent load
+  vars:
+  - {name: PIPELINE, default: github_pipeline, samples: [chess_pipeline, orders_to_duckdb, rest_api_pipeline]}
+  body: dlt pipeline "$PIPELINE" trace
+  destructive: false
+  source: https://github.com/dlt-hub/dlt/blob/devel/dlt/_workspace/cli/commands.py
+  verified: source
+- id: dlt.pipeline.failed_jobs
+  group: pipelines
+  intents:
+  - show failed load jobs of {PIPELINE}
+  - why did my dlt load fail
+  - dlt pipeline failed-jobs
+  - list failed jobs in the last load
+  vars:
+  - {name: PIPELINE, default: github_pipeline, samples: [chess_pipeline, orders_to_duckdb, rest_api_pipeline]}
+  body: dlt pipeline "$PIPELINE" failed-jobs
+  destructive: false
+  source: https://github.com/dlt-hub/dlt/blob/devel/dlt/_workspace/cli/commands.py
+  verified: source
+- id: dlt.pipeline.schema
+  group: pipelines
+  intents:
+  - print the schema of {PIPELINE}
+  - show the inferred dlt schema as yaml
+  - dlt pipeline schema
+  - what tables and columns did dlt create
+  vars:
+  - {name: PIPELINE, default: github_pipeline, samples: [chess_pipeline, orders_to_duckdb, rest_api_pipeline]}
+  body: dlt pipeline "$PIPELINE" schema --format yaml
+  destructive: false
+  source: https://github.com/dlt-hub/dlt/blob/devel/dlt/_workspace/cli/commands.py
+  verified: source
+- id: dlt.pipeline.drop
+  group: pipelines
+  intents:
+  - drop resource {RESOURCE} from {PIPELINE}
+  - reset a resource's tables and state
+  - dlt pipeline drop a resource
+  - remove a table and its state so it reloads
+  vars:
+  - {name: PIPELINE, default: github_pipeline, samples: [chess_pipeline, orders_to_duckdb, rest_api_pipeline]}
+  - {name: RESOURCE, default: issues, samples: [orders, users, events]}
+  body: dlt pipeline "$PIPELINE" drop "$RESOURCE"
+  destructive: true
+  source: https://github.com/dlt-hub/dlt/blob/devel/dlt/_workspace/cli/commands.py
+  verified: source
+- id: dlt.pipeline.abort_packages
+  group: pipelines
+  intents:
+  - abort the pending loads of {PIPELINE}
+  - cancel a stuck dlt load and discard pending packages
+  - dlt pipeline abort-packages
+  - throw away unfinished load packages safely
+  vars:
+  - {name: PIPELINE, default: github_pipeline, samples: [chess_pipeline, orders_to_duckdb, rest_api_pipeline]}
+  body: dlt pipeline "$PIPELINE" abort-packages
+  destructive: true
+  source: https://github.com/dlt-hub/dlt/blob/devel/dlt/_workspace/cli/commands.py
+  verified: source
+- id: dlt.deploy.github
+  group: deploy
+  intents:
+  - deploy {SCRIPT} to github actions every {CRON}
+  - schedule a dlt pipeline on github actions
+  - dlt deploy github-action
+  - run my pipeline on a cron in github
+  vars:
+  - {name: SCRIPT, default: github_pipeline.py, samples: [chess_pipeline.py, rest_api_pipeline.py], ctx: local_file}
+  - {name: CRON, default: '*/30 * * * *', samples: [0 6 * * *, 0 * * * *]}
+  body: dlt deploy "$SCRIPT" github-action --schedule "$CRON"
+  destructive: false
+  source: https://github.com/dlt-hub/dlt/blob/devel/dlt/_workspace/cli/commands.py
+  verified: source
+- id: dlt.run.script
+  group: run
+  intents:
+  - run the dlt pipeline script {SCRIPT}
+  - execute my dlt pipeline
+  - load data by running the pipeline file
+  - python run dlt pipeline
+  vars:
+  - {name: SCRIPT, default: rest_api_pipeline.py, samples: [github_pipeline.py, sql_database_pipeline.py], ctx: local_file}
+  body: python "$SCRIPT"
+  destructive: false
+  source: https://github.com/dlt-hub/dlt/blob/devel/README.md
+  verified: docs

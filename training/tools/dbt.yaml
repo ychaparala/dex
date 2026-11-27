@@ -1,0 +1,711 @@
+tool: dbt
+binaries:
+- dbt
+category: orchestration
+priority: core
+target_pairs: 300
+version_note: dbt Core 1.x CLI (checked with dbt-core 1.12.7 --help); dbt v2/Fusion installs via 'pip install dbt' and may differ
+version_cmd: dbt --version
+version_label: dbt
+versions:
+- {version: "1.12.7", install: "pip:dbt-core==1.12.7"}
+- {version: "1.9.11", install: "pip:dbt-core==1.9.11", python: "3.12"}
+install:
+- any: ["uv tool install dbt-core --with dbt-<adapter>", "pipx install dbt-core && pipx inject dbt-core dbt-<adapter>"]
+  source: ["https://docs.getdbt.com/docs/local/install-dbt", "https://docs.astral.sh/uv/guides/tools/", "https://pipx.pypa.io/stable/"]
+sources:
+- url: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  license: Apache-2.0 (dbt-core repo); flags checked via local --help
+- url: https://docs.getdbt.com/reference/node-selection/graph-operators
+  license: vendor docs; facts only
+- url: https://docs.getdbt.com/reference/node-selection/defer
+  license: vendor docs; facts only
+- url: https://docs.getdbt.com/docs/local/install-dbt
+  license: vendor docs; facts only
+destructive_patterns:
+- \bdbt\s+clean\b
+- (--full-refresh|\s-f\b)
+templates:
+- id: dbt.run
+  group: run
+  intents:
+  - run all dbt models
+  - dbt run
+  - run every model in the project
+  - execute the dbt project models
+  - materialize all models
+  vars: []
+  body: dbt run
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.run.select
+  group: run
+  intents:
+  - run model {MODEL}
+  - dbt run just {MODEL}
+  - build only one model
+  - rebuild the {MODEL} model
+  vars:
+  - {name: MODEL, default: stg_orders, samples: [fct_sales, dim_customers, int_order_items]}
+  body: dbt run --select "$MODEL"
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.run.downstream
+  group: run
+  intents:
+  - run {MODEL} and everything downstream
+  - run a model plus its children
+  - rebuild {MODEL} and all models that depend on it
+  - dbt run model and descendants
+  vars:
+  - {name: MODEL, default: stg_orders, samples: [fct_sales, dim_customers, int_order_items]}
+  body: dbt run --select "$MODEL+"
+  destructive: false
+  source: https://docs.getdbt.com/reference/node-selection/graph-operators
+  verified: docs
+- id: dbt.run.upstream
+  group: run
+  intents:
+  - run {MODEL} with all its parents
+  - build a model and everything upstream of it
+  - run ancestors of {MODEL} too
+  - dbt run upstream of a model
+  vars:
+  - {name: MODEL, default: stg_orders, samples: [fct_sales, dim_customers, int_order_items]}
+  body: dbt run --select "+$MODEL"
+  destructive: false
+  source: https://docs.getdbt.com/reference/node-selection/graph-operators
+  verified: docs
+- id: dbt.run.both
+  group: run
+  intents:
+  - run {MODEL} with its upstream and downstream
+  - rebuild the full lineage around {MODEL}
+  - run parents, the model and its children
+  - dbt run plus on both sides
+  vars:
+  - {name: MODEL, default: stg_orders, samples: [fct_sales, dim_customers, int_order_items]}
+  body: dbt run --select "+$MODEL+"
+  destructive: false
+  source: https://docs.getdbt.com/reference/node-selection/graph-operators
+  verified: docs
+- id: dbt.run.tag
+  group: run
+  intents:
+  - run models tagged {TAG}
+  - run everything with tag {TAG}
+  - dbt run by tag
+  - build only the {TAG} models
+  vars:
+  - {name: TAG, default: daily, samples: [hourly, finance, nightly]}
+  body: dbt run --select "tag:$TAG"
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.run.path
+  group: run
+  intents:
+  - run all models in {MODEL_PATH}
+  - run every model under a folder
+  - dbt run a directory of models
+  - build models in the {MODEL_PATH} folder
+  vars:
+  - {name: MODEL_PATH, default: models/staging, samples: [models/marts/finance, models/intermediate]}
+  body: dbt run --select "path:$MODEL_PATH"
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.run.exclude
+  group: run
+  intents:
+  - run everything except {MODEL}
+  - dbt run but skip {MODEL}
+  - run all models excluding one
+  - exclude a model from the run
+  vars:
+  - {name: MODEL, default: stg_orders, samples: [fct_sales, dim_customers, int_order_items]}
+  body: dbt run --exclude "$MODEL"
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.run.target
+  group: run
+  intents:
+  - run dbt against the {TARGET} target
+  - dbt run on {TARGET}
+  - run models in a different environment
+  - use target {TARGET} for this run
+  vars:
+  - {name: TARGET, default: dev, samples: [prod, staging, ci], ctx: dbt_target}
+  body: dbt run --target "$TARGET"
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.run.select.target
+  group: run
+  intents:
+  - run {MODEL} against {TARGET}
+  - build one model in the {TARGET} environment
+  - dbt run model on a specific target
+  - run {MODEL} on target {TARGET}
+  vars:
+  - {name: MODEL, default: stg_orders, samples: [fct_sales, dim_customers, int_order_items]}
+  - {name: TARGET, default: dev, samples: [prod, staging, ci], ctx: dbt_target}
+  body: dbt run --select "$MODEL" --target "$TARGET"
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.run.vars
+  group: run
+  intents:
+  - run dbt with vars {VARS}
+  - pass variables to dbt run
+  - dbt run with a json vars override
+  - run models setting project vars
+  vars:
+  - {name: VARS, default: '{"start_date": "2025-01-01"}', samples: ['{"is_backfill": true}', '{"region": "eu", "days_back": 7}']}
+  body: dbt run --vars "$VARS"
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.run.full_refresh
+  group: run
+  intents:
+  - full refresh {MODEL}
+  - rebuild an incremental model from scratch
+  - drop and recreate the incremental table for {MODEL}
+  - dbt run full refresh on one model
+  vars:
+  - {name: MODEL, default: stg_orders, samples: [fct_sales, dim_customers, int_order_items]}
+  body: dbt run --select "$MODEL" --full-refresh
+  destructive: true
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.run.threads
+  group: run
+  intents:
+  - run dbt with {THREADS} threads
+  - speed up dbt run with more parallelism
+  - dbt run using {THREADS} threads
+  - set thread count for this run
+  vars:
+  - {name: THREADS, default: '8', samples: ['4', '16', '1']}
+  body: dbt run --threads "$THREADS"
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.run.fail_fast
+  group: run
+  intents:
+  - run dbt and stop at the first failure
+  - dbt run fail fast
+  - abort the run as soon as a model fails
+  - run models, exit on first error
+  vars: []
+  body: dbt run --fail-fast
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.build
+  group: build
+  intents:
+  - dbt build
+  - run models, tests, seeds and snapshots in order
+  - build the whole project with tests
+  - do a full dbt build
+  vars: []
+  body: dbt build
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.build.select
+  group: build
+  intents:
+  - build {MODEL} and test it
+  - dbt build only {MODEL} and its downstream
+  - build and test a model plus children
+  - run and test {MODEL}+
+  vars:
+  - {name: MODEL, default: stg_orders, samples: [fct_sales, dim_customers, int_order_items]}
+  body: dbt build --select "$MODEL+"
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.build.state_modified
+  group: build
+  intents:
+  - build only changed models and their children, deferring to prod artifacts in {STATE_DIR}
+  - slim ci build of modified models
+  - dbt build state modified plus with defer
+  - build what changed compared to production
+  vars:
+  - {name: STATE_DIR, default: prod-artifacts, samples: [target-prod, artifacts/prod, ./state]}
+  body: dbt build --select "state:modified+" --defer --state "$STATE_DIR"
+  destructive: false
+  source: https://docs.getdbt.com/reference/node-selection/defer
+  verified: docs
+- id: dbt.build.target
+  group: build
+  intents:
+  - dbt build against {TARGET}
+  - build and test everything on the {TARGET} target
+  - do a full build in another environment
+  - dbt build for target {TARGET}
+  vars:
+  - {name: TARGET, default: dev, samples: [prod, staging, ci], ctx: dbt_target}
+  body: dbt build --target "$TARGET"
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.build.empty
+  group: build
+  intents:
+  - dry run the build with empty inputs
+  - build schema only, no data, to validate sql
+  - dbt build --empty
+  - check models compile and run with zero rows
+  vars: []
+  body: dbt build --empty
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.test
+  group: test
+  intents:
+  - run dbt tests
+  - dbt test
+  - test all models
+  - run data tests across the project
+  vars: []
+  body: dbt test
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.test.select
+  group: test
+  intents:
+  - test {MODEL}
+  - run tests for one model
+  - dbt test just {MODEL}
+  - check data tests on a model
+  vars:
+  - {name: MODEL, default: stg_orders, samples: [fct_sales, dim_customers, int_order_items]}
+  body: dbt test --select "$MODEL"
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.test.store_failures
+  group: test
+  intents:
+  - run tests and save failing rows to the warehouse
+  - dbt test store failures
+  - keep failing test records in tables
+  - test and persist failures
+  vars: []
+  body: dbt test --store-failures
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.test.source
+  group: test
+  intents:
+  - test the source {SOURCE}
+  - run tests on all tables of source {SOURCE}
+  - dbt test a source
+  - check source data quality for {SOURCE}
+  vars:
+  - {name: SOURCE, default: raw, samples: [stripe, salesforce, app_db]}
+  body: dbt test --select "source:$SOURCE"
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.seed
+  group: seed
+  intents:
+  - load seed csvs
+  - dbt seed
+  - load the csv files into the warehouse
+  - upload seeds
+  vars: []
+  body: dbt seed
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.seed.select
+  group: seed
+  intents:
+  - load just the {SEED} seed
+  - seed one csv
+  - dbt seed only {SEED}
+  - reload a single seed file
+  vars:
+  - {name: SEED, default: country_codes, samples: [holidays, currency_rates]}
+  body: dbt seed --select "$SEED"
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.seed.full_refresh
+  group: seed
+  intents:
+  - reload seeds from scratch
+  - drop and recreate seed tables
+  - dbt seed full refresh
+  - rebuild seeds after changing csv columns
+  vars: []
+  body: dbt seed --full-refresh
+  destructive: true
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.snapshot
+  group: snapshot
+  intents:
+  - run snapshots
+  - dbt snapshot
+  - capture slowly changing dimension snapshots
+  - update all snapshots
+  vars: []
+  body: dbt snapshot
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.snapshot.select
+  group: snapshot
+  intents:
+  - run snapshot {SNAPSHOT}
+  - snapshot just one table
+  - dbt snapshot only {SNAPSHOT}
+  - update a single snapshot
+  vars:
+  - {name: SNAPSHOT, default: orders_snapshot, samples: [customers_snapshot, products_snapshot]}
+  body: dbt snapshot --select "$SNAPSHOT"
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.compile.select
+  group: dev
+  intents:
+  - compile {MODEL}
+  - show me the compiled sql for a model
+  - dbt compile one model
+  - render the jinja of {MODEL} to sql
+  vars:
+  - {name: MODEL, default: stg_orders, samples: [fct_sales, dim_customers, int_order_items]}
+  body: dbt compile --select "$MODEL"
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.compile
+  group: dev
+  intents:
+  - compile the whole dbt project
+  - dbt compile
+  - generate compiled sql for all models
+  - compile without running anything
+  vars: []
+  body: dbt compile
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.show.select
+  group: dev
+  intents:
+  - preview {LIMIT} rows of {MODEL}
+  - show sample output of a model
+  - dbt show model results
+  - what does {MODEL} return
+  vars:
+  - {name: MODEL, default: stg_orders, samples: [fct_sales, dim_customers, int_order_items]}
+  - {name: LIMIT, default: '10', samples: ['5', '50', '100']}
+  body: dbt show --select "$MODEL" --limit "$LIMIT"
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.show.inline
+  group: dev
+  intents:
+  - 'run inline sql through dbt: {SQL}'
+  - query with ref using dbt show
+  - dbt show inline query
+  - preview results of ad hoc sql with jinja refs
+  vars:
+  - {name: SQL, default: 'select * from {{ ref(''fct_sales'') }}', samples: ['select count(*) from {{ ref(''stg_orders'') }}', 'select * from {{ source(''raw'', ''users'') }}']}
+  body: dbt show --inline "$SQL"
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.ls
+  group: list
+  intents:
+  - list dbt resources
+  - dbt ls
+  - show every node in the project
+  - list all models tests and seeds
+  vars: []
+  body: dbt ls
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.ls.models
+  group: list
+  intents:
+  - list model names only
+  - show all models by name
+  - dbt list models
+  - which models exist in this project
+  vars: []
+  body: dbt ls --resource-type model --output name
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.ls.select
+  group: list
+  intents:
+  - what would --select {SELECTOR} pick
+  - list nodes matching a selector
+  - preview a dbt selection
+  - dbt ls with a select
+  vars:
+  - {name: SELECTOR, default: stg_orders+, samples: ['tag:daily', 'path:models/marts', 'state:modified+']}
+  body: dbt ls --select "$SELECTOR"
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.ls.count
+  group: list
+  intents:
+  - count models by materialization
+  - how many models are tables vs views
+  - summarize materializations across models
+  - group models by materialized config
+  vars: []
+  body: dbt ls --resource-type model --output json --output-keys config | jq -r '.config.materialized' | sort | uniq -c
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.debug
+  group: setup
+  intents:
+  - check my dbt setup
+  - dbt debug
+  - validate profiles and project config
+  - is dbt configured correctly
+  vars: []
+  body: dbt debug
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.debug.connection
+  group: setup
+  intents:
+  - test the dbt database connection
+  - only check dbt can connect to the warehouse
+  - dbt debug connection only
+  - verify warehouse credentials
+  vars: []
+  body: dbt debug --connection
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.debug.profiles_dir
+  group: setup
+  intents:
+  - check dbt using profiles in {PROFILES_DIR}
+  - use a profiles.yml from another folder
+  - dbt debug with a custom profiles dir
+  - point dbt at a different profiles directory
+  vars:
+  - {name: PROFILES_DIR, default: ./profiles, samples: [~/.dbt, /etc/dbt, ci/profiles]}
+  body: dbt debug --profiles-dir "$PROFILES_DIR"
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.run.profiles_env
+  group: setup
+  intents:
+  - run dbt with DBT_PROFILES_DIR set to {PROFILES_DIR}
+  - use the profiles dir env var for one run
+  - dbt run reading profiles from {PROFILES_DIR} via env
+  - set DBT_PROFILES_DIR and run
+  vars:
+  - {name: PROFILES_DIR, default: ./profiles, samples: [/opt/dbt/profiles, ci/profiles]}
+  body: env DBT_PROFILES_DIR="$PROFILES_DIR" dbt run
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.deps
+  group: setup
+  intents:
+  - install dbt packages
+  - dbt deps
+  - pull packages from packages.yml
+  - download dbt dependencies
+  vars: []
+  body: dbt deps
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.deps.upgrade
+  group: setup
+  intents:
+  - upgrade dbt packages to latest
+  - update dbt dependencies and the lock file
+  - dbt deps upgrade
+  - refresh package-lock with newest versions
+  vars: []
+  body: dbt deps --upgrade
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.clean
+  group: setup
+  intents:
+  - clean the dbt project
+  - delete target and dbt_packages
+  - dbt clean
+  - remove build artifacts
+  vars: []
+  body: dbt clean
+  destructive: true
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.docs.generate
+  group: docs
+  intents:
+  - generate dbt docs
+  - build the documentation site
+  - dbt docs generate
+  - create catalog and manifest for docs
+  vars: []
+  body: dbt docs generate
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.docs.serve
+  group: docs
+  intents:
+  - serve dbt docs on port {PORT}
+  - open the docs site locally
+  - dbt docs serve
+  - host documentation on localhost
+  vars:
+  - {name: PORT, default: '8080', samples: ['8001', '9000']}
+  body: dbt docs serve --port "$PORT" --no-browser
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.source.freshness
+  group: sources
+  intents:
+  - check source freshness
+  - dbt source freshness
+  - are my sources stale
+  - how fresh is the raw data
+  vars: []
+  body: dbt source freshness
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.source.freshness.select
+  group: sources
+  intents:
+  - check freshness of source {SOURCE}
+  - freshness for one source only
+  - is the {SOURCE} source up to date
+  - dbt source freshness for a single source
+  vars:
+  - {name: SOURCE, default: raw, samples: [stripe, app_db]}
+  body: dbt source freshness --select "source:$SOURCE"
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.run_operation
+  group: macros
+  intents:
+  - run macro {MACRO}
+  - call a dbt macro from the cli
+  - dbt run-operation {MACRO}
+  - execute an operation macro
+  vars:
+  - {name: MACRO, default: grant_select, samples: [drop_old_relations, create_udfs]}
+  body: dbt run-operation "$MACRO"
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.run_operation.args
+  group: macros
+  intents:
+  - run macro {MACRO} with args {ARGS}
+  - call a macro and pass arguments
+  - dbt run-operation with args
+  - invoke a macro with parameters
+  vars:
+  - {name: MACRO, default: grant_select, samples: [generate_schema_name, clone_schema]}
+  - {name: ARGS, default: '{role: reporter}', samples: ['{"schema": "analytics"}', '{days: 30}']}
+  body: dbt run-operation "$MACRO" --args "$ARGS"
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.init
+  group: setup
+  intents:
+  - create a new dbt project called {PROJECT}
+  - dbt init
+  - scaffold a dbt project
+  - start a new dbt project
+  vars:
+  - {name: PROJECT, default: analytics, samples: [jaffle_shop, finance_dbt]}
+  body: dbt init "$PROJECT"
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.retry
+  group: run
+  intents:
+  - retry the failed dbt nodes
+  - rerun only what failed last time
+  - dbt retry
+  - pick up where the last run failed
+  vars: []
+  body: dbt retry
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.parse
+  group: dev
+  intents:
+  - parse the dbt project
+  - dbt parse
+  - check the project parses and write the manifest
+  - validate project files without running
+  vars: []
+  body: dbt parse
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.version
+  group: setup
+  intents:
+  - dbt version
+  - which dbt version is installed
+  - check dbt-core and adapter versions
+  - show installed dbt plugins
+  vars: []
+  body: dbt --version
+  destructive: false
+  source: https://github.com/dbt-labs/dbt-core/blob/main/core/dbt/cli/params.py
+  verified: help
+- id: dbt.install.pip
+  group: setup
+  intents:
+  - install dbt core with the {ADAPTER} adapter
+  - pip install dbt for {ADAPTER}
+  - set up dbt core and a warehouse adapter
+  - install dbt 1.x with pip
+  vars:
+  - {name: ADAPTER, default: dbt-postgres, samples: [dbt-snowflake, dbt-bigquery, dbt-duckdb]}
+  body: python -m pip install dbt-core "$ADAPTER"
+  destructive: false
+  source: https://docs.getdbt.com/docs/local/install-dbt
+  verified: docs

@@ -1,0 +1,10 @@
+{
+ "https://hub.docker.com/r/apache/airflow": {
+  "sha256": "e9ba77baf1f5f6c9beca908a8a7da275c96f00d6bc22485444476dae3978ab75",
+  "fetched": "2026-11-26"
+ },
+ "https://hub.docker.com/r/apache/kafka": {
+  "sha256": "35a9c5e6b12d54b6669a246d4e8edfdc5062c6ef47b93962628bc075fa3cd546",
+  "fetched": "2026-11-26"
+ }
+}

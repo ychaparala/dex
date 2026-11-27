@@ -1,0 +1,173 @@
+tool: airbyte
+binaries:
+- abctl
+category: ingestion
+priority: standard
+target_pairs: 60
+version_note: Airbyte abctl CLI (main branch, Nov 2026)
+install:
+- macos: ["brew tap airbytehq/tap && brew install abctl"]
+  docs: "https://docs.airbyte.com/platform/deploying-airbyte/abctl/"
+  source: ["https://github.com/airbytehq/abctl/blob/main/README.md", "https://docs.airbyte.com/platform/deploying-airbyte/abctl/"]
+sources:
+- url: https://github.com/airbytehq/abctl/blob/main/internal/cmd/local/install.go
+  license: MIT (abctl repo)
+- url: https://github.com/airbytehq/abctl/blob/main/internal/cmd/local/credentials.go
+  license: MIT (abctl repo)
+- url: https://github.com/airbytehq/abctl/blob/main/internal/cmd/local/uninstall.go
+  license: MIT (abctl repo)
+- url: https://github.com/airbytehq/abctl/blob/main/internal/cmd/cmd.go
+  license: MIT (abctl repo)
+- url: https://github.com/airbytehq/abctl/blob/main/README.md
+  license: MIT (abctl repo)
+- url: https://github.com/airbytehq/airbyte/blob/master/docs/platform/deploying-airbyte/abctl/index.md
+  license: vendor docs (airbytehq/airbyte repo); facts only
+destructive_patterns:
+- \babctl\s+local\s+uninstall\b
+templates:
+- id: airbyte.abctl.install_cli
+  group: setup
+  intents:
+  - install abctl
+  - install the airbyte cli with the official script
+  - get abctl on linux or mac
+  - download airbyte's abctl
+  vars: []
+  body: curl -LsfS https://get.airbyte.com | bash -
+  destructive: false
+  source: https://github.com/airbytehq/airbyte/blob/master/docs/platform/deploying-airbyte/abctl/index.md
+  verified: docs
+- id: airbyte.abctl.install_cli.brew
+  group: setup
+  intents:
+  - install abctl with homebrew
+  - brew install abctl
+  - get the airbyte cli via brew
+  - set up abctl on my mac
+  vars: []
+  body: brew tap airbytehq/tap && brew install abctl
+  destructive: false
+  source: https://github.com/airbytehq/abctl/blob/main/README.md
+  verified: docs
+- id: airbyte.abctl.version
+  group: setup
+  intents:
+  - abctl version
+  - which abctl version do I have
+  - check the airbyte cli version
+  - show abctl version
+  vars: []
+  body: abctl version
+  destructive: false
+  source: https://github.com/airbytehq/abctl/blob/main/internal/cmd/cmd.go
+  verified: source
+- id: airbyte.local.install
+  group: local
+  intents:
+  - install airbyte locally
+  - deploy airbyte on my machine with abctl
+  - abctl local install
+  - spin up a local airbyte
+  vars: []
+  body: abctl local install
+  destructive: false
+  source: https://github.com/airbytehq/abctl/blob/main/internal/cmd/local/install.go
+  verified: source
+- id: airbyte.local.install.low_resource
+  group: local
+  intents:
+  - install airbyte in low resource mode
+  - run airbyte locally on a small laptop
+  - abctl install low resource
+  - lightweight local airbyte install
+  vars: []
+  body: abctl local install --low-resource-mode
+  destructive: false
+  source: https://github.com/airbytehq/abctl/blob/main/internal/cmd/local/install.go
+  verified: source
+- id: airbyte.local.install.port
+  group: local
+  intents:
+  - install airbyte locally on port {PORT}
+  - run local airbyte on a different port without opening a browser
+  - abctl install with a custom port
+  - airbyte local on {PORT}
+  vars:
+  - {name: PORT, default: '8000', samples: ['8001', '9000']}
+  body: abctl local install --port "$PORT" --no-browser
+  destructive: false
+  source: https://github.com/airbytehq/abctl/blob/main/internal/cmd/local/install.go
+  verified: source
+- id: airbyte.local.install.values
+  group: local
+  intents:
+  - install airbyte with helm values from {VALUES_FILE}
+  - abctl install using a values file
+  - customize local airbyte with helm values
+  - deploy airbyte locally with my config file
+  vars:
+  - {name: VALUES_FILE, default: values.yaml, samples: [airbyte-values.yaml, config/values.yaml], ctx: local_file}
+  body: abctl local install --values "$VALUES_FILE"
+  destructive: false
+  source: https://github.com/airbytehq/abctl/blob/main/internal/cmd/local/install.go
+  verified: source
+- id: airbyte.local.status
+  group: local
+  intents:
+  - check local airbyte status
+  - is my local airbyte running
+  - abctl local status
+  - show the airbyte install status
+  vars: []
+  body: abctl local status
+  destructive: false
+  source: https://github.com/airbytehq/abctl/blob/main/internal/cmd/local/status.go
+  verified: source
+- id: airbyte.local.credentials
+  group: local
+  intents:
+  - get the local airbyte login
+  - show airbyte username and password
+  - abctl local credentials
+  - what are my airbyte credentials
+  vars: []
+  body: abctl local credentials
+  destructive: false
+  source: https://github.com/airbytehq/abctl/blob/main/internal/cmd/local/credentials.go
+  verified: source
+- id: airbyte.local.credentials.set_password
+  group: local
+  intents:
+  - change the local airbyte password using NEW_AIRBYTE_PASSWORD
+  - set a new airbyte login password
+  - abctl credentials set password
+  - update airbyte password from my environment
+  vars: []
+  body: abctl local credentials --password "$NEW_AIRBYTE_PASSWORD"
+  destructive: false
+  source: https://github.com/airbytehq/abctl/blob/main/internal/cmd/local/credentials.go
+  verified: source
+- id: airbyte.local.uninstall
+  group: local
+  intents:
+  - uninstall local airbyte
+  - remove the local airbyte install
+  - abctl local uninstall
+  - tear down airbyte on my machine
+  vars: []
+  body: abctl local uninstall
+  destructive: true
+  source: https://github.com/airbytehq/abctl/blob/main/internal/cmd/local/uninstall.go
+  verified: source
+- id: airbyte.local.uninstall.persisted
+  group: local
+  intents:
+  - uninstall airbyte and delete all its data
+  - remove local airbyte including persisted data
+  - abctl uninstall with persisted
+  - completely wipe local airbyte
+  vars: []
+  body: abctl local uninstall --persisted
+  destructive: true
+  source: https://github.com/airbytehq/abctl/blob/main/internal/cmd/local/uninstall.go
+  verified: source

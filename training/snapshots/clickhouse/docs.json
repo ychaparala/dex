@@ -1,0 +1,18 @@
+{
+ "https://github.com/ClickHouse/ClickHouse/blob/master/src/Client/ClientBase.cpp": {
+  "sha256": "d9f832deee1491c2273bfd791bf86f01ad36f025e19f9162c4439506742aeda2",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/ClickHouse/ClickHouse/blob/master/programs/client/Client.cpp": {
+  "sha256": "c47d0a48b4fe73765718f8f051f3b1450dfcf21a7cb6aa8bd838b82bdcb96430",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/ClickHouse/ClickHouse/blob/master/programs/local/LocalServer.cpp": {
+  "sha256": "472af4ffa13c2ec95b83ef216fb33dfcc40b5e3ad77c7371b93fcf6eafce0ea0",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/Homebrew/homebrew-cask/blob/HEAD/Casks/c/clickhouse.rb": {
+  "sha256": "fe90b423d2e752bd243dbbb20553dcc8f9170f76363bf8ab3b69db6c998a650e",
+  "fetched": "2026-11-26"
+ }
+}

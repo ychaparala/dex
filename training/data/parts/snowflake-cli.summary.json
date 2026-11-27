@@ -1,0 +1,19 @@
+{
+ "templates": 27,
+ "pairs": 199,
+ "dropped_templates": {
+  "snowflake-cli.sql.csv": "snow-click on snowflake-cli 3.7.1: Invalid value for '--format': 'csv' is not one of 'table', 'json'."
+ },
+ "versions_pinned": [
+  "3.7.1"
+ ],
+ "versions_checked": [
+  "3.7.1"
+ ],
+ "per_version_status": {
+  "3.7.1": {
+   "ok": 199,
+   "fail": 9
+  }
+ }
+}

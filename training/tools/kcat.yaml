@@ -1,0 +1,457 @@
+tool: kcat
+binaries: [kcat, docker]
+category: streaming
+priority: standard
+target_pairs: 120
+version_note: kcat 1.7.x (formerly kafkacat)
+install:
+- binaries: ["kcat"]
+  macos: ["brew install kcat"]
+  linux: ["sudo apt-get install kcat"]
+  source: ["https://github.com/edenhill/kcat/blob/master/README.md", "https://packages.ubuntu.com/noble/kcat"]
+sources:
+- url: https://github.com/edenhill/kcat/blob/master/kcat.c
+  license: BSD-2-Clause (repo)
+- url: https://github.com/edenhill/kcat/blob/master/README.md
+  license: BSD-2-Clause (repo)
+destructive_patterns: []
+templates:
+- id: kcat.install.brew
+  group: setup
+  intents:
+  - install kcat with homebrew
+  - brew install kafkacat
+  - get kcat on my mac
+  - set up the kcat kafka client
+  vars: []
+  body: brew install kcat
+  destructive: false
+  source: https://github.com/edenhill/kcat/blob/master/README.md
+  verified: docs
+- id: kcat.docker.metadata
+  group: setup
+  intents:
+  - run kcat from docker to list brokers on {BOOTSTRAP}
+  - use the kcat docker image without installing it
+  - docker kcat metadata listing
+  - list kafka metadata with kcat in a container
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  body: docker run -it --rm --network=host edenhill/kcat:1.7.1 -b "$BOOTSTRAP" -L
+  destructive: false
+  source: https://github.com/edenhill/kcat/blob/master/README.md
+  verified: docs
+- id: kcat.version
+  group: setup
+  intents:
+  - what kcat version is installed
+  - check kcat and librdkafka version
+  - kcat version
+  - does my kcat build support avro
+  vars: []
+  body: kcat -V
+  destructive: false
+  source: https://github.com/edenhill/kcat/blob/master/kcat.c
+  verified: source
+- id: kcat.metadata
+  group: metadata
+  intents:
+  - list brokers and topics on {BOOTSTRAP} with kcat
+  - show kafka cluster metadata
+  - kcat -L
+  - what topics and partitions does this cluster have
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  body: kcat -b "$BOOTSTRAP" -L
+  destructive: false
+  source: https://github.com/edenhill/kcat/blob/master/kcat.c
+  verified: source
+- id: kcat.metadata.topic
+  group: metadata
+  intents:
+  - show partitions and leaders for {TOPIC} with kcat
+  - metadata for one topic
+  - kcat list a single topic
+  - which broker leads each partition of this topic
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: kcat -b "$BOOTSTRAP" -L -t "$TOPIC"
+  destructive: false
+  source: https://github.com/edenhill/kcat/blob/master/kcat.c
+  verified: source
+- id: kcat.metadata.json_topics
+  group: metadata
+  intents:
+  - list topic names with kcat as json
+  - get all topic names from kcat metadata via jq
+  - print just the topic names
+  - kcat topic list
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  body: kcat -b "$BOOTSTRAP" -L -J | jq -r '.topics[].topic'
+  destructive: false
+  source: https://github.com/edenhill/kcat/blob/master/kcat.c
+  verified: source
+- id: kcat.consume.all_exit
+  group: consume
+  intents:
+  - read all of {TOPIC} from the beginning and exit with kcat
+  - dump a topic and stop at the end
+  - kcat consume from beginning then quit
+  - print every message currently in the topic
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: kcat -b "$BOOTSTRAP" -C -t "$TOPIC" -o beginning -e
+  destructive: false
+  source: https://github.com/edenhill/kcat/blob/master/kcat.c
+  verified: source
+- id: kcat.consume.last_n
+  group: consume
+  intents:
+  - show the last {N} messages of {TOPIC}
+  - tail the most recent messages with kcat
+  - read the newest few records per partition and exit
+  - kcat last messages
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  - name: N
+    default: '10'
+    samples: ['1', '50', '100']
+  body: kcat -b "$BOOTSTRAP" -C -t "$TOPIC" -o -"$N" -e
+  destructive: false
+  source: https://github.com/edenhill/kcat/blob/master/kcat.c
+  verified: source
+- id: kcat.consume.count
+  group: consume
+  intents:
+  - read the first {N} messages from {TOPIC} with kcat
+  - sample a few messages and exit
+  - kcat consume limited count
+  - peek at the start of a topic
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  - name: N
+    default: '10'
+    samples: ['1', '50', '100']
+  body: kcat -b "$BOOTSTRAP" -C -t "$TOPIC" -o beginning -c "$N"
+  destructive: false
+  source: https://github.com/edenhill/kcat/blob/master/kcat.c
+  verified: source
+- id: kcat.consume.follow
+  group: consume
+  intents:
+  - follow new messages on {TOPIC} with kcat
+  - tail a topic live
+  - watch messages arrive in real time
+  - kcat consume from end and keep running
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: kcat -b "$BOOTSTRAP" -C -t "$TOPIC" -o end
+  destructive: false
+  source: https://github.com/edenhill/kcat/blob/master/kcat.c
+  verified: source
+- id: kcat.consume.format
+  group: consume
+  intents:
+  - consume {TOPIC} showing partition, offset, key and value
+  - kcat custom output format with key and offset
+  - print each message with its metadata on one line
+  - read a topic with partition offset key value columns
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: kcat -b "$BOOTSTRAP" -C -t "$TOPIC" -o beginning -e -f '%p\t%o\t%k\t%s\n'
+  destructive: false
+  source: https://github.com/edenhill/kcat/blob/master/kcat.c
+  verified: source
+- id: kcat.consume.keys
+  group: consume
+  intents:
+  - consume {TOPIC} with keys separated by a colon
+  - print key and value with kcat
+  - show message keys
+  - kcat key delimiter output
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: 'kcat -b "$BOOTSTRAP" -C -t "$TOPIC" -o beginning -e -K :'
+  destructive: false
+  source: https://github.com/edenhill/kcat/blob/master/kcat.c
+  verified: source
+- id: kcat.consume.json_jq
+  group: consume
+  intents:
+  - consume {TOPIC} as json envelopes and pull out the payload
+  - read messages with kcat -J and pipe to jq
+  - get offset and payload as json
+  - kcat json output with jq
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: kcat -b "$BOOTSTRAP" -C -t "$TOPIC" -o beginning -e -J | jq -c '{partition, offset, key, payload}'
+  destructive: false
+  source: https://github.com/edenhill/kcat/blob/master/kcat.c
+  verified: source
+- id: kcat.consume.timestamp
+  group: consume
+  intents:
+  - read {TOPIC} starting from timestamp {TS_MS}
+  - consume messages since a point in time with kcat
+  - kcat start at epoch millis
+  - replay a topic from a given time
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  - name: TS_MS
+    default: '1767225600000'
+    samples: ['1764000000000', '1748736000000']
+  body: kcat -b "$BOOTSTRAP" -C -t "$TOPIC" -o s@"$TS_MS" -e
+  destructive: false
+  source: https://github.com/edenhill/kcat/blob/master/kcat.c
+  verified: source
+- id: kcat.consume.group
+  group: consume
+  intents:
+  - consume {TOPIC} as consumer group {GROUP} with kcat
+  - join a balanced consumer group
+  - kcat high-level consumer
+  - read with a group id so offsets are stored
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: GROUP
+    default: kcat-debug
+    samples: [etl-loader, billing-service]
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: kcat -b "$BOOTSTRAP" -G "$GROUP" "$TOPIC"
+  destructive: false
+  source: https://github.com/edenhill/kcat/blob/master/kcat.c
+  verified: source
+- id: kcat.consume.avro
+  group: consume
+  intents:
+  - decode avro messages from {TOPIC} using schema registry
+  - read an avro topic with kcat
+  - kcat avro deserialize values
+  - consume avro and print as json
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  - name: SCHEMA_REGISTRY_URL
+    default: http://localhost:8081
+    samples: ['https://schema-registry.example.com', 'http://sr.internal.example.com:8081']
+  body: kcat -b "$BOOTSTRAP" -C -t "$TOPIC" -o beginning -e -s value=avro -r "$SCHEMA_REGISTRY_URL"
+  destructive: false
+  source: https://github.com/edenhill/kcat/blob/master/README.md
+  verified: docs
+- id: kcat.consume.sasl
+  group: consume
+  intents:
+  - consume {TOPIC} from a sasl_ssl cluster with kcat
+  - kcat with username and password auth
+  - read a secured kafka topic using an api key
+  - kcat sasl plain consume
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: kcat -b "$BOOTSTRAP" -X security.protocol=SASL_SSL -X sasl.mechanism=PLAIN -X sasl.username="$KAFKA_API_KEY" -X sasl.password="$KAFKA_API_SECRET" -C -t "$TOPIC" -o beginning -e
+  destructive: false
+  source: https://github.com/edenhill/kcat/blob/master/README.md
+  verified: docs
+- id: kcat.consume.config_file
+  group: consume
+  intents:
+  - consume {TOPIC} using kcat settings from {CONFIG}
+  - use a kcat config file for connection properties
+  - kcat with -F properties file
+  - read with saved auth config
+  vars:
+  - name: CONFIG
+    default: kcat.conf
+    samples: [~/.config/kcat.conf, ccloud.properties]
+    ctx: local_file
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: kcat -F "$CONFIG" -C -t "$TOPIC" -o beginning -e
+  destructive: false
+  source: https://github.com/edenhill/kcat/blob/master/kcat.c
+  verified: source
+- id: kcat.produce.stdin
+  group: produce
+  intents:
+  - produce messages to {TOPIC} with kcat
+  - type messages into a topic using kcat
+  - kcat producer
+  - send lines from stdin to kafka
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: kcat -b "$BOOTSTRAP" -P -t "$TOPIC"
+  destructive: false
+  source: https://github.com/edenhill/kcat/blob/master/kcat.c
+  verified: source
+- id: kcat.produce.keys
+  group: produce
+  intents:
+  - produce keyed messages to {TOPIC} with kcat using key:value lines
+  - send messages with keys via kcat
+  - kcat produce with key delimiter
+  - write key value pairs to a topic
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: 'kcat -b "$BOOTSTRAP" -P -t "$TOPIC" -K :'
+  destructive: false
+  source: https://github.com/edenhill/kcat/blob/master/kcat.c
+  verified: source
+- id: kcat.produce.file
+  group: produce
+  intents:
+  - send each line of {FILE} to {TOPIC} with kcat
+  - load a file into kafka line by line
+  - kcat produce from file
+  - bulk publish messages from a text file
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  - name: FILE
+    default: events.jsonl
+    samples: [orders.txt, sample.jsonl]
+    ctx: local_file
+  body: kcat -b "$BOOTSTRAP" -P -t "$TOPIC" -l "$FILE"
+  destructive: false
+  source: https://github.com/edenhill/kcat/blob/master/kcat.c
+  verified: source
+- id: kcat.produce.echo
+  group: produce
+  intents:
+  - send one message {MESSAGE} to {TOPIC} with kcat
+  - publish a single test record
+  - echo a message into kafka with kcat
+  - quick one-off produce
+  vars:
+  - name: MESSAGE
+    default: hello
+    samples: ['{"id":1}', ping]
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: echo "$MESSAGE" | kcat -b "$BOOTSTRAP" -P -t "$TOPIC"
+  destructive: false
+  source: https://github.com/edenhill/kcat/blob/master/kcat.c
+  verified: source
+- id: kcat.query.offset_ts
+  group: metadata
+  intents:
+  - find the offset in {TOPIC} partition 0 at timestamp {TS_MS}
+  - which offset matches a given time
+  - kcat query offset for timestamp
+  - look up offset by time
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  - name: TS_MS
+    default: '1767225600000'
+    samples: ['1764000000000', '1748736000000']
+  body: kcat -b "$BOOTSTRAP" -Q -t "$TOPIC":0:"$TS_MS"
+  destructive: false
+  source: https://github.com/edenhill/kcat/blob/master/kcat.c
+  verified: source

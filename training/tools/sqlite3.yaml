@@ -1,0 +1,245 @@
+tool: sqlite3
+binaries:
+- sqlite3
+category: databases
+priority: standard
+target_pairs: 80
+version_note: SQLite 3.32+ CLI
+install:
+- linux: ["sudo apt-get install sqlite3"]
+  source: ["https://packages.ubuntu.com/noble/sqlite3"]
+sources:
+- url: https://sqlite.org/cli.html
+  license: Public domain (sqlite.org)
+destructive_patterns:
+- (?i)\b(drop|truncate)\s+(table|view|index)\b
+- (?i)\bdelete\s+from\b
+templates:
+- id: sqlite3.open
+  group: connect
+  intents:
+  - open sqlite database {DB}
+  - start the sqlite shell on a file
+  - sqlite3 interactive session
+  - inspect a .db file
+  vars:
+  - name: DB
+    default: app.db
+    samples:
+    - data.sqlite
+    - local.db
+    - chinook.db
+    ctx: local_file
+  body: sqlite3 "$DB"
+  destructive: false
+  source: https://sqlite.org/cli.html
+  verified: docs
+- id: sqlite3.tables
+  group: meta
+  intents:
+  - list tables in {DB}
+  - what tables does this sqlite file have
+  - sqlite .tables
+  - show sqlite tables
+  vars:
+  - name: DB
+    default: app.db
+    samples:
+    - data.sqlite
+    - local.db
+    - chinook.db
+    ctx: local_file
+  body: sqlite3 "$DB" .tables
+  destructive: false
+  source: https://sqlite.org/cli.html
+  verified: docs
+- id: sqlite3.schema
+  group: meta
+  intents:
+  - show the create statement for {TABLE}
+  - sqlite schema of a table
+  - what columns does this sqlite table have
+  - .schema in sqlite
+  vars:
+  - name: DB
+    default: app.db
+    samples:
+    - data.sqlite
+    - local.db
+    - chinook.db
+    ctx: local_file
+  - name: TABLE
+    default: users
+    samples:
+    - orders
+    - events
+  body: sqlite3 "$DB" ".schema $TABLE"
+  destructive: false
+  source: https://sqlite.org/cli.html
+  verified: docs
+- id: sqlite3.query
+  group: query
+  intents:
+  - run {QUERY} on {DB}
+  - query a sqlite file from bash
+  - one-shot sqlite query
+  - sqlite3 select from the command line
+  vars:
+  - name: DB
+    default: app.db
+    samples:
+    - data.sqlite
+    - local.db
+    - chinook.db
+    ctx: local_file
+  - name: QUERY
+    default: select count(*) from users
+    samples:
+    - select * from orders limit 10
+  body: sqlite3 -header -box "$DB" "$QUERY"
+  destructive: false
+  source: https://sqlite.org/cli.html
+  verified: docs
+- id: sqlite3.export.csv
+  group: export
+  intents:
+  - export {TABLE} from sqlite to {OUT_FILE}
+  - sqlite table to csv with headers
+  - dump a sqlite query as csv
+  - save sqlite data as csv
+  vars:
+  - name: DB
+    default: app.db
+    samples:
+    - data.sqlite
+    - local.db
+    - chinook.db
+    ctx: local_file
+  - name: TABLE
+    default: users
+    samples:
+    - orders
+  - name: OUT_FILE
+    default: users.csv
+    samples:
+    - orders.csv
+  body: sqlite3 -header -csv "$DB" "select * from $TABLE" > "$OUT_FILE"
+  destructive: false
+  source: https://sqlite.org/cli.html
+  verified: docs
+- id: sqlite3.export.json
+  group: export
+  intents:
+  - get rows from {TABLE} as json
+  - sqlite json output piped to jq
+  - query sqlite and process with jq
+  - sqlite3 -json
+  vars:
+  - name: DB
+    default: app.db
+    samples:
+    - data.sqlite
+    - local.db
+    - chinook.db
+    ctx: local_file
+  - name: TABLE
+    default: users
+    samples:
+    - orders
+  body: sqlite3 -json "$DB" "select * from $TABLE limit 10" | jq .
+  destructive: false
+  source: https://sqlite.org/cli.html
+  verified: docs
+- id: sqlite3.import.csv
+  group: import
+  intents:
+  - import {FILE} into table {TABLE}
+  - load a csv into sqlite
+  - sqlite .import csv with header row
+  - create a sqlite table from a csv
+  vars:
+  - name: DB
+    default: app.db
+    samples:
+    - data.sqlite
+    - local.db
+    - chinook.db
+    ctx: local_file
+  - name: FILE
+    default: data.csv
+    samples:
+    - users.csv
+    - orders.csv
+    ctx: local_file
+  - name: TABLE
+    default: data
+    samples:
+    - users
+    - orders
+  body: sqlite3 "$DB" ".import --csv $FILE $TABLE"
+  destructive: false
+  source: https://sqlite.org/cli.html
+  verified: docs
+- id: sqlite3.dump
+  group: backup
+  intents:
+  - dump {DB} to a sql file
+  - back up a sqlite database as sql text
+  - sqlite .dump
+  - export the whole sqlite db as sql
+  vars:
+  - name: DB
+    default: app.db
+    samples:
+    - data.sqlite
+    - local.db
+    - chinook.db
+    ctx: local_file
+  - name: OUT_FILE
+    default: backup.sql
+    samples:
+    - app_dump.sql
+  body: sqlite3 "$DB" .dump > "$OUT_FILE"
+  destructive: false
+  source: https://sqlite.org/cli.html
+  verified: docs
+- id: sqlite3.restore
+  group: backup
+  intents:
+  - rebuild a database from {SQL_FILE}
+  - load a sql dump into a new sqlite file
+  - restore sqlite from .dump output
+  - sqlite restore from sql
+  vars:
+  - name: NEW_DB
+    default: restored.db
+    samples:
+    - app_copy.db
+  - name: SQL_FILE
+    default: backup.sql
+    samples:
+    - app_dump.sql
+    ctx: local_file
+  body: sqlite3 "$NEW_DB" < "$SQL_FILE"
+  destructive: false
+  source: https://sqlite.org/cli.html
+  verified: docs
+- id: sqlite3.integrity
+  group: meta
+  intents:
+  - check {DB} for corruption
+  - sqlite integrity check
+  - is this sqlite file corrupt
+  - pragma integrity_check
+  vars:
+  - name: DB
+    default: app.db
+    samples:
+    - data.sqlite
+    - local.db
+    - chinook.db
+    ctx: local_file
+  body: sqlite3 "$DB" "pragma integrity_check"
+  destructive: false
+  source: https://sqlite.org/pragma.html
+  verified: docs

@@ -1,0 +1,522 @@
+tool: kubectl
+binaries: [kubectl]
+category: infra
+priority: standard
+target_pairs: 180
+version_note: "kubectl 1.3x (Kubernetes reference docs); spark-operator CRDs from kubeflow/spark-operator v2"
+install:
+- macos: ["brew install kubectl"]
+  linux: ["sudo snap install kubectl --classic"]
+  source: ["https://kubernetes.io/docs/tasks/tools/install-kubectl-macos/", "https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/"]
+sources:
+  - url: https://github.com/kubernetes/website/blob/main/content/en/docs/reference/kubectl/quick-reference.md
+    license: "CC BY 4.0 (kubernetes/website repo)"
+  - url: https://github.com/kubernetes/website/tree/main/content/en/docs/reference/kubectl/generated
+    license: "CC BY 4.0 (kubernetes/website repo)"
+  - url: https://github.com/kubernetes/website/blob/main/content/en/docs/tasks/tools/install-kubectl-linux.md
+    license: "CC BY 4.0 (kubernetes/website repo)"
+  - url: https://github.com/kubeflow/spark-operator/blob/master/README.md
+    license: "Apache-2.0 (kubeflow/spark-operator repo)"
+destructive_patterns:
+  - '\bkubectl\s+delete\b'
+  - '\bkubectl\s+drain\b'
+  - '--force\b.*--grace-period=0'
+templates:
+  - id: kubectl.setup.install_linux
+    group: setup
+    intents:
+      - install kubectl on linux
+      - download the latest stable kubectl binary and put it on my path
+      - set up kubectl on an amd64 linux box
+      - get kubectl the official way
+    body: curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+    destructive: false
+    source: https://github.com/kubernetes/website/blob/main/content/en/docs/tasks/tools/install-kubectl-linux.md
+    verified: docs
+
+  - id: kubectl.setup.version
+    group: setup
+    intents:
+      - which kubectl version do I have
+      - kubectl client version
+      - check kubectl version without contacting the cluster
+      - show kubectl version
+    body: kubectl version --client
+    destructive: false
+    source: https://github.com/kubernetes/website/blob/main/content/en/docs/reference/kubectl/generated/kubectl_version/_index.md
+    verified: docs
+
+  - id: kubectl.config.get_contexts
+    group: config
+    intents:
+      - list my kube contexts
+      - which kubernetes clusters can kubectl talk to
+      - show all kubectl contexts and the current one
+      - kubectl config get-contexts
+    body: kubectl config get-contexts
+    destructive: false
+    source: https://github.com/kubernetes/website/blob/main/content/en/docs/reference/kubectl/quick-reference.md
+    verified: docs
+
+  - id: kubectl.config.use_context
+    group: config
+    intents:
+      - switch kubectl to context {CONTEXT}
+      - use the {CONTEXT} cluster
+      - change my current kube context
+      - point kubectl at another cluster
+    vars:
+      - {name: CONTEXT, default: <context>, samples: [prod-eks, staging, kind-local], ctx: k8s_context}
+    body: kubectl config use-context "$CONTEXT"
+    destructive: false
+    source: https://github.com/kubernetes/website/blob/main/content/en/docs/reference/kubectl/quick-reference.md
+    verified: docs
+
+  - id: kubectl.config.set_namespace
+    group: config
+    intents:
+      - make {NAMESPACE} my default namespace
+      - set the namespace for the current kubectl context
+      - stop typing -n every time, default to {NAMESPACE}
+      - change default namespace in kubectl
+    vars:
+      - {name: NAMESPACE, default: default, samples: [data, airflow, spark-jobs], ctx: k8s_namespace}
+    body: kubectl config set-context --current --namespace="$NAMESPACE"
+    destructive: false
+    source: https://github.com/kubernetes/website/blob/main/content/en/docs/reference/kubectl/quick-reference.md
+    verified: docs
+
+  - id: kubectl.get.pods
+    group: inspect
+    intents:
+      - list pods in namespace {NAMESPACE}
+      - what pods are running in {NAMESPACE}
+      - show pods with node and ip
+      - kubectl get pods wide
+      - check pod status in the {NAMESPACE} namespace
+    vars:
+      - {name: NAMESPACE, default: default, samples: [data, airflow, spark-jobs], ctx: k8s_namespace}
+    body: kubectl get pods -n "$NAMESPACE" -o wide
+    destructive: false
+    source: https://github.com/kubernetes/website/blob/main/content/en/docs/reference/kubectl/quick-reference.md
+    verified: docs
+
+  - id: kubectl.get.pods_not_running
+    group: inspect
+    intents:
+      - show pods in {NAMESPACE} that are not running
+      - which pods are pending or failed
+      - find broken pods in a namespace
+      - list pods that aren't in the Running phase
+    vars:
+      - {name: NAMESPACE, default: default, samples: [data, airflow, spark-jobs], ctx: k8s_namespace}
+    body: kubectl get pods -n "$NAMESPACE" --field-selector=status.phase!=Running
+    destructive: false
+    source: https://github.com/kubernetes/website/blob/main/content/en/docs/reference/kubectl/quick-reference.md
+    verified: docs
+
+  - id: kubectl.get.pod_names_jsonpath
+    group: inspect
+    intents:
+      - print only pod names in {NAMESPACE}, one per line
+      - get pod names with jsonpath
+      - list just the names of the pods
+      - pod names for scripting
+    vars:
+      - {name: NAMESPACE, default: default, samples: [data, airflow], ctx: k8s_namespace}
+    body: kubectl get pods -n "$NAMESPACE" -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}'
+    destructive: false
+    source: https://github.com/kubernetes/website/blob/main/content/en/docs/reference/kubectl/jsonpath.md
+    verified: docs
+
+  - id: kubectl.get.events
+    group: inspect
+    intents:
+      - show recent events in {NAMESPACE} sorted by time
+      - why is my pod not starting, check events
+      - kubectl events newest last
+      - list cluster events in order
+    vars:
+      - {name: NAMESPACE, default: default, samples: [data, airflow, spark-jobs], ctx: k8s_namespace}
+    body: kubectl get events -n "$NAMESPACE" --sort-by=.metadata.creationTimestamp
+    destructive: false
+    source: https://github.com/kubernetes/website/blob/main/content/en/docs/reference/kubectl/quick-reference.md
+    verified: docs
+
+  - id: kubectl.describe.pod
+    group: inspect
+    intents:
+      - describe pod {POD}
+      - show details and events for a pod
+      - why is {POD} crashlooping, describe it
+      - kubectl describe pod in {NAMESPACE}
+    vars:
+      - {name: POD, default: <pod-name>, samples: [airflow-scheduler-7c9d8f6b5-x2k4j, spark-pi-driver, kafka-0]}
+      - {name: NAMESPACE, default: default, samples: [airflow, spark-jobs, data], ctx: k8s_namespace}
+    body: kubectl describe pod "$POD" -n "$NAMESPACE"
+    destructive: false
+    source: https://github.com/kubernetes/website/blob/main/content/en/docs/reference/kubectl/quick-reference.md
+    verified: docs
+
+  - id: kubectl.logs.follow
+    group: logs
+    intents:
+      - tail the logs of pod {POD}
+      - follow pod logs live
+      - stream logs from {POD} starting with the last 100 lines
+      - kubectl logs -f
+    vars:
+      - {name: POD, default: <pod-name>, samples: [airflow-scheduler-7c9d8f6b5-x2k4j, spark-pi-driver]}
+      - {name: NAMESPACE, default: default, samples: [airflow, spark-jobs], ctx: k8s_namespace}
+    body: kubectl logs -f --tail=100 "$POD" -n "$NAMESPACE"
+    destructive: false
+    source: https://github.com/kubernetes/website/blob/main/content/en/docs/reference/kubectl/quick-reference.md
+    verified: docs
+
+  - id: kubectl.logs.previous
+    group: logs
+    intents:
+      - show logs from the previous crashed container of {POD}
+      - why did my pod restart, logs before the crash
+      - kubectl logs --previous
+      - see the last run's logs of a crashlooping pod
+    vars:
+      - {name: POD, default: <pod-name>, samples: [airflow-worker-0, kafka-connect-5f7d9c-abcde]}
+      - {name: NAMESPACE, default: default, samples: [airflow, data], ctx: k8s_namespace}
+    body: kubectl logs "$POD" -n "$NAMESPACE" --previous
+    destructive: false
+    source: https://github.com/kubernetes/website/blob/main/content/en/docs/reference/kubectl/quick-reference.md
+    verified: docs
+
+  - id: kubectl.logs.container
+    group: logs
+    intents:
+      - logs of container {CONTAINER} in pod {POD}
+      - get logs from one container of a multi-container pod
+      - kubectl logs -c sidecar
+      - show the {CONTAINER} container logs
+    vars:
+      - {name: POD, default: <pod-name>, samples: [airflow-worker-0, airflow-scheduler-7c9d8f6b5-x2k4j]}
+      - {name: CONTAINER, default: <container>, samples: [worker, git-sync, scheduler]}
+      - {name: NAMESPACE, default: default, samples: [airflow], ctx: k8s_namespace}
+    body: kubectl logs "$POD" -c "$CONTAINER" -n "$NAMESPACE"
+    destructive: false
+    source: https://github.com/kubernetes/website/blob/main/content/en/docs/reference/kubectl/quick-reference.md
+    verified: docs
+
+  - id: kubectl.logs.grep_errors
+    group: logs
+    intents:
+      - search {POD} logs for errors
+      - grep the pod logs for exceptions
+      - find ERROR lines in a pod's output
+      - which errors did the pod log
+    vars:
+      - {name: POD, default: <pod-name>, samples: [spark-pi-driver, airflow-worker-0]}
+      - {name: NAMESPACE, default: default, samples: [spark-jobs, airflow], ctx: k8s_namespace}
+    body: kubectl logs "$POD" -n "$NAMESPACE" | grep -iE 'error|exception' | tail -n 50
+    destructive: false
+    source: https://github.com/kubernetes/website/blob/main/content/en/docs/reference/kubectl/quick-reference.md
+    verified: docs
+
+  - id: kubectl.exec.shell
+    group: exec
+    intents:
+      - open a shell in pod {POD}
+      - exec into the pod with bash
+      - get an interactive terminal inside a container
+      - kubectl exec -it into {POD}
+    vars:
+      - {name: POD, default: <pod-name>, samples: [airflow-scheduler-7c9d8f6b5-x2k4j, postgres-0]}
+      - {name: NAMESPACE, default: default, samples: [airflow, data], ctx: k8s_namespace}
+    body: kubectl exec -it "$POD" -n "$NAMESPACE" -- /bin/bash
+    destructive: false
+    source: https://github.com/kubernetes/website/blob/main/content/en/docs/reference/kubectl/quick-reference.md
+    verified: docs
+
+  - id: kubectl.exec.airflow_cli
+    group: exec
+    intents:
+      - run airflow dags list inside the scheduler pod
+      - use the airflow cli inside the cluster
+      - exec an airflow command in {POD}
+      - list dags from the airflow pod
+    vars:
+      - {name: POD, default: <pod-name>, samples: [airflow-scheduler-0, airflow-scheduler-7c9d8f6b5-x2k4j]}
+      - {name: NAMESPACE, default: airflow, samples: [airflow, orchestration], ctx: k8s_namespace}
+    body: kubectl exec -n "$NAMESPACE" "$POD" -- airflow dags list
+    destructive: false
+    source: https://github.com/kubernetes/website/blob/main/content/en/docs/reference/kubectl/quick-reference.md
+    verified: docs
+
+  - id: kubectl.port_forward.airflow
+    group: network
+    intents:
+      - port forward the airflow web ui to localhost 8080
+      - open airflow ui locally from the cluster
+      - forward service {SERVICE} port 8080
+      - access the airflow api server on my laptop
+    vars:
+      - {name: SERVICE, default: airflow-api-server, samples: [airflow-api-server, airflow-webserver]}
+      - {name: NAMESPACE, default: airflow, samples: [airflow, orchestration], ctx: k8s_namespace}
+    body: kubectl port-forward "svc/$SERVICE" 8080:8080 -n "$NAMESPACE"
+    destructive: false
+    source: https://github.com/kubernetes/website/blob/main/content/en/docs/reference/kubectl/quick-reference.md
+    verified: docs
+
+  - id: kubectl.port_forward.spark_ui
+    group: network
+    intents:
+      - forward the spark ui of driver pod {POD} to localhost 4040
+      - view spark ui for a job running on kubernetes
+      - port-forward the spark driver
+      - open the spark web ui from a k8s pod
+    vars:
+      - {name: POD, default: <pod-name>, samples: [spark-pi-driver, daily-sales-driver]}
+      - {name: NAMESPACE, default: default, samples: [spark-jobs, data], ctx: k8s_namespace}
+    body: kubectl port-forward "$POD" 4040:4040 -n "$NAMESPACE"
+    destructive: false
+    source: https://github.com/kubernetes/website/blob/main/content/en/docs/reference/kubectl/quick-reference.md
+    verified: docs
+
+  - id: kubectl.apply
+    group: deploy
+    intents:
+      - apply manifest {FILE}
+      - create or update resources from a yaml file
+      - kubectl apply -f
+      - deploy this manifest to {NAMESPACE}
+    vars:
+      - {name: FILE, default: manifest.yaml, samples: [deployment.yaml, spark-app.yaml, k8s/], ctx: local_file}
+      - {name: NAMESPACE, default: default, samples: [data, spark-jobs], ctx: k8s_namespace}
+    body: kubectl apply -f "$FILE" -n "$NAMESPACE"
+    destructive: false
+    source: https://github.com/kubernetes/website/blob/main/content/en/docs/reference/kubectl/quick-reference.md
+    verified: docs
+
+  - id: kubectl.diff
+    group: deploy
+    intents:
+      - what would change if I applied {FILE}
+      - diff a manifest against the live cluster
+      - preview kubectl apply changes
+      - kubectl diff
+    vars:
+      - {name: FILE, default: manifest.yaml, samples: [deployment.yaml, values-rendered.yaml], ctx: local_file}
+    body: kubectl diff -f "$FILE"
+    destructive: false
+    source: https://github.com/kubernetes/website/blob/main/content/en/docs/reference/kubectl/generated/kubectl_diff/_index.md
+    verified: docs
+
+  - id: kubectl.delete.file
+    group: deploy
+    intents:
+      - delete the resources defined in {FILE}
+      - remove everything from this manifest
+      - kubectl delete -f
+      - tear down what this yaml created
+    vars:
+      - {name: FILE, default: manifest.yaml, samples: [deployment.yaml, spark-app.yaml], ctx: local_file}
+    body: kubectl delete -f "$FILE"
+    destructive: true
+    source: https://github.com/kubernetes/website/blob/main/content/en/docs/reference/kubectl/quick-reference.md
+    verified: docs
+
+  - id: kubectl.delete.pod
+    group: deploy
+    intents:
+      - delete pod {POD} so it gets recreated
+      - kill a stuck pod
+      - remove a pod in {NAMESPACE}
+      - kubectl delete pod
+    vars:
+      - {name: POD, default: <pod-name>, samples: [airflow-worker-0, kafka-connect-5f7d9c-abcde]}
+      - {name: NAMESPACE, default: default, samples: [airflow, data], ctx: k8s_namespace}
+    body: kubectl delete pod "$POD" -n "$NAMESPACE"
+    destructive: true
+    source: https://github.com/kubernetes/website/blob/main/content/en/docs/reference/kubectl/quick-reference.md
+    verified: docs
+
+  - id: kubectl.rollout.restart
+    group: deploy
+    intents:
+      - restart deployment {DEPLOYMENT}
+      - do a rolling restart of the airflow scheduler
+      - bounce all pods of a deployment
+      - kubectl rollout restart
+    vars:
+      - {name: DEPLOYMENT, default: <deployment>, samples: [airflow-scheduler, kafka-connect, trino-worker]}
+      - {name: NAMESPACE, default: default, samples: [airflow, data], ctx: k8s_namespace}
+    body: kubectl rollout restart "deployment/$DEPLOYMENT" -n "$NAMESPACE"
+    destructive: false
+    source: https://github.com/kubernetes/website/blob/main/content/en/docs/reference/kubectl/quick-reference.md
+    verified: docs
+
+  - id: kubectl.rollout.status
+    group: deploy
+    intents:
+      - watch the rollout of {DEPLOYMENT} until it's done
+      - is the deployment rollout finished
+      - kubectl rollout status
+      - wait for the new pods to be ready
+    vars:
+      - {name: DEPLOYMENT, default: <deployment>, samples: [airflow-scheduler, kafka-connect]}
+      - {name: NAMESPACE, default: default, samples: [airflow, data], ctx: k8s_namespace}
+    body: kubectl rollout status "deployment/$DEPLOYMENT" -n "$NAMESPACE"
+    destructive: false
+    source: https://github.com/kubernetes/website/blob/main/content/en/docs/reference/kubectl/quick-reference.md
+    verified: docs
+
+  - id: kubectl.scale
+    group: deploy
+    intents:
+      - scale {DEPLOYMENT} to {REPLICAS} replicas
+      - add more workers to a deployment
+      - kubectl scale replicas
+    vars:
+      - {name: DEPLOYMENT, default: <deployment>, samples: [airflow-worker, trino-worker, kafka-connect]}
+      - {name: REPLICAS, default: "3", samples: ["2", "5"]}
+      - {name: NAMESPACE, default: default, samples: [airflow, data], ctx: k8s_namespace}
+    body: kubectl scale "deployment/$DEPLOYMENT" --replicas="$REPLICAS" -n "$NAMESPACE"
+    destructive: false
+    source: https://github.com/kubernetes/website/blob/main/content/en/docs/reference/kubectl/quick-reference.md
+    verified: docs
+
+  # Zero replicas stops every pod, so it's its own template, marked destructive.
+  - id: kubectl.scale.zero
+    group: deploy
+    intents:
+      - scale {DEPLOYMENT} down to zero
+      - scale a deployment down to zero
+      - stop all pods of a deployment but keep the deployment
+    vars:
+      - {name: DEPLOYMENT, default: <deployment>, samples: [airflow-worker, trino-worker, kafka-connect]}
+      - {name: REPLICAS, default: "0"}
+      - {name: NAMESPACE, default: default, samples: [airflow, data], ctx: k8s_namespace}
+    body: kubectl scale "deployment/$DEPLOYMENT" --replicas="$REPLICAS" -n "$NAMESPACE"
+    destructive: true
+    source: https://github.com/kubernetes/website/blob/main/content/en/docs/reference/kubectl/quick-reference.md
+    verified: docs
+
+  - id: kubectl.top.pods
+    group: inspect
+    intents:
+      - which pods use the most memory in {NAMESPACE}
+      - show pod cpu and memory usage
+      - kubectl top pods sorted by memory
+      - resource usage of pods
+    vars:
+      - {name: NAMESPACE, default: default, samples: [spark-jobs, airflow], ctx: k8s_namespace}
+    body: kubectl top pod -n "$NAMESPACE" --sort-by=memory
+    destructive: false
+    source: https://github.com/kubernetes/website/blob/main/content/en/docs/reference/kubectl/quick-reference.md
+    verified: docs
+
+  - id: kubectl.cp.from_pod
+    group: files
+    intents:
+      - copy {REMOTE_PATH} out of pod {POD}
+      - download a file from a pod to my machine
+      - kubectl cp from a container
+      - grab a log file from inside the pod
+    vars:
+      - {name: NAMESPACE, default: default, samples: [airflow, spark-jobs], ctx: k8s_namespace}
+      - {name: POD, default: <pod-name>, samples: [airflow-worker-0, spark-pi-driver]}
+      - {name: REMOTE_PATH, default: /tmp/output.csv, samples: [/opt/airflow/logs/scheduler/latest.log, /tmp/result.parquet]}
+      - {name: LOCAL_PATH, default: ./output.csv, samples: [./scheduler.log, ./result.parquet]}
+    body: kubectl cp "$NAMESPACE/$POD:$REMOTE_PATH" "$LOCAL_PATH"
+    destructive: false
+    source: https://github.com/kubernetes/website/blob/main/content/en/docs/reference/kubectl/quick-reference.md
+    verified: docs
+
+  - id: kubectl.cp.to_pod
+    group: files
+    intents:
+      - copy {LOCAL_PATH} into pod {POD}
+      - upload a file into a running container
+      - kubectl cp to a pod
+      - put a local file inside the pod at {REMOTE_PATH}
+    vars:
+      - {name: LOCAL_PATH, default: ./data.csv, samples: [./seed.sql, ./dags/new_dag.py]}
+      - {name: NAMESPACE, default: default, samples: [airflow, data], ctx: k8s_namespace}
+      - {name: POD, default: <pod-name>, samples: [postgres-0, airflow-scheduler-0]}
+      - {name: REMOTE_PATH, default: /tmp/data.csv, samples: [/tmp/seed.sql, /opt/airflow/dags/new_dag.py]}
+    body: kubectl cp "$LOCAL_PATH" "$NAMESPACE/$POD:$REMOTE_PATH"
+    destructive: false
+    source: https://github.com/kubernetes/website/blob/main/content/en/docs/reference/kubectl/quick-reference.md
+    verified: docs
+
+  - id: kubectl.secret.from_literal
+    group: secrets
+    intents:
+      - create secret {SECRET} with a password from an env var
+      - store db credentials in a kubernetes secret
+      - kubectl create secret generic from literal values
+      - make a generic secret with username and password
+    vars:
+      - {name: SECRET, default: <secret-name>, samples: [postgres-credentials, snowflake-creds]}
+      - {name: NAMESPACE, default: default, samples: [airflow, data], ctx: k8s_namespace}
+    body: kubectl create secret generic "$SECRET" -n "$NAMESPACE" --from-literal=username=etl_user --from-literal=password="$DB_PASSWORD"
+    destructive: false
+    source: https://github.com/kubernetes/website/blob/main/content/en/docs/reference/kubectl/generated/kubectl_create/kubectl_create_secret_generic.md
+    verified: docs
+
+  - id: kubectl.secret.from_file
+    group: secrets
+    intents:
+      - create a secret from file {FILE}
+      - put a service account key file into a k8s secret
+      - kubectl create secret generic --from-file
+      - store a credentials json as a secret
+    vars:
+      - {name: SECRET, default: <secret-name>, samples: [gcp-sa-key, kafka-client-certs]}
+      - {name: FILE, default: key.json, samples: [sa-key.json, client.keystore.jks], ctx: local_file}
+      - {name: NAMESPACE, default: default, samples: [airflow, data], ctx: k8s_namespace}
+    body: kubectl create secret generic "$SECRET" --from-file="$FILE" -n "$NAMESPACE"
+    destructive: false
+    source: https://github.com/kubernetes/website/blob/main/content/en/docs/reference/kubectl/generated/kubectl_create/kubectl_create_secret_generic.md
+    verified: docs
+
+  - id: kubectl.spark.sparkapps
+    group: spark-operator
+    intents:
+      - list spark applications in {NAMESPACE}
+      - show sparkapplication status from the spark operator
+      - kubectl get sparkapp
+      - which spark jobs did the operator run
+    vars:
+      - {name: NAMESPACE, default: default, samples: [spark-jobs, data], ctx: k8s_namespace}
+    body: kubectl get sparkapplications -n "$NAMESPACE"
+    destructive: false
+    source: https://github.com/kubeflow/spark-operator/blob/master/README.md
+    verified: docs
+
+  - id: kubectl.spark.describe_app
+    group: spark-operator
+    intents:
+      - describe spark application {APP}
+      - why did my sparkapplication fail
+      - show events and state of a spark operator job
+      - kubectl describe sparkapp
+    vars:
+      - {name: APP, default: <spark-app>, samples: [spark-pi, daily-sales-etl]}
+      - {name: NAMESPACE, default: default, samples: [spark-jobs, data], ctx: k8s_namespace}
+    body: kubectl describe sparkapplication "$APP" -n "$NAMESPACE"
+    destructive: false
+    source: https://github.com/kubeflow/spark-operator/blob/master/README.md
+    verified: docs
+
+  - id: kubectl.spark.delete_app
+    group: spark-operator
+    intents:
+      - delete spark application {APP}
+      - remove a finished sparkapp so it can be resubmitted
+      - kubectl delete sparkapp
+      - clean up a spark operator job
+    vars:
+      - {name: APP, default: <spark-app>, samples: [spark-pi, daily-sales-etl]}
+      - {name: NAMESPACE, default: default, samples: [spark-jobs, data], ctx: k8s_namespace}
+    body: kubectl delete sparkapplication "$APP" -n "$NAMESPACE"
+    destructive: true
+    source: https://github.com/kubeflow/spark-operator/blob/master/README.md
+    verified: docs

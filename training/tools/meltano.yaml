@@ -1,0 +1,280 @@
+tool: meltano
+binaries:
+- meltano
+category: ingestion
+priority: standard
+target_pairs: 80
+version_note: Meltano 4.x CLI (4.4.1); plugin type is inferred by 'meltano add'; config syntax is 'meltano config <sub> <plugin>'
+install:
+- any: ["uv tool install meltano", "pipx install meltano"]
+  source: ["https://github.com/meltano/meltano/blob/main/docs/docs/guide/installation-guide.mdx"]
+sources:
+- url: https://github.com/meltano/meltano/blob/main/src/meltano/cli/run.py
+  license: MIT (repo)
+- url: https://github.com/meltano/meltano/blob/main/src/meltano/cli/add.py
+  license: MIT (repo)
+- url: https://github.com/meltano/meltano/blob/main/src/meltano/cli/config.py
+  license: MIT (repo)
+- url: https://github.com/meltano/meltano/blob/main/src/meltano/cli/select_entities.py
+  license: MIT (repo)
+- url: https://github.com/meltano/meltano/blob/main/src/meltano/cli/invoke.py
+  license: MIT (repo)
+- url: https://github.com/meltano/meltano/blob/main/src/meltano/cli/state.py
+  license: MIT (repo)
+- url: https://github.com/meltano/meltano/blob/main/src/meltano/cli/cli.py
+  license: MIT (repo)
+- url: https://github.com/meltano/meltano/blob/main/docs/docs/guide/installation-guide.mdx
+  license: MIT (repo)
+destructive_patterns:
+- \bmeltano\s+(remove|state\s+clear)\b
+- \bmeltano\s+config\s+reset\b
+templates:
+- id: meltano.install.uv
+  group: setup
+  intents:
+  - install meltano
+  - install the meltano cli with uv
+  - uv tool install meltano
+  - set up meltano as a standalone tool
+  vars: []
+  body: uv tool install meltano
+  destructive: false
+  source: https://github.com/meltano/meltano/blob/main/docs/docs/guide/installation-guide.mdx
+  verified: docs
+- id: meltano.install.pipx
+  group: setup
+  intents:
+  - install meltano with pipx
+  - pipx install meltano
+  - get meltano in an isolated env using pipx
+  - set up meltano via pipx
+  vars: []
+  body: pipx install meltano
+  destructive: false
+  source: https://github.com/meltano/meltano/blob/main/docs/docs/guide/installation-guide.mdx
+  verified: docs
+- id: meltano.version
+  group: setup
+  intents:
+  - meltano version
+  - which meltano version is installed
+  - check meltano version
+  - show meltano cli version
+  vars: []
+  body: meltano --version
+  destructive: false
+  source: https://github.com/meltano/meltano/blob/main/src/meltano/cli/cli.py
+  verified: source
+- id: meltano.init
+  group: setup
+  intents:
+  - create a meltano project called {PROJECT}
+  - meltano init
+  - start a new meltano project
+  - scaffold an elt project with meltano
+  vars:
+  - {name: PROJECT, default: my-meltano-project, samples: [elt-pipelines, github-to-postgres]}
+  body: meltano init "$PROJECT"
+  destructive: false
+  source: https://github.com/meltano/meltano/blob/main/src/meltano/cli/initialize.py
+  verified: source
+- id: meltano.add.extractor
+  group: plugins
+  intents:
+  - add extractor {TAP}
+  - add a tap to my meltano project
+  - meltano add a source plugin
+  - install the {TAP} extractor
+  vars:
+  - {name: TAP, default: tap-github, samples: [tap-postgres, tap-salesforce, tap-stripe]}
+  body: meltano add "$TAP"
+  destructive: false
+  source: https://github.com/meltano/meltano/blob/main/src/meltano/cli/add.py
+  verified: source
+- id: meltano.add.loader
+  group: plugins
+  intents:
+  - add loader {TARGET}
+  - add a target to meltano
+  - meltano add a destination plugin
+  - install the {TARGET} loader
+  vars:
+  - {name: TARGET, default: target-postgres, samples: [target-snowflake, target-jsonl, target-duckdb]}
+  body: meltano add "$TARGET"
+  destructive: false
+  source: https://github.com/meltano/meltano/blob/main/src/meltano/cli/add.py
+  verified: source
+- id: meltano.install
+  group: plugins
+  intents:
+  - install all plugins in meltano.yml
+  - meltano install
+  - set up every plugin's virtualenv
+  - install project plugins after cloning
+  vars: []
+  body: meltano install
+  destructive: false
+  source: https://github.com/meltano/meltano/blob/main/src/meltano/cli/install.py
+  verified: source
+- id: meltano.config.list
+  group: config
+  intents:
+  - list settings for {TAP}
+  - what can I configure on this plugin
+  - meltano config list
+  - show config options and current values for a tap
+  vars:
+  - {name: TAP, default: tap-github, samples: [tap-postgres, tap-salesforce, tap-stripe]}
+  body: meltano config list "$TAP"
+  destructive: false
+  source: https://github.com/meltano/meltano/blob/main/src/meltano/cli/config.py
+  verified: source
+- id: meltano.config.set
+  group: config
+  intents:
+  - set {SETTING} to {VALUE} on {TAP}
+  - configure a meltano plugin setting
+  - meltano config set
+  - change a tap's setting
+  vars:
+  - {name: TAP, default: tap-github, samples: [tap-postgres, tap-salesforce, tap-stripe]}
+  - {name: SETTING, default: start_date, samples: [repositories, batch_size]}
+  - {name: VALUE, default: '2025-01-01T00:00:00Z', samples: ['["myorg/myrepo"]', '1000']}
+  body: meltano config set "$TAP" "$SETTING" "$VALUE"
+  destructive: false
+  source: https://github.com/meltano/meltano/blob/main/src/meltano/cli/config.py
+  verified: source
+- id: meltano.config.print
+  group: config
+  intents:
+  - print the resolved config of {TAP}
+  - show the effective plugin configuration as json
+  - meltano config print
+  - dump plugin config
+  vars:
+  - {name: TAP, default: tap-github, samples: [tap-postgres, tap-salesforce, tap-stripe]}
+  body: meltano config print "$TAP"
+  destructive: false
+  source: https://github.com/meltano/meltano/blob/main/src/meltano/cli/config.py
+  verified: source
+- id: meltano.config.test
+  group: config
+  intents:
+  - test the {TAP} configuration
+  - check that the tap can connect
+  - meltano config test
+  - validate extractor credentials
+  vars:
+  - {name: TAP, default: tap-github, samples: [tap-postgres, tap-salesforce, tap-stripe]}
+  body: meltano config test "$TAP"
+  destructive: false
+  source: https://github.com/meltano/meltano/blob/main/src/meltano/cli/config.py
+  verified: source
+- id: meltano.select.list
+  group: select
+  intents:
+  - list selectable streams of {TAP}
+  - show which streams and properties are selected
+  - meltano select --list
+  - what tables can the tap extract
+  vars:
+  - {name: TAP, default: tap-github, samples: [tap-postgres, tap-salesforce, tap-stripe]}
+  body: meltano select "$TAP" --list --all
+  destructive: false
+  source: https://github.com/meltano/meltano/blob/main/src/meltano/cli/select_entities.py
+  verified: source
+- id: meltano.select.stream
+  group: select
+  intents:
+  - select all fields of stream {STREAM} in {TAP}
+  - only extract the {STREAM} stream
+  - meltano select a stream
+  - include a table in extraction
+  vars:
+  - {name: TAP, default: tap-github, samples: [tap-postgres, tap-salesforce, tap-stripe]}
+  - {name: STREAM, default: commits, samples: [issues, public-orders, customers]}
+  body: meltano select "$TAP" "$STREAM" "*"
+  destructive: false
+  source: https://github.com/meltano/meltano/blob/main/src/meltano/cli/select_entities.py
+  verified: source
+- id: meltano.run
+  group: run
+  intents:
+  - run {TAP} into {TARGET}
+  - sync data from the tap to the target
+  - meltano run an el pipeline
+  - load data with meltano
+  vars:
+  - {name: TAP, default: tap-github, samples: [tap-postgres, tap-salesforce, tap-stripe]}
+  - {name: TARGET, default: target-postgres, samples: [target-snowflake, target-jsonl, target-duckdb]}
+  body: meltano run "$TAP" "$TARGET"
+  destructive: false
+  source: https://github.com/meltano/meltano/blob/main/src/meltano/cli/run.py
+  verified: source
+- id: meltano.run.full_refresh
+  group: run
+  intents:
+  - run {TAP} to {TARGET} ignoring saved state
+  - full refresh sync with meltano
+  - re-extract everything from scratch
+  - meltano run --full-refresh
+  vars:
+  - {name: TAP, default: tap-github, samples: [tap-postgres, tap-salesforce, tap-stripe]}
+  - {name: TARGET, default: target-postgres, samples: [target-snowflake, target-jsonl, target-duckdb]}
+  body: meltano run --full-refresh "$TAP" "$TARGET"
+  destructive: false
+  source: https://github.com/meltano/meltano/blob/main/src/meltano/cli/run.py
+  verified: source
+- id: meltano.run.env
+  group: run
+  intents:
+  - run {TAP} to {TARGET} in environment {MELTANO_ENV}
+  - meltano run against prod
+  - run a pipeline in a specific meltano environment
+  - use the {MELTANO_ENV} environment for this sync
+  vars:
+  - {name: MELTANO_ENV, default: prod, samples: [dev, staging]}
+  - {name: TAP, default: tap-github, samples: [tap-postgres, tap-salesforce, tap-stripe]}
+  - {name: TARGET, default: target-postgres, samples: [target-snowflake, target-jsonl, target-duckdb]}
+  body: meltano --environment "$MELTANO_ENV" run "$TAP" "$TARGET"
+  destructive: false
+  source: https://github.com/meltano/meltano/blob/main/src/meltano/cli/run.py
+  verified: source
+- id: meltano.invoke.catalog
+  group: dev
+  intents:
+  - dump the catalog of {TAP}
+  - discover streams and save the catalog
+  - meltano invoke dump catalog
+  - see the schema the tap discovers
+  vars:
+  - {name: TAP, default: tap-github, samples: [tap-postgres, tap-salesforce, tap-stripe]}
+  body: meltano invoke --dump catalog "$TAP" > catalog.json
+  destructive: false
+  source: https://github.com/meltano/meltano/blob/main/src/meltano/cli/invoke.py
+  verified: source
+- id: meltano.state.list
+  group: state
+  intents:
+  - list meltano state ids
+  - show saved pipeline state
+  - meltano state list
+  - which incremental states exist
+  vars: []
+  body: meltano state list
+  destructive: false
+  source: https://github.com/meltano/meltano/blob/main/src/meltano/cli/state.py
+  verified: source
+- id: meltano.state.get
+  group: state
+  intents:
+  - show state {STATE_ID}
+  - print the bookmark for a pipeline
+  - meltano state get
+  - what's the saved incremental state
+  vars:
+  - {name: STATE_ID, default: 'dev:tap-github-to-target-postgres', samples: ['prod:tap-postgres-to-target-snowflake', 'staging:tap-stripe-to-target-duckdb']}
+  body: meltano state get "$STATE_ID"
+  destructive: false
+  source: https://github.com/meltano/meltano/blob/main/src/meltano/cli/state.py
+  verified: source

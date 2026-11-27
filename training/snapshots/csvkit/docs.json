@@ -1,0 +1,10 @@
+{
+ "https://github.com/wireservice/csvkit/blob/master/docs/common_arguments.rst": {
+  "sha256": "f45c5fc2d0ce00f37aaa7b8d43ab1ee7c47ce8508ccff5c80f93e640819abe37",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/wireservice/csvkit/blob/master/docs/tutorial/1_getting_started.rst": {
+  "sha256": "f289e53a7973a4921f4a8cec49b6b3a051674456f4e0e7141ad511ce33868ffa",
+  "fetched": "2026-11-26"
+ }
+}

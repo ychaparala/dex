@@ -1,0 +1,648 @@
+tool: aws-data
+binaries: [aws]
+category: cloud
+priority: core
+target_pairs: 400
+version_note: "AWS CLI v2 (glue, athena, redshift-data, kinesis, kafka, stepfunctions, dynamodb, mwaa)"
+sources:
+  - url: https://github.com/boto/botocore/tree/develop/botocore/data/glue
+    license: "Apache-2.0 (boto/botocore repo)"
+  - url: https://github.com/boto/botocore/tree/develop/botocore/data/athena
+    license: "Apache-2.0 (boto/botocore repo)"
+  - url: https://github.com/boto/botocore/tree/develop/botocore/data/redshift-data
+    license: "Apache-2.0 (boto/botocore repo)"
+  - url: https://github.com/boto/botocore/tree/develop/botocore/data/kinesis
+    license: "Apache-2.0 (boto/botocore repo)"
+  - url: https://github.com/boto/botocore/tree/develop/botocore/data/kafka
+    license: "Apache-2.0 (boto/botocore repo)"
+  - url: https://github.com/boto/botocore/tree/develop/botocore/data/stepfunctions
+    license: "Apache-2.0 (boto/botocore repo)"
+  - url: https://github.com/boto/botocore/tree/develop/botocore/data/dynamodb
+    license: "Apache-2.0 (boto/botocore repo)"
+  - url: https://github.com/boto/botocore/tree/develop/botocore/data/mwaa
+    license: "Apache-2.0 (boto/botocore repo)"
+  - url: https://github.com/aws/aws-cli/blob/v2/awscli/data/cli.json
+    license: "Apache-2.0 (aws/aws-cli repo)"
+  - url: https://awscli.amazonaws.com/v2/documentation/api/latest/reference/index.html
+    license: "vendor docs; facts only"
+destructive_patterns:
+  - '\bstop-query-execution\b'
+  - '\bstop-execution\b'
+  - '\bbatch-stop-job-run\b'
+  - '\bdelete-(table|database|item|job|crawler|stream)\b'
+templates:
+  # ---------------- Glue ----------------
+  - id: aws-data.glue.start-job-run
+    group: glue
+    intents:
+      - start glue job {JOB_NAME}
+      - run the glue etl job
+      - kick off a glue job run
+      - aws glue start-job-run for {JOB_NAME}
+      - trigger my glue job now
+    vars:
+      - {name: JOB_NAME, default: <job-name>, samples: [orders-etl, load-customers, clickstream-compaction]}
+    body: aws glue start-job-run --job-name "$JOB_NAME"
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/glue
+    verified: help
+
+  - id: aws-data.glue.start-job-run-args
+    group: glue
+    intents:
+      - run glue job {JOB_NAME} with --run_date {RUN_DATE}
+      - start a glue job and pass job arguments
+      - trigger glue etl for a specific date
+      - glue start-job-run with --arguments
+      - backfill a day with my glue job
+    vars:
+      - {name: JOB_NAME, default: <job-name>, samples: [orders-etl, load-customers]}
+      - {name: RUN_DATE, default: 2025-01-01, samples: [2025-06-30, 2024-12-31]}
+    body: aws glue start-job-run --job-name "$JOB_NAME" --arguments "{\"--run_date\":\"$RUN_DATE\"}"
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/glue
+    verified: help
+
+  - id: aws-data.glue.start-job-run-workers
+    group: glue
+    intents:
+      - start glue job {JOB_NAME} with {WORKERS} G.1X workers
+      - run a glue job with more workers
+      - override glue worker count for one run
+      - glue job run with custom capacity
+    vars:
+      - {name: JOB_NAME, default: <job-name>, samples: [orders-etl, clickstream-compaction]}
+      - {name: WORKERS, default: "10", samples: ["5", "20", "40"]}
+    body: aws glue start-job-run --job-name "$JOB_NAME" --worker-type G.1X --number-of-workers "$WORKERS"
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/glue
+    verified: help
+
+  - id: aws-data.glue.get-job-run-state
+    group: glue
+    intents:
+      - status of glue run {RUN_ID} for job {JOB_NAME}
+      - did my glue job run succeed
+      - get the state of a glue job run
+      - glue get-job-run state only
+    vars:
+      - {name: JOB_NAME, default: <job-name>, samples: [orders-etl, load-customers]}
+      - {name: RUN_ID, default: <job-run-id>, samples: [jr_4f1c2b9a8e7d6c5b4a39281706f5e4d3c2b1a0f9e8d7c6b5a4938271605f4e3d, jr_0a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f6071829304a5b6c7d8e9]}
+    body: aws glue get-job-run --job-name "$JOB_NAME" --run-id "$RUN_ID" --query 'JobRun.[JobRunState,ErrorMessage]' --output text
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/glue
+    verified: help
+
+  - id: aws-data.glue.get-job-runs
+    group: glue
+    intents:
+      - show the last runs of glue job {JOB_NAME}
+      - glue job run history
+      - list recent glue job runs with status
+      - how have my glue runs been doing
+      - glue get-job-runs as a table
+    vars:
+      - {name: JOB_NAME, default: <job-name>, samples: [orders-etl, load-customers, clickstream-compaction]}
+    body: aws glue get-job-runs --job-name "$JOB_NAME" --max-items 10 --query 'JobRuns[].[Id,JobRunState,StartedOn,ExecutionTime]' --output table
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/glue
+    verified: help
+
+  - id: aws-data.glue.get-jobs
+    group: glue
+    intents:
+      - list all glue jobs
+      - what glue jobs are defined
+      - show glue job names
+      - aws glue get-jobs
+    vars: []
+    body: aws glue get-jobs --query 'Jobs[].Name' --output text
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/glue
+    verified: help
+
+  - id: aws-data.glue.start-crawler
+    group: glue
+    intents:
+      - start glue crawler {CRAWLER}
+      - run the crawler to pick up new partitions
+      - kick off a glue crawler
+      - recrawl the table
+    vars:
+      - {name: CRAWLER, default: <crawler-name>, samples: [raw-orders-crawler, clickstream-crawler]}
+    body: aws glue start-crawler --name "$CRAWLER"
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/glue
+    verified: help
+
+  - id: aws-data.glue.get-crawler
+    group: glue
+    intents:
+      - is crawler {CRAWLER} still running
+      - check glue crawler state
+      - get crawler status and last crawl result
+      - glue get-crawler
+    vars:
+      - {name: CRAWLER, default: <crawler-name>, samples: [raw-orders-crawler, clickstream-crawler]}
+    body: aws glue get-crawler --name "$CRAWLER" --query 'Crawler.[State,LastCrawl.Status]' --output text
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/glue
+    verified: help
+
+  - id: aws-data.glue.get-databases
+    group: glue
+    intents:
+      - list glue catalog databases
+      - what databases are in the data catalog
+      - show glue database names
+      - aws glue get-databases
+    vars: []
+    body: aws glue get-databases --query 'DatabaseList[].Name' --output text
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/glue
+    verified: help
+
+  - id: aws-data.glue.get-tables
+    group: glue
+    intents:
+      - list tables in glue database {DATABASE}
+      - what tables does {DATABASE} have in the catalog
+      - show glue table names
+      - glue get-tables
+    vars:
+      - {name: DATABASE, default: <database>, samples: [analytics, raw, curated_sales]}
+    body: aws glue get-tables --database-name "$DATABASE" --query 'TableList[].Name' --output text
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/glue
+    verified: help
+
+  - id: aws-data.glue.table-schema
+    group: glue
+    intents:
+      - show the columns of glue table {DATABASE}.{TABLE}
+      - get the schema of a catalog table
+      - what columns does this glue table have
+      - describe glue table columns
+    vars:
+      - {name: DATABASE, default: <database>, samples: [analytics, raw]}
+      - {name: TABLE, default: <table>, samples: [orders, page_views, customers]}
+    body: aws glue get-table --database-name "$DATABASE" --name "$TABLE" --query 'Table.StorageDescriptor.Columns[].[Name,Type]' --output table
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/glue
+    verified: help
+
+  - id: aws-data.glue.table-location
+    group: glue
+    intents:
+      - where is glue table {TABLE} stored in s3
+      - get the s3 location of a catalog table
+      - table location for {DATABASE}.{TABLE}
+      - find the data path of a glue table
+    vars:
+      - {name: DATABASE, default: <database>, samples: [analytics, raw]}
+      - {name: TABLE, default: <table>, samples: [orders, page_views]}
+    body: aws glue get-table --database-name "$DATABASE" --name "$TABLE" --query 'Table.StorageDescriptor.Location' --output text
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/glue
+    verified: help
+
+  - id: aws-data.glue.get-partitions
+    group: glue
+    intents:
+      - list partitions of glue table {TABLE}
+      - show partition values for a catalog table
+      - what partitions exist for {DATABASE}.{TABLE}
+      - glue get-partitions first few
+    vars:
+      - {name: DATABASE, default: <database>, samples: [analytics, raw]}
+      - {name: TABLE, default: <table>, samples: [orders, page_views]}
+    body: aws glue get-partitions --database-name "$DATABASE" --table-name "$TABLE" --max-items 20 --query 'Partitions[].Values' --output text
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/glue
+    verified: help
+
+  # ---------------- Athena ----------------
+  - id: aws-data.athena.start-query
+    group: athena
+    intents:
+      - run athena query {SQL} in workgroup {WORKGROUP}
+      - execute a sql query on athena
+      - start an athena query and write results to s3
+      - athena start-query-execution
+      - query the lake with athena from the cli
+    vars:
+      - {name: SQL, default: SELECT 1, samples: ["SELECT count(*) FROM analytics.orders", "SELECT * FROM raw.events LIMIT 10"]}
+      - {name: WORKGROUP, default: primary, samples: [analytics, data-eng]}
+      - {name: BUCKET, default: <bucket>, samples: [acme-athena-results, query-results-prod], ctx: s3_bucket}
+    body: aws athena start-query-execution --query-string "$SQL" --work-group "$WORKGROUP" --result-configuration OutputLocation="s3://$BUCKET/athena/"
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/athena
+    verified: help
+
+  - id: aws-data.athena.start-query-db-id
+    group: athena
+    intents:
+      - run {SQL} on athena against database {DATABASE} and print the query id
+      - start athena query in a database and return the execution id
+      - athena query with a default database, just give me the id
+      - submit athena sql and capture QueryExecutionId
+    vars:
+      - {name: SQL, default: SELECT 1, samples: ["SELECT count(*) FROM orders", "MSCK REPAIR TABLE page_views"]}
+      - {name: DATABASE, default: <database>, samples: [analytics, raw]}
+      - {name: WORKGROUP, default: primary, samples: [analytics, data-eng]}
+    body: aws athena start-query-execution --query-string "$SQL" --query-execution-context Database="$DATABASE" --work-group "$WORKGROUP" --query QueryExecutionId --output text
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/athena
+    verified: help
+
+  - id: aws-data.athena.state
+    group: athena
+    intents:
+      - is athena query {QID} done
+      - state of an athena query execution
+      - check whether my athena query succeeded
+      - athena query status
+    vars:
+      - {name: QID, default: <query-execution-id>, samples: [a1b2c3d4-5678-90ab-cdef-1234567890ab, 0f9e8d7c-6b5a-4321-9876-fedcba012345]}
+    body: aws athena get-query-execution --query-execution-id "$QID" --query 'QueryExecution.Status.[State,StateChangeReason]' --output text
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/athena
+    verified: help
+
+  - id: aws-data.athena.get-execution
+    group: athena
+    intents:
+      - show full details of athena query {QID}
+      - how much data did my athena query scan
+      - get athena query stats and output location
+      - athena get-query-execution
+    vars:
+      - {name: QID, default: <query-execution-id>, samples: [a1b2c3d4-5678-90ab-cdef-1234567890ab, 0f9e8d7c-6b5a-4321-9876-fedcba012345]}
+    body: aws athena get-query-execution --query-execution-id "$QID"
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/athena
+    verified: help
+
+  - id: aws-data.athena.results-csv
+    group: athena
+    intents:
+      - print athena results for {QID} as csv
+      - get the rows from an athena query
+      - fetch athena query results and flatten them with jq
+      - show athena output in the terminal
+    vars:
+      - {name: QID, default: <query-execution-id>, samples: [a1b2c3d4-5678-90ab-cdef-1234567890ab, 0f9e8d7c-6b5a-4321-9876-fedcba012345]}
+    body: aws athena get-query-results --query-execution-id "$QID" | jq -r '.ResultSet.Rows[] | [.Data[].VarCharValue] | @csv'
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/athena
+    verified: help
+
+  - id: aws-data.athena.list-work-groups
+    group: athena
+    intents:
+      - list athena workgroups
+      - what athena workgroups exist
+      - show workgroup names and state
+      - athena list-work-groups
+    vars: []
+    body: aws athena list-work-groups --query 'WorkGroups[].[Name,State]' --output table
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/athena
+    verified: help
+
+  - id: aws-data.athena.list-executions
+    group: athena
+    intents:
+      - list recent athena query ids in workgroup {WORKGROUP}
+      - show the last athena queries that ran
+      - athena query history
+      - recent query execution ids
+    vars:
+      - {name: WORKGROUP, default: primary, samples: [analytics, data-eng]}
+    body: aws athena list-query-executions --work-group "$WORKGROUP" --max-items 10
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/athena
+    verified: help
+
+  - id: aws-data.athena.stop
+    group: athena
+    intents:
+      - cancel athena query {QID}
+      - stop a running athena query
+      - kill that athena query, it's scanning too much
+      - athena stop-query-execution
+    vars:
+      - {name: QID, default: <query-execution-id>, samples: [a1b2c3d4-5678-90ab-cdef-1234567890ab, 0f9e8d7c-6b5a-4321-9876-fedcba012345]}
+    body: aws athena stop-query-execution --query-execution-id "$QID"
+    destructive: true
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/athena
+    verified: help
+
+  # ---------------- Redshift Data API ----------------
+  - id: aws-data.redshift.execute-cluster
+    group: redshift
+    intents:
+      - run {SQL} on redshift cluster {CLUSTER} with the data api
+      - execute a redshift query from the cli
+      - redshift-data execute-statement on a provisioned cluster
+      - send sql to redshift without psql
+    vars:
+      - {name: CLUSTER, default: <cluster-identifier>, samples: [analytics-rs, warehouse-prod]}
+      - {name: DATABASE, default: dev, samples: [analytics, warehouse]}
+      - {name: DB_USER, default: awsuser, samples: [etl_user, analyst]}
+      - {name: SQL, default: SELECT 1, samples: ["SELECT count(*) FROM sales", "VACUUM orders"]}
+    body: aws redshift-data execute-statement --cluster-identifier "$CLUSTER" --database "$DATABASE" --db-user "$DB_USER" --sql "$SQL"
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/redshift-data
+    verified: help
+
+  - id: aws-data.redshift.execute-serverless
+    group: redshift
+    intents:
+      - run {SQL} on redshift serverless workgroup {WORKGROUP}
+      - execute sql against redshift serverless
+      - data api query on a serverless workgroup
+      - redshift serverless execute-statement
+    vars:
+      - {name: WORKGROUP, default: default-workgroup, samples: [analytics-wg, etl-wg]}
+      - {name: DATABASE, default: dev, samples: [analytics, warehouse]}
+      - {name: SQL, default: SELECT 1, samples: ["SELECT count(*) FROM sales", "SELECT * FROM stl_load_errors LIMIT 10"]}
+    body: aws redshift-data execute-statement --workgroup-name "$WORKGROUP" --database "$DATABASE" --sql "$SQL"
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/redshift-data
+    verified: help
+
+  - id: aws-data.redshift.describe
+    group: redshift
+    intents:
+      - status of redshift data api statement {STATEMENT_ID}
+      - did my redshift statement finish
+      - describe-statement for a redshift query
+      - check the redshift query state and error
+    vars:
+      - {name: STATEMENT_ID, default: <statement-id>, samples: [d9b6c0c9-0747-4bf4-b142-e8883122f766, 1a2b3c4d-5e6f-7081-92a3-b4c5d6e7f809]}
+    body: aws redshift-data describe-statement --id "$STATEMENT_ID" --query '[Status,Error,ResultRows]' --output text
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/redshift-data
+    verified: help
+
+  - id: aws-data.redshift.result
+    group: redshift
+    intents:
+      - get the result rows of redshift statement {STATEMENT_ID}
+      - show redshift data api results
+      - fetch query output from redshift-data
+      - print rows of a finished redshift statement
+    vars:
+      - {name: STATEMENT_ID, default: <statement-id>, samples: [d9b6c0c9-0747-4bf4-b142-e8883122f766, 1a2b3c4d-5e6f-7081-92a3-b4c5d6e7f809]}
+    body: aws redshift-data get-statement-result --id "$STATEMENT_ID" | jq -c '.Records[] | map(to_entries[0].value)'
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/redshift-data
+    verified: help
+
+  # ---------------- Kinesis ----------------
+  - id: aws-data.kinesis.list-streams
+    group: kinesis
+    intents:
+      - list kinesis streams
+      - what kinesis data streams do we have
+      - show stream names
+      - aws kinesis list-streams
+    vars: []
+    body: aws kinesis list-streams --query 'StreamNames' --output text
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/kinesis
+    verified: help
+
+  - id: aws-data.kinesis.describe-summary
+    group: kinesis
+    intents:
+      - describe kinesis stream {STREAM}
+      - how many shards does the stream have
+      - get stream status and retention
+      - kinesis describe-stream-summary
+    vars:
+      - {name: STREAM, default: <stream-name>, samples: [clickstream, orders-events, iot-telemetry]}
+    body: aws kinesis describe-stream-summary --stream-name "$STREAM"
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/kinesis
+    verified: help
+
+  - id: aws-data.kinesis.put-record
+    group: kinesis
+    intents:
+      - send a test record {DATA} to kinesis stream {STREAM}
+      - put one record into a kinesis stream
+      - write a json event to kinesis
+      - kinesis put-record from the cli
+    vars:
+      - {name: STREAM, default: <stream-name>, samples: [clickstream, orders-events]}
+      - {name: KEY, default: key1, samples: [user-42, order-1001]}
+      - {name: DATA, default: '{"event":"test"}', samples: ['{"id":1,"type":"click"}', '{"order_id":1001,"amount":25.5}']}
+    body: aws kinesis put-record --stream-name "$STREAM" --partition-key "$KEY" --data "$DATA" --cli-binary-format raw-in-base64-out
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/data/cli.json
+    verified: source
+    notes: "--cli-binary-format is AWS CLI v2 only; without it v2 expects --data to be base64."
+
+  # ---------------- MSK ----------------
+  - id: aws-data.msk.list-clusters
+    group: msk
+    intents:
+      - list msk clusters
+      - show my kafka clusters on aws
+      - what managed kafka clusters exist
+      - aws kafka list-clusters-v2
+    vars: []
+    body: aws kafka list-clusters-v2 --query 'ClusterInfoList[].[ClusterName,State,ClusterArn]' --output table
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/kafka
+    verified: help
+
+  - id: aws-data.msk.bootstrap
+    group: msk
+    intents:
+      - get the bootstrap brokers for msk cluster {CLUSTER_ARN}
+      - what's the kafka bootstrap server string
+      - msk broker endpoints
+      - aws kafka get-bootstrap-brokers
+    vars:
+      - {name: CLUSTER_ARN, default: <cluster-arn>, samples: ["arn:aws:kafka:us-east-1:123456789012:cluster/events/abcd1234-ef56-7890-abcd-ef1234567890-1"]}
+    body: aws kafka get-bootstrap-brokers --cluster-arn "$CLUSTER_ARN"
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/kafka
+    verified: help
+
+  # ---------------- Step Functions ----------------
+  - id: aws-data.sfn.start
+    group: stepfunctions
+    intents:
+      - start step function {STATE_MACHINE_ARN} with input {INPUT}
+      - kick off a state machine execution
+      - run my step functions pipeline
+      - stepfunctions start-execution
+      - trigger the sfn workflow with a json payload
+    vars:
+      - {name: STATE_MACHINE_ARN, default: <state-machine-arn>, samples: ["arn:aws:states:us-east-1:123456789012:stateMachine:daily-pipeline", "arn:aws:states:eu-west-1:123456789012:stateMachine:ingest"]}
+      - {name: INPUT, default: '{}', samples: ['{"run_date":"2025-06-30"}', '{"full_refresh":true}']}
+    body: aws stepfunctions start-execution --state-machine-arn "$STATE_MACHINE_ARN" --input "$INPUT"
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/stepfunctions
+    verified: help
+
+  - id: aws-data.sfn.list-state-machines
+    group: stepfunctions
+    intents:
+      - list step functions state machines
+      - show my state machines and their arns
+      - what step function workflows exist
+      - stepfunctions list-state-machines
+    vars: []
+    body: aws stepfunctions list-state-machines --query 'stateMachines[].[name,stateMachineArn]' --output table
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/stepfunctions
+    verified: help
+
+  - id: aws-data.sfn.list-executions
+    group: stepfunctions
+    intents:
+      - list {STATUS} executions of state machine {STATE_MACHINE_ARN}
+      - show failed step function runs
+      - recent sfn executions by status
+    vars:
+      - {name: STATE_MACHINE_ARN, default: <state-machine-arn>, samples: ["arn:aws:states:us-east-1:123456789012:stateMachine:daily-pipeline"]}
+      - {name: STATUS, default: FAILED, samples: [RUNNING, SUCCEEDED, TIMED_OUT, ABORTED]}
+    body: aws stepfunctions list-executions --state-machine-arn "$STATE_MACHINE_ARN" --status-filter "$STATUS" --max-items 10
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/stepfunctions
+    verified: help
+
+  # An intent that names a state gets a template whose default is that state.
+  - id: aws-data.sfn.list-executions.running
+    group: stepfunctions
+    intents:
+      - which executions are still running
+      - show step function runs that are in progress
+      - list running executions of state machine {STATE_MACHINE_ARN}
+    vars:
+      - {name: STATE_MACHINE_ARN, default: <state-machine-arn>, samples: ["arn:aws:states:us-east-1:123456789012:stateMachine:daily-pipeline"]}
+      - {name: STATUS, default: RUNNING}
+    body: aws stepfunctions list-executions --state-machine-arn "$STATE_MACHINE_ARN" --status-filter "$STATUS" --max-items 10
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/stepfunctions
+    verified: help
+
+  - id: aws-data.sfn.describe
+    group: stepfunctions
+    intents:
+      - status of step functions execution {EXECUTION_ARN}
+      - did the state machine run succeed
+      - describe a step function execution
+      - sfn execution status and error
+    vars:
+      - {name: EXECUTION_ARN, default: <execution-arn>, samples: ["arn:aws:states:us-east-1:123456789012:execution:daily-pipeline:run-20250630"]}
+    body: aws stepfunctions describe-execution --execution-arn "$EXECUTION_ARN" --query '[status,error,cause]' --output text
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/stepfunctions
+    verified: help
+
+  # ---------------- DynamoDB ----------------
+  - id: aws-data.ddb.count
+    group: dynamodb
+    intents:
+      - count items in dynamodb table {TABLE}
+      - how many rows are in this dynamo table
+      - exact item count with a scan
+      - dynamodb scan select count
+    vars:
+      - {name: TABLE, default: <table>, samples: [orders, user-sessions, job-checkpoints]}
+    body: aws dynamodb scan --table-name "$TABLE" --select COUNT --query Count
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/dynamodb
+    verified: help
+    notes: "A full scan reads (and bills) the whole table; describe-table ItemCount is cheaper but only updated about every 6 hours."
+
+  - id: aws-data.ddb.query
+    group: dynamodb
+    intents:
+      - query dynamodb table {TABLE} for pk {PK}
+      - get items by partition key from dynamo
+      - dynamodb query on the primary key
+      - look up records for one key in dynamodb
+    vars:
+      - {name: TABLE, default: <table>, samples: [orders, user-sessions]}
+      - {name: PK, default: <key-value>, samples: [user#42, order#1001]}
+    body: aws dynamodb query --table-name "$TABLE" --key-condition-expression "pk = :pk" --expression-attribute-values "{\":pk\":{\"S\":\"$PK\"}}"
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/dynamodb
+    verified: help
+    notes: "Assumes the partition key attribute is named pk."
+
+  - id: aws-data.ddb.list-tables
+    group: dynamodb
+    intents:
+      - list dynamodb tables
+      - what dynamo tables exist
+      - show table names in dynamodb
+      - aws dynamodb list-tables
+    vars: []
+    body: aws dynamodb list-tables --query TableNames --output text
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/dynamodb
+    verified: help
+
+  - id: aws-data.ddb.describe-table
+    group: dynamodb
+    intents:
+      - describe dynamodb table {TABLE}
+      - show key schema and status of a dynamo table
+      - get table info for dynamodb
+      - dynamodb describe-table
+    vars:
+      - {name: TABLE, default: <table>, samples: [orders, job-checkpoints]}
+    body: aws dynamodb describe-table --table-name "$TABLE"
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/dynamodb
+    verified: help
+
+  # ---------------- MWAA ----------------
+  - id: aws-data.mwaa.list-environments
+    group: mwaa
+    intents:
+      - list mwaa environments
+      - what managed airflow environments do we have
+      - show my mwaa envs
+      - aws mwaa list-environments
+    vars: []
+    body: aws mwaa list-environments
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/mwaa
+    verified: help
+
+  - id: aws-data.mwaa.cli-token
+    group: mwaa
+    intents:
+      - get an airflow cli token for mwaa environment {ENV_NAME}
+      - create a cli token to run airflow commands on mwaa
+      - mwaa create-cli-token
+      - token and hostname for the mwaa airflow cli
+    vars:
+      - {name: ENV_NAME, default: <environment-name>, samples: [airflow-prod, data-mwaa-dev]}
+    body: aws mwaa create-cli-token --name "$ENV_NAME"
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/mwaa
+    verified: help
+
+  - id: aws-data.mwaa.web-token
+    group: mwaa
+    intents:
+      - get a web login token for mwaa {ENV_NAME}
+      - log in to the mwaa airflow ui from the cli
+      - mwaa create-web-login-token
+      - generate a token to open the airflow webserver
+    vars:
+      - {name: ENV_NAME, default: <environment-name>, samples: [airflow-prod, data-mwaa-dev]}
+    body: aws mwaa create-web-login-token --name "$ENV_NAME"
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/mwaa
+    verified: help

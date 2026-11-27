@@ -1,0 +1,1609 @@
+{
+"astro": [
+"--help",
+"--verbosity"
+],
+"astro api": [
+"--help",
+"--no-color",
+"--verbosity"
+],
+"astro api airflow": [
+"--airflow-version",
+"--api-url",
+"--deployment-id",
+"--field",
+"--generate",
+"--header",
+"--help",
+"--include",
+"--input",
+"--jq",
+"--method",
+"--no-color",
+"--organization-id",
+"--paginate",
+"--password",
+"--path-param",
+"--raw-field",
+"--silent",
+"--slurp",
+"--template",
+"--username",
+"--verbose",
+"--verbosity",
+"--workspace-id"
+],
+"astro api airflow describe": [
+"--airflow-version",
+"--api-url",
+"--deployment-id",
+"--help",
+"--json",
+"--method",
+"--no-color",
+"--organization-id",
+"--password",
+"--refresh",
+"--username",
+"--verbose",
+"--verbosity",
+"--workspace-id"
+],
+"astro api airflow ls": [
+"--airflow-version",
+"--api-url",
+"--deployment-id",
+"--help",
+"--json",
+"--no-color",
+"--organization-id",
+"--password",
+"--refresh",
+"--username",
+"--verbose",
+"--verbosity",
+"--workspace-id"
+],
+"astro api cloud": [
+"--field",
+"--generate",
+"--header",
+"--help",
+"--include",
+"--input",
+"--jq",
+"--labs",
+"--method",
+"--no-color",
+"--paginate",
+"--path-param",
+"--raw-field",
+"--silent",
+"--slurp",
+"--template",
+"--verbose",
+"--verbosity"
+],
+"astro api cloud describe": [
+"--help",
+"--json",
+"--labs",
+"--method",
+"--no-color",
+"--refresh",
+"--verbose",
+"--verbosity"
+],
+"astro api cloud ls": [
+"--help",
+"--json",
+"--labs",
+"--no-color",
+"--refresh",
+"--verbose",
+"--verbosity"
+],
+"astro api registry": [
+"--field",
+"--generate",
+"--header",
+"--help",
+"--include",
+"--input",
+"--jq",
+"--method",
+"--no-color",
+"--path-param",
+"--raw-field",
+"--registry-url",
+"--silent",
+"--template",
+"--verbose",
+"--verbosity"
+],
+"astro api registry describe": [
+"--help",
+"--json",
+"--method",
+"--no-color",
+"--refresh",
+"--registry-url",
+"--verbose",
+"--verbosity"
+],
+"astro api registry ls": [
+"--help",
+"--json",
+"--no-color",
+"--refresh",
+"--registry-url",
+"--verbose",
+"--verbosity"
+],
+"astro auth": [
+"--help",
+"--verbosity"
+],
+"astro auth login": [
+"--help",
+"--login-link",
+"--oauth",
+"--token-login",
+"--verbosity"
+],
+"astro auth logout": [
+"--help",
+"--verbosity"
+],
+"astro auth token": [
+"--domain",
+"--help",
+"--verbosity"
+],
+"astro config": [
+"--global",
+"--help",
+"--verbosity"
+],
+"astro config get": [
+"--global",
+"--help",
+"--verbosity"
+],
+"astro config set": [
+"--global",
+"--help",
+"--verbosity"
+],
+"astro context": [
+"--help",
+"--verbosity"
+],
+"astro context delete": [
+"--force",
+"--help",
+"--verbosity"
+],
+"astro context list": [
+"--help",
+"--verbosity"
+],
+"astro context switch": [
+"--help",
+"--verbosity"
+],
+"astro dbt": [
+"--help",
+"--verbosity"
+],
+"astro dbt cleanup": [
+"--help",
+"--verbosity"
+],
+"astro dbt delete": [
+"--deployment-name",
+"--description",
+"--help",
+"--mount-path",
+"--project-path",
+"--verbosity",
+"--wait",
+"--wait-time",
+"--workspace-id"
+],
+"astro dbt deploy": [
+"--deployment-name",
+"--description",
+"--help",
+"--mount-path",
+"--project-path",
+"--verbosity",
+"--wait",
+"--wait-time",
+"--workspace-id"
+],
+"astro deploy": [
+"--build-secret",
+"--dag-bundle-name",
+"--dags",
+"--dags-path",
+"--deployment-name",
+"--description",
+"--env",
+"--force",
+"--help",
+"--image",
+"--image-name",
+"--no-dags-base-dir",
+"--non-dags",
+"--non-dags-bundle-type",
+"--non-dags-local-path",
+"--non-dags-mount-path",
+"--parse",
+"--prompt",
+"--pytest",
+"--save",
+"--test",
+"--verbosity",
+"--wait",
+"--wait-time",
+"--workspace-id"
+],
+"astro deployment": [
+"--help",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment airflow-variable": [
+"--help",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment airflow-variable copy": [
+"--help",
+"--source-id",
+"--source-name",
+"--target-id",
+"--target-name",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment airflow-variable create": [
+"--deployment-id",
+"--deployment-name",
+"--description",
+"--help",
+"--key",
+"--value",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment airflow-variable list": [
+"--deployment-id",
+"--deployment-name",
+"--help",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment airflow-variable update": [
+"--deployment-id",
+"--deployment-name",
+"--description",
+"--help",
+"--key",
+"--value",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment bundle": [
+"--deployment-id",
+"--help",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment bundle create": [
+"--bundle-type",
+"--dag-bundle-ids",
+"--deployment-id",
+"--description",
+"--help",
+"--mount-path",
+"--name",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment bundle delete": [
+"--deployment-id",
+"--force",
+"--help",
+"--mount-path",
+"--name",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment bundle list": [
+"--deployment-id",
+"--help",
+"--json",
+"--output",
+"--template",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment bundle update": [
+"--dag-bundle-ids",
+"--deployment-id",
+"--description",
+"--help",
+"--mount-path",
+"--name",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment connection": [
+"--help",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment connection copy": [
+"--help",
+"--source-id",
+"--source-name",
+"--target-id",
+"--target-name",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment connection create": [
+"--conn-id",
+"--conn-type",
+"--deployment-id",
+"--deployment-name",
+"--description",
+"--extra",
+"--help",
+"--host",
+"--login",
+"--password",
+"--port",
+"--schema",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment connection list": [
+"--deployment-id",
+"--deployment-name",
+"--help",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment connection update": [
+"--conn-id",
+"--conn-type",
+"--deployment-id",
+"--deployment-name",
+"--description",
+"--extra",
+"--help",
+"--host",
+"--login",
+"--password",
+"--port",
+"--schema",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment create": [
+"--cicd-enforcement",
+"--clean-output",
+"--cluster-id",
+"--dag-deploy",
+"--deployment-file",
+"--description",
+"--executor",
+"--force",
+"--help",
+"--name",
+"--runtime-version",
+"--scheduler-au",
+"--scheduler-replicas",
+"--verbosity",
+"--wait",
+"--wait-time",
+"--workload-identity",
+"--workspace-id"
+],
+"astro deployment delete": [
+"--deployment-name",
+"--force",
+"--help",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment hibernate": [
+"--deployment-name",
+"--for",
+"--force",
+"--help",
+"--remove-override",
+"--until",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment inspect": [
+"--clean-output",
+"--deployment-name",
+"--help",
+"--key",
+"--output",
+"--show-workload-identity",
+"--template",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment list": [
+"--all",
+"--help",
+"--json",
+"--output",
+"--template",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment logs": [
+"--apiserver",
+"--component",
+"--dag-processor",
+"--deployment-name",
+"--error",
+"--help",
+"--info",
+"--keyword",
+"--log-count",
+"--scheduler",
+"--triggerer",
+"--verbosity",
+"--warn",
+"--webserver",
+"--workers",
+"--workspace-id"
+],
+"astro deployment open": [
+"--deployment-name",
+"--help",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment pool": [
+"--help",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment pool copy": [
+"--help",
+"--source-id",
+"--source-name",
+"--target-id",
+"--target-name",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment pool create": [
+"--deployment-id",
+"--deployment-name",
+"--description",
+"--help",
+"--include-deferred",
+"--name",
+"--slots",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment pool list": [
+"--deployment-id",
+"--deployment-name",
+"--help",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment pool update": [
+"--deployment-id",
+"--deployment-name",
+"--description",
+"--help",
+"--include-deferred",
+"--name",
+"--slots",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment team": [
+"--deployment-id",
+"--help",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment team add": [
+"--deployment-id",
+"--help",
+"--role",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment team list": [
+"--deployment-id",
+"--help",
+"--json",
+"--output",
+"--template",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment team remove": [
+"--deployment-id",
+"--help",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment team update": [
+"--deployment-id",
+"--help",
+"--role",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment token": [
+"--deployment-id",
+"--help",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment token create": [
+"--clean-output",
+"--deployment-id",
+"--description",
+"--expiration",
+"--help",
+"--name",
+"--role",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment token delete": [
+"--deployment-id",
+"--force",
+"--help",
+"--name",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment token list": [
+"--deployment-id",
+"--help",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment token organization-token": [
+"--deployment-id",
+"--help",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment token rotate": [
+"--clean-output",
+"--deployment-id",
+"--force",
+"--help",
+"--name",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment token update": [
+"--deployment-id",
+"--description",
+"--help",
+"--name",
+"--new-name",
+"--role",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment token workspace-token": [
+"--deployment-id",
+"--help",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment update": [
+"--cicd-enforcement",
+"--clean-output",
+"--dag-deploy",
+"--deployment-file",
+"--deployment-name",
+"--description",
+"--executor",
+"--force",
+"--help",
+"--name",
+"--scheduler-au",
+"--scheduler-replicas",
+"--verbosity",
+"--workload-identity",
+"--workspace-id"
+],
+"astro deployment user": [
+"--deployment-id",
+"--help",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment user add": [
+"--deployment-id",
+"--help",
+"--role",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment user list": [
+"--deployment-id",
+"--help",
+"--json",
+"--output",
+"--template",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment user remove": [
+"--deployment-id",
+"--help",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment user update": [
+"--deployment-id",
+"--help",
+"--role",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment variable": [
+"--help",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment variable create": [
+"--deployment-id",
+"--deployment-name",
+"--env",
+"--help",
+"--load",
+"--secret",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment variable list": [
+"--deployment-id",
+"--deployment-name",
+"--env",
+"--help",
+"--key",
+"--save",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment variable update": [
+"--deployment-id",
+"--deployment-name",
+"--env",
+"--help",
+"--load",
+"--secret",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment wake-up": [
+"--deployment-name",
+"--for",
+"--force",
+"--help",
+"--remove-override",
+"--until",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment worker-queue": [
+"--help",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment worker-queue create": [
+"--concurrency",
+"--deployment-id",
+"--deployment-name",
+"--help",
+"--max-count",
+"--min-count",
+"--name",
+"--verbosity",
+"--worker-type",
+"--workspace-id"
+],
+"astro deployment worker-queue delete": [
+"--deployment-id",
+"--deployment-name",
+"--force",
+"--help",
+"--name",
+"--verbosity",
+"--workspace-id"
+],
+"astro deployment worker-queue update": [
+"--concurrency",
+"--deployment-id",
+"--deployment-name",
+"--force",
+"--help",
+"--max-count",
+"--min-count",
+"--name",
+"--verbosity",
+"--worker-type",
+"--workspace-id"
+],
+"astro dev": [
+"--docker",
+"--help",
+"--standalone",
+"--verbosity"
+],
+"astro dev bash": [
+"--api-server",
+"--dag-processor",
+"--docker",
+"--help",
+"--postgres",
+"--scheduler",
+"--standalone",
+"--triggerer",
+"--verbosity",
+"--webserver"
+],
+"astro dev build": [
+"--build-secret",
+"--docker",
+"--help",
+"--image-name",
+"--no-cache",
+"--standalone",
+"--verbosity"
+],
+"astro dev init": [
+"--airflow-version",
+"--docker",
+"--force",
+"--from-template",
+"--help",
+"--name",
+"--remote-execution-enabled",
+"--remote-image-repository",
+"--runtime-version",
+"--standalone",
+"--verbosity"
+],
+"astro dev kill": [
+"--docker",
+"--help",
+"--standalone",
+"--verbosity"
+],
+"astro dev logs": [
+"--api-server",
+"--dag-processor",
+"--docker",
+"--follow",
+"--help",
+"--scheduler",
+"--standalone",
+"--triggerer",
+"--verbosity",
+"--webserver"
+],
+"astro dev object": [
+"--docker",
+"--help",
+"--standalone",
+"--verbosity"
+],
+"astro dev object export": [
+"--compose",
+"--compose-file",
+"--connections",
+"--docker",
+"--env",
+"--env-export",
+"--help",
+"--pools",
+"--settings-file",
+"--standalone",
+"--variables",
+"--verbosity"
+],
+"astro dev object import": [
+"--connections",
+"--docker",
+"--help",
+"--pools",
+"--settings-file",
+"--standalone",
+"--variables",
+"--verbosity"
+],
+"astro dev parse": [
+"--build-secret",
+"--docker",
+"--env",
+"--help",
+"--image-name",
+"--standalone",
+"--verbosity"
+],
+"astro dev proxy": [
+"--docker",
+"--help",
+"--standalone",
+"--verbosity"
+],
+"astro dev proxy status": [
+"--docker",
+"--help",
+"--standalone",
+"--verbosity"
+],
+"astro dev proxy stop": [
+"--docker",
+"--help",
+"--standalone",
+"--verbosity"
+],
+"astro dev ps": [
+"--docker",
+"--help",
+"--json",
+"--output",
+"--standalone",
+"--template",
+"--verbosity"
+],
+"astro dev pytest": [
+"--args",
+"--build-secret",
+"--docker",
+"--env",
+"--help",
+"--image-name",
+"--standalone",
+"--verbosity"
+],
+"astro dev restart": [
+"--build-secret",
+"--deployment-id",
+"--docker",
+"--env",
+"--foreground",
+"--help",
+"--image-name",
+"--kill",
+"--no-cache",
+"--no-proxy",
+"--port",
+"--settings-file",
+"--standalone",
+"--verbosity",
+"--wait",
+"--workspace-id"
+],
+"astro dev run": [
+"--docker",
+"--help",
+"--standalone",
+"--verbosity"
+],
+"astro dev start": [
+"--build-secret",
+"--compose-file",
+"--deployment-id",
+"--docker",
+"--env",
+"--foreground",
+"--help",
+"--image-name",
+"--no-browser",
+"--no-cache",
+"--no-proxy",
+"--port",
+"--settings-file",
+"--standalone",
+"--verbosity",
+"--wait",
+"--workspace-id"
+],
+"astro dev stop": [
+"--docker",
+"--help",
+"--standalone",
+"--verbosity"
+],
+"astro dev upgrade-test": [
+"--airflow-version",
+"--build-secret",
+"--dag-test",
+"--deployment-id",
+"--docker",
+"--fix",
+"--help",
+"--image-name",
+"--lint-config-file",
+"--lint-deprecations",
+"--lint-test",
+"--runtime-version",
+"--standalone",
+"--verbosity",
+"--version-test"
+],
+"astro env": [
+"--help",
+"--verbosity"
+],
+"astro env airflow-variable": [
+"--deployment-id",
+"--help",
+"--include-secrets",
+"--resolve-linked",
+"--verbosity",
+"--workspace-id"
+],
+"astro env airflow-variable create": [
+"--auto-link",
+"--deployment-id",
+"--from-file",
+"--help",
+"--include-secrets",
+"--key",
+"--resolve-linked",
+"--secret",
+"--value",
+"--verbosity",
+"--workspace-id"
+],
+"astro env airflow-variable delete": [
+"--deployment-id",
+"--help",
+"--include-secrets",
+"--resolve-linked",
+"--verbosity",
+"--workspace-id",
+"--yes"
+],
+"astro env airflow-variable get": [
+"--deployment-id",
+"--format",
+"--help",
+"--include-secrets",
+"--resolve-linked",
+"--verbosity",
+"--workspace-id"
+],
+"astro env airflow-variable list": [
+"--deployment-id",
+"--format",
+"--help",
+"--include-secrets",
+"--output",
+"--resolve-linked",
+"--verbosity",
+"--workspace-id"
+],
+"astro env airflow-variable update": [
+"--auto-link",
+"--deployment-id",
+"--from-file",
+"--help",
+"--include-secrets",
+"--resolve-linked",
+"--secret",
+"--strict",
+"--value",
+"--verbosity",
+"--workspace-id"
+],
+"astro env connection": [
+"--deployment-id",
+"--help",
+"--include-secrets",
+"--resolve-linked",
+"--verbosity",
+"--workspace-id"
+],
+"astro env connection create": [
+"--auto-link",
+"--deployment-id",
+"--extra",
+"--help",
+"--host",
+"--include-secrets",
+"--key",
+"--login",
+"--password",
+"--port",
+"--resolve-linked",
+"--schema",
+"--type",
+"--verbosity",
+"--workspace-id"
+],
+"astro env connection delete": [
+"--deployment-id",
+"--help",
+"--include-secrets",
+"--resolve-linked",
+"--verbosity",
+"--workspace-id",
+"--yes"
+],
+"astro env connection get": [
+"--deployment-id",
+"--format",
+"--help",
+"--include-secrets",
+"--resolve-linked",
+"--verbosity",
+"--workspace-id"
+],
+"astro env connection list": [
+"--deployment-id",
+"--format",
+"--help",
+"--include-secrets",
+"--output",
+"--resolve-linked",
+"--verbosity",
+"--workspace-id"
+],
+"astro env connection update": [
+"--auto-link",
+"--deployment-id",
+"--extra",
+"--help",
+"--host",
+"--include-secrets",
+"--login",
+"--password",
+"--port",
+"--resolve-linked",
+"--schema",
+"--type",
+"--verbosity",
+"--workspace-id"
+],
+"astro env metrics-export": [
+"--auth-type",
+"--deployment-id",
+"--endpoint",
+"--exporter-type",
+"--help",
+"--include-secrets",
+"--key",
+"--label",
+"--resolve-linked",
+"--verbosity",
+"--workspace-id"
+],
+"astro env metrics-export create": [
+"--auth-type",
+"--auto-link",
+"--basic-token",
+"--deployment-id",
+"--endpoint",
+"--exporter-type",
+"--header",
+"--help",
+"--include-secrets",
+"--key",
+"--label",
+"--password",
+"--resolve-linked",
+"--sigv4-assume-arn",
+"--sigv4-sts-region",
+"--username",
+"--verbosity",
+"--workspace-id"
+],
+"astro env metrics-export delete": [
+"--deployment-id",
+"--help",
+"--include-secrets",
+"--resolve-linked",
+"--verbosity",
+"--workspace-id",
+"--yes"
+],
+"astro env metrics-export get": [
+"--deployment-id",
+"--format",
+"--help",
+"--include-secrets",
+"--resolve-linked",
+"--verbosity",
+"--workspace-id"
+],
+"astro env metrics-export list": [
+"--deployment-id",
+"--format",
+"--help",
+"--include-secrets",
+"--output",
+"--resolve-linked",
+"--verbosity",
+"--workspace-id"
+],
+"astro env metrics-export update": [
+"--auth-type",
+"--auto-link",
+"--basic-token",
+"--deployment-id",
+"--endpoint",
+"--exporter-type",
+"--header",
+"--help",
+"--include-secrets",
+"--label",
+"--password",
+"--resolve-linked",
+"--sigv4-assume-arn",
+"--sigv4-sts-region",
+"--username",
+"--verbosity",
+"--workspace-id"
+],
+"astro env variable": [
+"--deployment-id",
+"--help",
+"--include-secrets",
+"--resolve-linked",
+"--verbosity",
+"--workspace-id"
+],
+"astro env variable create": [
+"--auto-link",
+"--deployment-id",
+"--from-file",
+"--help",
+"--include-secrets",
+"--key",
+"--resolve-linked",
+"--secret",
+"--value",
+"--verbosity",
+"--workspace-id"
+],
+"astro env variable delete": [
+"--deployment-id",
+"--help",
+"--include-secrets",
+"--resolve-linked",
+"--verbosity",
+"--workspace-id",
+"--yes"
+],
+"astro env variable export": [
+"--deployment-id",
+"--help",
+"--include-secrets",
+"--output",
+"--resolve-linked",
+"--verbosity",
+"--workspace-id"
+],
+"astro env variable get": [
+"--deployment-id",
+"--format",
+"--help",
+"--include-secrets",
+"--resolve-linked",
+"--verbosity",
+"--workspace-id"
+],
+"astro env variable link": [
+"--deployment-id",
+"--help",
+"--include-secrets",
+"--resolve-linked",
+"--verbosity",
+"--workspace-id"
+],
+"astro env variable list": [
+"--deployment-id",
+"--format",
+"--help",
+"--include-secrets",
+"--output",
+"--resolve-linked",
+"--verbosity",
+"--workspace-id"
+],
+"astro env variable update": [
+"--auto-link",
+"--deployment-id",
+"--from-file",
+"--help",
+"--include-secrets",
+"--resolve-linked",
+"--secret",
+"--strict",
+"--value",
+"--verbosity",
+"--workspace-id"
+],
+"astro ide": [
+"--help",
+"--verbosity"
+],
+"astro ide project": [
+"--help",
+"--verbosity"
+],
+"astro ide project export": [
+"--force",
+"--help",
+"--project-id",
+"--verbosity"
+],
+"astro ide project import": [
+"--help",
+"--project-id",
+"--session-id",
+"--verbosity"
+],
+"astro ide project list": [
+"--help",
+"--verbosity"
+],
+"astro login": [
+"--help",
+"--login-link",
+"--oauth",
+"--token-login",
+"--verbosity"
+],
+"astro logout": [
+"--help",
+"--verbosity"
+],
+"astro organization": [
+"--help",
+"--verbosity"
+],
+"astro organization audit-logs": [
+"--help",
+"--verbosity"
+],
+"astro organization audit-logs export": [
+"--help",
+"--include",
+"--organization-name",
+"--output-file",
+"--verbosity"
+],
+"astro organization list": [
+"--help",
+"--json",
+"--output",
+"--template",
+"--verbosity"
+],
+"astro organization role": [
+"--help",
+"--verbosity"
+],
+"astro organization role list": [
+"--help",
+"--include-default-roles",
+"--verbosity"
+],
+"astro organization switch": [
+"--help",
+"--login-link",
+"--verbosity",
+"--workspace-id"
+],
+"astro organization team": [
+"--help",
+"--verbosity"
+],
+"astro organization team create": [
+"--description",
+"--help",
+"--name",
+"--role",
+"--verbosity"
+],
+"astro organization team delete": [
+"--force",
+"--help",
+"--verbosity"
+],
+"astro organization team list": [
+"--help",
+"--json",
+"--output",
+"--template",
+"--verbosity"
+],
+"astro organization team update": [
+"--description",
+"--force",
+"--help",
+"--name",
+"--role",
+"--verbosity"
+],
+"astro organization team user": [
+"--help",
+"--verbosity"
+],
+"astro organization token": [
+"--help",
+"--organization-id",
+"--verbosity"
+],
+"astro organization token create": [
+"--clean-output",
+"--description",
+"--expiration",
+"--help",
+"--name",
+"--organization-id",
+"--role",
+"--verbosity"
+],
+"astro organization token delete": [
+"--force",
+"--help",
+"--name",
+"--organization-id",
+"--verbosity"
+],
+"astro organization token list": [
+"--help",
+"--organization-id",
+"--verbosity"
+],
+"astro organization token roles": [
+"--help",
+"--organization-id",
+"--verbosity"
+],
+"astro organization token rotate": [
+"--clean-output",
+"--force",
+"--help",
+"--name",
+"--organization-id",
+"--verbosity"
+],
+"astro organization token update": [
+"--description",
+"--help",
+"--name",
+"--new-name",
+"--organization-id",
+"--role",
+"--verbosity"
+],
+"astro organization user": [
+"--help",
+"--verbosity"
+],
+"astro organization user invite": [
+"--help",
+"--role",
+"--verbosity"
+],
+"astro organization user list": [
+"--help",
+"--json",
+"--output",
+"--template",
+"--verbosity"
+],
+"astro organization user update": [
+"--help",
+"--role",
+"--verbosity"
+],
+"astro otto": [],
+"astro remote": [
+"--help",
+"--verbosity"
+],
+"astro remote deploy": [
+"--build-secret",
+"--deployment-id",
+"--help",
+"--image-name",
+"--platform",
+"--verbosity"
+],
+"astro run": [
+"--dag-file",
+"--env",
+"--execution-date",
+"--help",
+"--no-cache",
+"--settings-file",
+"--verbose",
+"--verbosity"
+],
+"astro telemetry": [
+"--help",
+"--verbosity"
+],
+"astro telemetry disable": [
+"--help",
+"--verbosity"
+],
+"astro telemetry enable": [
+"--help",
+"--verbosity"
+],
+"astro version": [
+"--help",
+"--verbosity"
+],
+"astro workspace": [
+"--help",
+"--verbosity"
+],
+"astro workspace create": [
+"--description",
+"--enforce-cicd",
+"--help",
+"--name",
+"--verbosity"
+],
+"astro workspace delete": [
+"--help",
+"--verbosity"
+],
+"astro workspace list": [
+"--help",
+"--json",
+"--output",
+"--template",
+"--verbosity"
+],
+"astro workspace switch": [
+"--help",
+"--verbosity"
+],
+"astro workspace team": [
+"--help",
+"--verbosity"
+],
+"astro workspace team add": [
+"--help",
+"--role",
+"--verbosity",
+"--workspace-id"
+],
+"astro workspace team list": [
+"--help",
+"--json",
+"--output",
+"--template",
+"--verbosity"
+],
+"astro workspace team remove": [
+"--help",
+"--verbosity"
+],
+"astro workspace team update": [
+"--help",
+"--role",
+"--verbosity"
+],
+"astro workspace token": [
+"--help",
+"--verbosity",
+"--workspace-id"
+],
+"astro workspace token add": [
+"--help",
+"--org-token-name",
+"--role",
+"--verbosity",
+"--workspace-id"
+],
+"astro workspace token create": [
+"--clean-output",
+"--description",
+"--expiration",
+"--help",
+"--name",
+"--role",
+"--verbosity",
+"--workspace-id"
+],
+"astro workspace token delete": [
+"--force",
+"--help",
+"--name",
+"--verbosity",
+"--workspace-id"
+],
+"astro workspace token list": [
+"--help",
+"--verbosity",
+"--workspace-id"
+],
+"astro workspace token organization-token": [
+"--help",
+"--verbosity",
+"--workspace-id"
+],
+"astro workspace token rotate": [
+"--clean-output",
+"--force",
+"--help",
+"--name",
+"--verbosity",
+"--workspace-id"
+],
+"astro workspace token update": [
+"--description",
+"--help",
+"--name",
+"--new-name",
+"--role",
+"--verbosity",
+"--workspace-id"
+],
+"astro workspace update": [
+"--description",
+"--enforce-cicd",
+"--help",
+"--name",
+"--verbosity"
+],
+"astro workspace user": [
+"--help",
+"--verbosity",
+"--workspace-id"
+],
+"astro workspace user add": [
+"--help",
+"--role",
+"--verbosity",
+"--workspace-id"
+],
+"astro workspace user list": [
+"--help",
+"--json",
+"--output",
+"--template",
+"--verbosity",
+"--workspace-id"
+],
+"astro workspace user remove": [
+"--help",
+"--verbosity",
+"--workspace-id"
+],
+"astro workspace user update": [
+"--help",
+"--role",
+"--verbosity",
+"--workspace-id"
+]
+}

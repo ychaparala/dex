@@ -1,0 +1,528 @@
+tool: astro
+binaries:
+- astro
+category: orchestration
+priority: core
+target_pairs: 200
+version_note: Astronomer astro CLI 1.x (main branch, Nov 2026); local dev targets Airflow 3 (api-server) projects
+version_cmd: astro version
+version_label: astro
+versions:
+- {version: "1.48.0", install: "go:github.com/astronomer/astro-cli@v1.48.0"}
+install:
+- macos: ["brew install astro"]
+  docs: "https://github.com/astronomer/astro-cli/blob/main/README.md"
+  source: ["https://github.com/astronomer/astro-cli/blob/main/README.md"]
+sources:
+- url: https://github.com/astronomer/astro-cli/blob/main/cmd/airflow.go
+  license: Apache-2.0 with Commons Clause (repo)
+- url: https://github.com/astronomer/astro-cli/blob/main/cmd/cloud/deploy.go
+  license: Apache-2.0 with Commons Clause (repo)
+- url: https://github.com/astronomer/astro-cli/blob/main/cmd/cloud/deployment.go
+  license: Apache-2.0 with Commons Clause (repo)
+- url: https://github.com/astronomer/astro-cli/blob/main/cmd/cloud/deployment_inspect.go
+  license: Apache-2.0 with Commons Clause (repo)
+- url: https://github.com/astronomer/astro-cli/blob/main/cmd/cloud/workspace.go
+  license: Apache-2.0 with Commons Clause (repo)
+- url: https://github.com/astronomer/astro-cli/blob/main/cmd/auth.go
+  license: Apache-2.0 with Commons Clause (repo)
+- url: https://github.com/astronomer/astro-cli/blob/main/cmd/version.go
+  license: Apache-2.0 with Commons Clause (repo)
+- url: https://github.com/astronomer/astro-cli/blob/main/README.md
+  license: Apache-2.0 with Commons Clause (repo)
+destructive_patterns:
+- \bastro\s+dev\s+kill\b
+- \bastro\s+deployment\s+delete\b
+- \bastro\s+dev\s+restart\s+(-k|--kill)\b
+templates:
+- id: astro.install.brew
+  group: setup
+  intents:
+  - install the astro cli with homebrew
+  - brew install astronomer cli
+  - get the astro cli on my mac
+  - set up astro cli via brew
+  vars: []
+  body: brew install astro
+  destructive: false
+  source: https://github.com/astronomer/astro-cli/blob/main/README.md
+  verified: docs
+- id: astro.install.curl
+  group: setup
+  intents:
+  - install the astro cli on linux
+  - install astro cli with the official script
+  - curl install astronomer cli
+  - get astro cli without brew
+  vars: []
+  body: curl -sSL install.astronomer.io | sudo bash -s
+  destructive: false
+  source: https://github.com/astronomer/astro-cli/blob/main/README.md
+  verified: docs
+- id: astro.version
+  group: setup
+  intents:
+  - astro cli version
+  - which version of the astro cli do I have
+  - check astro version
+  - show astro cli version
+  vars: []
+  body: astro version
+  destructive: false
+  source: https://github.com/astronomer/astro-cli/blob/main/cmd/version.go
+  verified: source
+- id: astro.login
+  group: auth
+  intents:
+  - log in to astro
+  - authenticate the astro cli
+  - sign in to astronomer
+  - astro login
+  vars: []
+  body: astro login
+  destructive: false
+  source: https://github.com/astronomer/astro-cli/blob/main/cmd/auth.go
+  verified: source
+- id: astro.login.token
+  group: auth
+  intents:
+  - log in to astro with an api token from ASTRO_API_TOKEN
+  - non interactive astro login for ci
+  - authenticate astro cli using a token
+  - astro login with token, no browser
+  vars: []
+  body: astro login --token-login "$ASTRO_API_TOKEN"
+  destructive: false
+  source: https://github.com/astronomer/astro-cli/blob/main/cmd/auth.go
+  verified: source
+- id: astro.dev.init
+  group: local
+  intents:
+  - create a new astro project
+  - initialize an astro airflow project here
+  - astro dev init
+  - scaffold a local airflow project with astro
+  vars: []
+  body: astro dev init
+  destructive: false
+  source: https://github.com/astronomer/astro-cli/blob/main/cmd/airflow.go
+  verified: source
+- id: astro.dev.init.name
+  group: local
+  intents:
+  - create an astro project called {NAME}
+  - init an astro project with airflow version {AIRFLOW_VERSION}
+  - new astro project pinned to an airflow version
+  - scaffold astro project with a name
+  vars:
+  - {name: NAME, default: sales-pipelines, samples: [data-platform, marketing-etl]}
+  - {name: AIRFLOW_VERSION, default: 3.1.0, samples: [2.10.5, 3.0.6]}
+  body: astro dev init --name "$NAME" --airflow-version "$AIRFLOW_VERSION"
+  destructive: false
+  source: https://github.com/astronomer/astro-cli/blob/main/cmd/airflow.go
+  verified: source
+- id: astro.dev.start
+  group: local
+  intents:
+  - start local airflow with astro
+  - spin up the astro dev environment
+  - run airflow locally in docker
+  - astro dev start
+  - bring up my local airflow
+  vars: []
+  body: astro dev start
+  destructive: false
+  source: https://github.com/astronomer/astro-cli/blob/main/cmd/airflow.go
+  verified: source
+- id: astro.dev.start.no_browser
+  group: local
+  intents:
+  - start astro locally without opening a browser
+  - astro dev start but don't launch the ui
+  - start local airflow headless
+  - bring up astro dev env with no browser
+  vars: []
+  body: astro dev start --no-browser
+  destructive: false
+  source: https://github.com/astronomer/astro-cli/blob/main/cmd/airflow.go
+  verified: source
+- id: astro.dev.stop
+  group: local
+  intents:
+  - stop local airflow
+  - shut down the astro dev environment
+  - astro dev stop
+  - pause my local astro containers
+  vars: []
+  body: astro dev stop
+  destructive: false
+  source: https://github.com/astronomer/astro-cli/blob/main/cmd/airflow.go
+  verified: source
+- id: astro.dev.restart
+  group: local
+  intents:
+  - restart local airflow
+  - rebuild and restart the astro project
+  - restart astro dev after changing requirements
+  - astro dev restart
+  vars: []
+  body: astro dev restart
+  destructive: false
+  source: https://github.com/astronomer/astro-cli/blob/main/cmd/airflow.go
+  verified: source
+- id: astro.dev.kill
+  group: local
+  intents:
+  - kill the local astro environment and delete its data
+  - tear down local airflow including the database
+  - astro dev kill
+  - wipe my local astro containers and volumes
+  vars: []
+  body: astro dev kill
+  destructive: true
+  source: https://github.com/astronomer/astro-cli/blob/main/cmd/airflow.go
+  verified: source
+- id: astro.dev.ps
+  group: local
+  intents:
+  - list the local astro containers
+  - which astro dev containers are running
+  - astro dev ps
+  - show status of local airflow containers
+  vars: []
+  body: astro dev ps
+  destructive: false
+  source: https://github.com/astronomer/astro-cli/blob/main/cmd/airflow.go
+  verified: source
+- id: astro.dev.logs
+  group: local
+  intents:
+  - show local airflow logs
+  - astro dev logs
+  - print logs from my local astro env
+  - view the local airflow container logs
+  vars: []
+  body: astro dev logs
+  destructive: false
+  source: https://github.com/astronomer/astro-cli/blob/main/cmd/airflow.go
+  verified: source
+- id: astro.dev.logs.scheduler
+  group: local
+  intents:
+  - follow the local scheduler logs
+  - tail scheduler logs in astro dev
+  - stream astro scheduler logs
+  - watch the scheduler log locally
+  vars: []
+  body: astro dev logs --scheduler --follow
+  destructive: false
+  source: https://github.com/astronomer/astro-cli/blob/main/cmd/airflow.go
+  verified: source
+- id: astro.dev.logs.api_server
+  group: local
+  intents:
+  - follow the local api server logs
+  - tail the airflow 3 api-server logs in astro
+  - stream api server logs locally
+  - watch the web ui logs in astro dev
+  vars: []
+  body: astro dev logs --api-server --follow
+  destructive: false
+  source: https://github.com/astronomer/astro-cli/blob/main/cmd/airflow.go
+  verified: source
+- id: astro.dev.run.dags_list
+  group: local
+  intents:
+  - list dags inside the local astro environment
+  - run airflow dags list through astro
+  - astro dev run dags list
+  - what dags does my local astro airflow see
+  vars: []
+  body: astro dev run dags list
+  destructive: false
+  source: https://github.com/astronomer/astro-cli/blob/main/cmd/airflow.go
+  verified: source
+- id: astro.dev.run.trigger
+  group: local
+  intents:
+  - trigger {DAG_ID} in local astro airflow
+  - run a dag locally through astro dev run
+  - kick off a dag in the astro dev env
+  - astro dev run dags trigger
+  vars:
+  - {name: DAG_ID, default: daily_sales_etl, samples: [example_astronauts, orders_ingest], ctx: airflow_dag}
+  body: astro dev run dags trigger "$DAG_ID"
+  destructive: false
+  source: https://github.com/astronomer/astro-cli/blob/main/cmd/airflow.go
+  verified: source
+- id: astro.dev.run.test
+  group: local
+  intents:
+  - test dag {DAG_ID} inside the astro container
+  - run airflow dags test via astro
+  - debug a dag locally with astro dev run
+  - astro run a single dag test
+  vars:
+  - {name: DAG_ID, default: daily_sales_etl, samples: [example_astronauts, orders_ingest], ctx: airflow_dag}
+  body: astro dev run dags test "$DAG_ID"
+  destructive: false
+  source: https://github.com/astronomer/astro-cli/blob/main/cmd/airflow.go
+  verified: source
+- id: astro.dev.bash.scheduler
+  group: local
+  intents:
+  - open a shell in the local scheduler container
+  - bash into the astro scheduler
+  - exec into the scheduler container
+  - get a terminal inside local airflow
+  vars: []
+  body: astro dev bash --scheduler
+  destructive: false
+  source: https://github.com/astronomer/astro-cli/blob/main/cmd/airflow.go
+  verified: source
+- id: astro.dev.pytest
+  group: test
+  intents:
+  - run the astro project tests
+  - astro dev pytest
+  - run pytest inside the airflow image
+  - test my dags with pytest via astro
+  vars: []
+  body: astro dev pytest
+  destructive: false
+  source: https://github.com/astronomer/astro-cli/blob/main/cmd/airflow.go
+  verified: source
+- id: astro.dev.pytest.file
+  group: test
+  intents:
+  - run pytest on {TEST_PATH} with astro
+  - run one test file in the astro container
+  - astro pytest a specific file
+  - test just {TEST_PATH}
+  vars:
+  - {name: TEST_PATH, default: tests/dags/test_dag_example.py, samples: [tests/test_sales.py, tests/dags/]}
+  body: astro dev pytest "$TEST_PATH"
+  destructive: false
+  source: https://github.com/astronomer/astro-cli/blob/main/cmd/airflow.go
+  verified: source
+- id: astro.dev.parse
+  group: test
+  intents:
+  - parse my dags with astro
+  - check dags for import errors before deploying
+  - astro dev parse
+  - validate dags parse correctly
+  vars: []
+  body: astro dev parse
+  destructive: false
+  source: https://github.com/astronomer/astro-cli/blob/main/cmd/airflow.go
+  verified: source
+- id: astro.dev.upgrade_test
+  group: test
+  intents:
+  - test an upgrade to airflow {AIRFLOW_VERSION}
+  - check if my project works on a newer airflow
+  - astro dev upgrade-test
+  - run upgrade tests against a new airflow version
+  vars:
+  - {name: AIRFLOW_VERSION, default: 3.1.0, samples: [3.0.6, 2.10.5]}
+  body: astro dev upgrade-test --airflow-version "$AIRFLOW_VERSION"
+  destructive: false
+  source: https://github.com/astronomer/astro-cli/blob/main/cmd/airflow.go
+  verified: source
+- id: astro.dev.object.export
+  group: local
+  intents:
+  - export local connections and variables to airflow_settings.yaml
+  - save local airflow objects to the settings file
+  - astro dev object export
+  - dump local connections, variables and pools
+  vars: []
+  body: astro dev object export
+  destructive: false
+  source: https://github.com/astronomer/astro-cli/blob/main/cmd/airflow.go
+  verified: source
+- id: astro.deploy
+  group: deploy
+  intents:
+  - deploy to astro deployment {DEPLOYMENT_ID}
+  - push my project to astronomer
+  - deploy the image and dags
+  - astro deploy
+  - ship the project to the deployment
+  vars:
+  - {name: DEPLOYMENT_ID, default: <deployment-id>, samples: [clx1a2b3c4d5e6f7g8h9, cm0abc123def456ghi789]}
+  body: astro deploy "$DEPLOYMENT_ID"
+  destructive: false
+  source: https://github.com/astronomer/astro-cli/blob/main/cmd/cloud/deploy.go
+  verified: source
+- id: astro.deploy.dags
+  group: deploy
+  intents:
+  - deploy only dags to {DEPLOYMENT_ID}
+  - push just the dags folder to astro
+  - dag-only deploy
+  - fast deploy of dag changes without rebuilding the image
+  vars:
+  - {name: DEPLOYMENT_ID, default: <deployment-id>, samples: [clx1a2b3c4d5e6f7g8h9, cm0abc123def456ghi789]}
+  body: astro deploy "$DEPLOYMENT_ID" --dags
+  destructive: false
+  source: https://github.com/astronomer/astro-cli/blob/main/cmd/cloud/deploy.go
+  verified: source
+- id: astro.deploy.pytest
+  group: deploy
+  intents:
+  - deploy to {DEPLOYMENT_ID} only if tests pass
+  - run pytest then deploy
+  - deploy with pytest gate
+  - astro deploy after tests succeed
+  vars:
+  - {name: DEPLOYMENT_ID, default: <deployment-id>, samples: [clx1a2b3c4d5e6f7g8h9, cm0abc123def456ghi789]}
+  body: astro deploy "$DEPLOYMENT_ID" --pytest
+  destructive: false
+  source: https://github.com/astronomer/astro-cli/blob/main/cmd/cloud/deploy.go
+  verified: source
+- id: astro.deploy.wait
+  group: deploy
+  intents:
+  - deploy and wait until the deployment is healthy
+  - deploy to {DEPLOYMENT_ID} and block until done
+  - astro deploy and wait
+  - deploy then wait for it to be ready
+  vars:
+  - {name: DEPLOYMENT_ID, default: <deployment-id>, samples: [clx1a2b3c4d5e6f7g8h9, cm0abc123def456ghi789]}
+  body: astro deploy "$DEPLOYMENT_ID" --wait
+  destructive: false
+  source: https://github.com/astronomer/astro-cli/blob/main/cmd/cloud/deploy.go
+  verified: source
+- id: astro.deployment.list
+  group: deployments
+  intents:
+  - list astro deployments
+  - show deployments in my workspace
+  - what deployments do I have
+  - astro deployment list
+  vars: []
+  body: astro deployment list
+  destructive: false
+  source: https://github.com/astronomer/astro-cli/blob/main/cmd/cloud/deployment.go
+  verified: source
+- id: astro.deployment.list.all
+  group: deployments
+  intents:
+  - list deployments across all workspaces
+  - show every astro deployment in the org
+  - all deployments, all workspaces
+  - astro deployment list --all
+  vars: []
+  body: astro deployment list --all
+  destructive: false
+  source: https://github.com/astronomer/astro-cli/blob/main/cmd/cloud/deployment.go
+  verified: source
+- id: astro.deployment.inspect
+  group: deployments
+  intents:
+  - inspect deployment {DEPLOYMENT_ID}
+  - show the config of an astro deployment
+  - describe deployment as yaml
+  - get deployment details
+  vars:
+  - {name: DEPLOYMENT_ID, default: <deployment-id>, samples: [clx1a2b3c4d5e6f7g8h9, cm0abc123def456ghi789]}
+  body: astro deployment inspect "$DEPLOYMENT_ID"
+  destructive: false
+  source: https://github.com/astronomer/astro-cli/blob/main/cmd/cloud/deployment_inspect.go
+  verified: source
+- id: astro.deployment.inspect.key
+  group: deployments
+  intents:
+  - get {KEY} of deployment {DEPLOYMENT_ID}
+  - show just one field of a deployment
+  - what's the airflow api url of my deployment
+  - read a single key from deployment inspect
+  vars:
+  - {name: DEPLOYMENT_ID, default: <deployment-id>, samples: [clx1a2b3c4d5e6f7g8h9, cm0abc123def456ghi789]}
+  - {name: KEY, default: configuration.cluster_id, samples: [metadata.airflow_api_url, configuration.runtime_version]}
+  body: astro deployment inspect "$DEPLOYMENT_ID" --key "$KEY"
+  destructive: false
+  source: https://github.com/astronomer/astro-cli/blob/main/cmd/cloud/deployment_inspect.go
+  verified: source
+- id: astro.deployment.logs
+  group: deployments
+  intents:
+  - show scheduler logs of deployment {DEPLOYMENT_ID}
+  - astro deployment logs
+  - view logs from an astro deployment
+  - error logs for my deployment
+  vars:
+  - {name: DEPLOYMENT_ID, default: <deployment-id>, samples: [clx1a2b3c4d5e6f7g8h9, cm0abc123def456ghi789]}
+  body: astro deployment logs "$DEPLOYMENT_ID" --error
+  destructive: false
+  source: https://github.com/astronomer/astro-cli/blob/main/cmd/cloud/deployment.go
+  verified: source
+- id: astro.deployment.variable.list
+  group: deployments
+  intents:
+  - list environment variables of {DEPLOYMENT_ID}
+  - show deployment env vars
+  - what env vars are set on my deployment
+  - astro deployment variable list
+  vars:
+  - {name: DEPLOYMENT_ID, default: <deployment-id>, samples: [clx1a2b3c4d5e6f7g8h9, cm0abc123def456ghi789]}
+  body: astro deployment variable list --deployment-id "$DEPLOYMENT_ID"
+  destructive: false
+  source: https://github.com/astronomer/astro-cli/blob/main/cmd/cloud/deployment.go
+  verified: source
+- id: astro.deployment.variable.create
+  group: deployments
+  intents:
+  - set env var {VAR_KEY}={VAR_VALUE} on deployment {DEPLOYMENT_ID}
+  - add an environment variable to an astro deployment
+  - create a deployment variable
+  - astro deployment variable create
+  vars:
+  - {name: DEPLOYMENT_ID, default: <deployment-id>, samples: [clx1a2b3c4d5e6f7g8h9, cm0abc123def456ghi789]}
+  - {name: VAR_KEY, default: AIRFLOW__CORE__PARALLELISM, samples: [ENVIRONMENT, LOG_LEVEL]}
+  - {name: VAR_VALUE, default: '64', samples: [prod, INFO]}
+  body: astro deployment variable create --deployment-id "$DEPLOYMENT_ID" "$VAR_KEY=$VAR_VALUE"
+  destructive: false
+  source: https://github.com/astronomer/astro-cli/blob/main/cmd/cloud/deployment.go
+  verified: source
+- id: astro.deployment.variable.secret
+  group: deployments
+  intents:
+  - add secret env var {VAR_KEY} to deployment from API_KEY
+  - create a secret deployment variable
+  - store a secret on an astro deployment
+  - set a hidden env var on my deployment
+  vars:
+  - {name: DEPLOYMENT_ID, default: <deployment-id>, samples: [clx1a2b3c4d5e6f7g8h9, cm0abc123def456ghi789]}
+  - {name: VAR_KEY, default: SNOWFLAKE_PASSWORD, samples: [SLACK_TOKEN, API_KEY]}
+  body: astro deployment variable create --deployment-id "$DEPLOYMENT_ID" "$VAR_KEY=$API_KEY" --secret
+  destructive: false
+  source: https://github.com/astronomer/astro-cli/blob/main/cmd/cloud/deployment.go
+  verified: source
+- id: astro.workspace.list
+  group: workspaces
+  intents:
+  - list astro workspaces
+  - which workspaces can I access
+  - show my astronomer workspaces
+  - astro workspace list
+  vars: []
+  body: astro workspace list
+  destructive: false
+  source: https://github.com/astronomer/astro-cli/blob/main/cmd/cloud/workspace.go
+  verified: source
+- id: astro.workspace.switch
+  group: workspaces
+  intents:
+  - switch to workspace {WORKSPACE_ID}
+  - change the active astro workspace
+  - use a different workspace
+  - astro workspace switch
+  vars:
+  - {name: WORKSPACE_ID, default: <workspace-id>, samples: [cl0wksp123abc456, cm1team456def789]}
+  body: astro workspace switch "$WORKSPACE_ID"
+  destructive: false
+  source: https://github.com/astronomer/astro-cli/blob/main/cmd/cloud/workspace.go
+  verified: source

@@ -1,0 +1,257 @@
+tool: clickhouse
+binaries:
+- clickhouse
+- clickhouse-client
+- clickhouse-local
+category: databases
+priority: standard
+target_pairs: 100
+version_note: ClickHouse 24.x-26.x client and clickhouse-local
+install:
+- binaries: ["clickhouse"]
+  macos: ["brew install --cask clickhouse"]
+  source: ["https://github.com/Homebrew/homebrew-cask/blob/HEAD/Casks/c/clickhouse.rb"]
+sources:
+- url: https://clickhouse.com/docs/interfaces/client
+  license: vendor docs, all rights reserved; facts only
+- url: https://github.com/ClickHouse/ClickHouse/blob/master/src/Client/ClientBase.cpp
+  license: Apache-2.0 (repo)
+- url: https://github.com/ClickHouse/ClickHouse/blob/master/programs/client/Client.cpp
+  license: Apache-2.0 (repo)
+- url: https://github.com/ClickHouse/ClickHouse/blob/master/programs/local/LocalServer.cpp
+  license: Apache-2.0 (repo)
+- url: https://clickhouse.com/docs/operations/utilities/clickhouse-local
+  license: vendor docs, all rights reserved; facts only
+- url: https://github.com/Homebrew/homebrew-cask/blob/HEAD/Casks/c/clickhouse.rb
+  license: BSD-2-Clause (Homebrew repo)
+destructive_patterns:
+- (?i)\b(drop|truncate)\s+(table|database|view|dictionary)\b
+- (?i)\balter\s+table\s+\S+\s+delete\b
+- (?i)\bdelete\s+from\b
+templates:
+- id: clickhouse.install
+  group: setup
+  intents:
+  - install clickhouse with the official script
+  - download the clickhouse binary
+  - curl install clickhouse
+  - get clickhouse client and local
+  vars: []
+  body: curl https://clickhouse.com/ | sh
+  destructive: false
+  source: https://clickhouse.com/docs/interfaces/client
+  verified: docs
+- id: clickhouse.install.brew
+  group: setup
+  intents:
+  - brew install clickhouse
+  - install clickhouse on mac
+  - clickhouse via homebrew cask
+  - get clickhouse client on macos
+  vars: []
+  body: brew install --cask clickhouse
+  destructive: false
+  source: https://github.com/Homebrew/homebrew-cask/blob/HEAD/Casks/c/clickhouse.rb
+  verified: source
+- id: clickhouse.connect
+  group: connect
+  intents:
+  - connect to clickhouse at {CH_HOST}
+  - open clickhouse client over tls
+  - clickhouse client login to cloud
+  - interactive clickhouse session prompting for password
+  vars:
+  - name: CH_HOST
+    default: localhost
+    samples:
+    - ch.example.com
+    - abc123.us-east-1.aws.clickhouse.cloud
+  - name: CH_USER
+    default: default
+    samples:
+    - analyst
+    - etl
+  body: clickhouse client --host "$CH_HOST" --secure --user "$CH_USER" --ask-password
+  destructive: false
+  source: https://github.com/ClickHouse/ClickHouse/blob/master/programs/client/Client.cpp
+  verified: source
+- id: clickhouse.query
+  group: query
+  intents:
+  - run {QUERY} on clickhouse
+  - one-off clickhouse query
+  - clickhouse client --query
+  - query clickhouse from bash
+  vars:
+  - name: CH_HOST
+    default: localhost
+    samples:
+    - ch.example.com
+    - abc123.us-east-1.aws.clickhouse.cloud
+  - name: QUERY
+    default: select version()
+    samples:
+    - select count() from events
+    - show tables
+    - select * from system.parts limit 5
+  body: clickhouse client --host "$CH_HOST" --query "$QUERY"
+  destructive: false
+  source: https://clickhouse.com/docs/interfaces/client
+  verified: docs
+- id: clickhouse.query.csv
+  group: query
+  intents:
+  - export {QUERY} to {OUT_FILE} with a header
+  - save clickhouse results as csv
+  - csv with names from clickhouse
+  - dump a clickhouse query to a file
+  vars:
+  - name: CH_HOST
+    default: localhost
+    samples:
+    - ch.example.com
+    - abc123.us-east-1.aws.clickhouse.cloud
+  - name: QUERY
+    default: select * from events limit 1000
+    samples:
+    - select * from orders where dt = today()
+  - name: OUT_FILE
+    default: out.csv
+    samples:
+    - events.csv
+  body: clickhouse client --host "$CH_HOST" --query "$QUERY" --format CSVWithNames > "$OUT_FILE"
+  destructive: false
+  source: https://clickhouse.com/docs/interfaces/client
+  verified: docs
+- id: clickhouse.query.pretty
+  group: query
+  intents:
+  - show {QUERY} as a pretty compact table
+  - readable clickhouse output
+  - prettycompact format
+  - nicely formatted clickhouse results
+  vars:
+  - name: CH_HOST
+    default: localhost
+    samples:
+    - ch.example.com
+    - abc123.us-east-1.aws.clickhouse.cloud
+  - name: QUERY
+    default: select database, name, total_rows from system.tables limit 20
+    samples:
+    - select * from system.clusters
+  body: clickhouse client --host "$CH_HOST" --query "$QUERY" --format PrettyCompact
+  destructive: false
+  source: https://clickhouse.com/docs/interfaces/client
+  verified: docs
+- id: clickhouse.insert.csv
+  group: load
+  intents:
+  - load {FILE} into table {TABLE}
+  - insert a csv with header into clickhouse
+  - bulk load csv via clickhouse client
+  - pipe a file into a clickhouse insert
+  vars:
+  - name: CH_HOST
+    default: localhost
+    samples:
+    - ch.example.com
+    - abc123.us-east-1.aws.clickhouse.cloud
+  - name: TABLE
+    default: events
+    samples:
+    - default.orders
+    - raw.clicks
+  - name: FILE
+    default: data.csv
+    samples:
+    - events.csv
+    - orders_2025.csv
+    ctx: local_file
+  body: clickhouse client --host "$CH_HOST" --query "INSERT INTO $TABLE FORMAT CSVWithNames" < "$FILE"
+  destructive: false
+  source: https://clickhouse.com/docs/interfaces/client
+  verified: docs
+- id: clickhouse.queries_file
+  group: query
+  intents:
+  - run the sql file {FILE} on clickhouse
+  - execute a script with clickhouse client
+  - clickhouse --queries-file
+  - apply ddl from a file
+  vars:
+  - name: CH_HOST
+    default: localhost
+    samples:
+    - ch.example.com
+    - abc123.us-east-1.aws.clickhouse.cloud
+  - name: FILE
+    default: schema.sql
+    samples:
+    - migrations/002.sql
+    ctx: local_file
+  body: clickhouse client --host "$CH_HOST" --queries-file "$FILE"
+  destructive: false
+  source: https://clickhouse.com/docs/interfaces/client
+  verified: docs
+- id: clickhouse.tables
+  group: query
+  intents:
+  - list tables in database {DATABASE}
+  - show clickhouse tables
+  - what tables exist in clickhouse
+  - clickhouse show tables
+  vars:
+  - name: CH_HOST
+    default: localhost
+    samples:
+    - ch.example.com
+    - abc123.us-east-1.aws.clickhouse.cloud
+  - name: DATABASE
+    default: default
+    samples:
+    - analytics
+    - raw
+  body: clickhouse client --host "$CH_HOST" -d "$DATABASE" --query "SHOW TABLES"
+  destructive: false
+  source: https://github.com/ClickHouse/ClickHouse/blob/master/src/Client/ClientBase.cpp
+  verified: source
+- id: clickhouse.local.file
+  group: local
+  intents:
+  - query a local file with clickhouse-local
+  - count rows of {FILE} without a server
+  - clickhouse local on a parquet
+  - sql over a file with clickhouse
+  vars:
+  - name: FILE
+    default: data.parquet
+    samples:
+    - events.csv
+    - logs.json
+    ctx: local_file
+  body: clickhouse local --query "SELECT count() FROM file('$FILE')"
+  destructive: false
+  source: https://clickhouse.com/docs/operations/utilities/clickhouse-local
+  verified: docs
+- id: clickhouse.local.convert
+  group: local
+  intents:
+  - convert {FILE} csv to parquet {OUT_FILE} with clickhouse local
+  - csv to parquet using clickhouse
+  - transform file formats with clickhouse-local
+  - rewrite a csv as parquet
+  vars:
+  - name: FILE
+    default: data.csv
+    samples:
+    - events.csv
+    ctx: local_file
+  - name: OUT_FILE
+    default: data.parquet
+    samples:
+    - events.parquet
+  body: clickhouse local --query "SELECT * FROM file('$FILE', CSVWithNames)" --output-format Parquet > "$OUT_FILE"
+  destructive: false
+  source: https://clickhouse.com/docs/operations/utilities/clickhouse-local
+  verified: docs

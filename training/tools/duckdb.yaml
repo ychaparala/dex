@@ -1,0 +1,926 @@
+tool: duckdb
+binaries:
+- duckdb
+category: databases
+priority: core
+target_pairs: 350
+version_note: DuckDB CLI 1.x/2.x (SQL checked on 2.0.1)
+install:
+- macos: ["brew install duckdb"]
+  any: ["uv tool install duckdb-cli", "pipx install duckdb-cli"]
+  source: ["https://github.com/Homebrew/homebrew-core/blob/HEAD/Formula/d/duckdb.rb", "https://pypi.org/project/duckdb-cli/", "https://duckdb.org/docs/2.0/installation.html"]
+sources:
+- url: https://duckdb.org/docs/2.0/clients/cli/arguments.html
+  license: MIT (duckdb/duckdb-web repo)
+- url: https://duckdb.org/docs/2.0/clients/cli/overview.html
+  license: MIT (duckdb/duckdb-web repo)
+- url: https://duckdb.org/docs/2.0/sql/statements/copy.html
+  license: MIT (duckdb/duckdb-web repo)
+- url: https://duckdb.org/docs/2.0/installation.html
+  license: MIT (duckdb/duckdb-web repo)
+- url: https://duckdb.org/docs/2.0/core_extensions/httpfs/s3api.html
+  license: MIT (duckdb/duckdb-web repo)
+- url: https://duckdb.org/docs/2.0/core_extensions/postgres/overview
+  license: MIT (duckdb/duckdb-web repo)
+- url: https://github.com/Homebrew/homebrew-core/blob/HEAD/Formula/d/duckdb.rb
+  license: BSD-2-Clause (Homebrew repo)
+destructive_patterns:
+- (?i)\bdrop\s+(table|view|schema|database)\b
+- (?i)\btruncate\b
+- (?i)\bdelete\s+from\b
+- (?i)\boverwrite(_or_ignore)?\b
+templates:
+- id: duckdb.install.script
+  group: setup
+  intents:
+  - install duckdb with the official script
+  - curl install duckdb cli
+  - get the duckdb binary on linux
+  - one-liner to install duckdb
+  vars: []
+  body: curl https://install.duckdb.org | sh
+  destructive: false
+  source: https://duckdb.org/docs/2.0/installation.html
+  verified: docs
+- id: duckdb.install.brew
+  group: setup
+  intents:
+  - brew install duckdb
+  - install duckdb on my mac
+  - get duckdb cli from homebrew
+  - homebrew duckdb
+  vars: []
+  body: brew install duckdb
+  destructive: false
+  source: https://github.com/Homebrew/homebrew-core/blob/HEAD/Formula/d/duckdb.rb
+  verified: source
+- id: duckdb.version
+  group: setup
+  intents:
+  - what duckdb version is installed
+  - duckdb --version
+  - check duckdb works
+  - print the duckdb version
+  vars: []
+  body: duckdb -version
+  destructive: false
+  source: https://duckdb.org/docs/2.0/clients/cli/arguments.html
+  verified: docs
+- id: duckdb.parquet.head
+  group: inspect
+  intents:
+  - show the first {LIMIT} rows of {FILE}
+  - peek at a parquet file
+  - preview parquet data in the terminal
+  - what's in this parquet, first few rows
+  - head a parquet with duckdb
+  vars:
+  - name: FILE
+    default: data.parquet
+    samples:
+    - sales_2025.parquet
+    - events/part-0001.parquet
+    - orders.parquet
+    ctx: local_file
+  - name: LIMIT
+    default: '20'
+    samples:
+    - '5'
+    - '50'
+    - '100'
+  body: duckdb -c "select * from '$FILE' limit $LIMIT" | less -S
+  destructive: false
+  source: https://duckdb.org/docs/2.0/clients/cli/arguments.html
+  verified: docs
+- id: duckdb.csv.head
+  group: inspect
+  intents:
+  - preview the first {LIMIT} rows of {FILE}
+  - peek at a csv with duckdb
+  - look at a csv nicely formatted
+  - head of a csv as a table
+  vars:
+  - name: FILE
+    default: data.csv
+    samples:
+    - orders.csv
+    - exports/customers.csv
+    - events_2025-06.csv
+    ctx: local_file
+  - name: LIMIT
+    default: '20'
+    samples:
+    - '5'
+    - '50'
+    - '100'
+  body: duckdb -c "select * from read_csv('$FILE') limit $LIMIT"
+  destructive: false
+  source: https://duckdb.org/docs/2.0/clients/cli/arguments.html
+  verified: docs
+- id: duckdb.json.head
+  group: inspect
+  intents:
+  - show the first rows of json file {FILE}
+  - read a json or ndjson file with duckdb
+  - preview newline delimited json
+  - peek at jsonl data
+  vars:
+  - name: FILE
+    default: events.json
+    samples:
+    - logs.ndjson
+    - api_dump.jsonl
+    ctx: local_file
+  - name: LIMIT
+    default: '20'
+    samples:
+    - '5'
+    - '50'
+    - '100'
+  body: duckdb -c "select * from read_json('$FILE') limit $LIMIT"
+  destructive: false
+  source: https://duckdb.org/docs/2.0/clients/cli/arguments.html
+  verified: docs
+- id: duckdb.count
+  group: inspect
+  intents:
+  - how many rows are in {FILE}
+  - count rows in a parquet or csv file
+  - row count of a data file
+  - duckdb count star on a file
+  vars:
+  - name: FILE
+    default: data.parquet
+    samples:
+    - orders.csv
+    - events.parquet
+    - users.json
+    ctx: local_file
+  body: duckdb -c "select count(*) from '$FILE'"
+  destructive: false
+  source: https://duckdb.org/docs/2.0/clients/cli/arguments.html
+  verified: docs
+- id: duckdb.describe
+  group: inspect
+  intents:
+  - show the schema of {FILE}
+  - what columns and types does this file have
+  - describe a parquet file
+  - list column names and types
+  vars:
+  - name: FILE
+    default: data.parquet
+    samples:
+    - orders.csv
+    - events.parquet
+    - users.json
+    ctx: local_file
+  body: duckdb -c "describe select * from '$FILE'"
+  destructive: false
+  source: https://duckdb.org/docs/2.0/clients/cli/arguments.html
+  verified: docs
+- id: duckdb.summarize
+  group: inspect
+  intents:
+  - profile the columns in {FILE}
+  - summary stats for every column
+  - min max nulls distinct per column
+  - summarize a dataset with duckdb
+  - quick data profiling of a file
+  vars:
+  - name: FILE
+    default: data.parquet
+    samples:
+    - orders.csv
+    - events.parquet
+    - users.json
+    ctx: local_file
+  body: duckdb -c "summarize select * from '$FILE'" | less -S
+  destructive: false
+  source: https://duckdb.org/docs/2.0/clients/cli/arguments.html
+  verified: docs
+- id: duckdb.parquet.metadata
+  group: inspect
+  intents:
+  - show parquet row groups and column stats for {FILE}
+  - parquet metadata
+  - how is this parquet compressed
+  - row group sizes of a parquet
+  vars:
+  - name: FILE
+    default: data.parquet
+    samples:
+    - sales_2025.parquet
+    - events/part-0001.parquet
+    - orders.parquet
+    ctx: local_file
+  body: duckdb -c "select row_group_id, column_id, path_in_schema, compression, total_compressed_size from parquet_metadata('$FILE')"
+  destructive: false
+  source: https://duckdb.org/docs/2.0/clients/cli/arguments.html
+  verified: docs
+- id: duckdb.parquet.schema
+  group: inspect
+  intents:
+  - show the physical parquet schema of {FILE}
+  - parquet logical and physical types
+  - dump parquet_schema
+  - what parquet types are stored
+  vars:
+  - name: FILE
+    default: data.parquet
+    samples:
+    - sales_2025.parquet
+    - events/part-0001.parquet
+    - orders.parquet
+    ctx: local_file
+  body: duckdb -c "select name, type, logical_type, repetition_type from parquet_schema('$FILE')"
+  destructive: false
+  source: https://duckdb.org/docs/2.0/clients/cli/arguments.html
+  verified: docs
+- id: duckdb.parquet.file_meta
+  group: inspect
+  intents:
+  - what wrote this parquet file and how many rows
+  - parquet file metadata created_by
+  - number of row groups in {FILE}
+  - parquet footer info
+  vars:
+  - name: FILE
+    default: data.parquet
+    samples:
+    - sales_2025.parquet
+    - events/part-0001.parquet
+    - orders.parquet
+    ctx: local_file
+  body: duckdb -line -c "select * from parquet_file_metadata('$FILE')"
+  destructive: false
+  source: https://duckdb.org/docs/2.0/clients/cli/arguments.html
+  verified: docs
+- id: duckdb.glob.count
+  group: files
+  intents:
+  - count rows across all files matching {GLOB}
+  - read many parquet files at once
+  - query a folder of parquet files
+  - total rows over a glob
+  vars:
+  - name: GLOB
+    default: data/*.parquet
+    samples:
+    - events/2025-*/*.parquet
+    - exports/**/*.parquet
+  body: duckdb -c "select count(*) from read_parquet('$GLOB')"
+  destructive: false
+  source: https://duckdb.org/docs/2.0/clients/cli/arguments.html
+  verified: docs
+- id: duckdb.glob.filename
+  group: files
+  intents:
+  - row counts per file for {GLOB}
+  - which file has how many rows
+  - group rows by source file
+  - count rows in each csv in a folder
+  vars:
+  - name: GLOB
+    default: data/*.csv
+    samples:
+    - landing/*.csv
+    - exports/2025-*.csv
+  body: duckdb -c "select filename, count(*) n from read_csv('$GLOB', filename=true, union_by_name=true) group by all order by n desc"
+  destructive: false
+  source: https://duckdb.org/docs/2.0/clients/cli/arguments.html
+  verified: docs
+- id: duckdb.hive
+  group: files
+  intents:
+  - read hive partitioned parquet under {DIR}
+  - query parquet with partition columns like dt=
+  - use hive_partitioning to read a dataset
+  - read a partitioned folder with dt= directories
+  vars:
+  - name: DIR
+    default: warehouse/events
+    samples:
+    - lake/orders
+    - data/sales
+  body: duckdb -c "select * from read_parquet('$DIR/**/*.parquet', hive_partitioning=true) limit 10"
+  destructive: false
+  source: https://duckdb.org/docs/2.0/clients/cli/arguments.html
+  verified: docs
+- id: duckdb.s3.read
+  group: cloud
+  intents:
+  - query a parquet on s3 using my aws credentials
+  - read s3://{BUCKET}/{KEY} with duckdb
+  - duckdb s3 credential chain
+  - count rows of a file in s3
+  vars:
+  - name: BUCKET
+    default: <bucket>
+    samples:
+    - acme-data-lake
+    - analytics-raw
+    ctx: s3_bucket
+  - name: KEY
+    default: events/*.parquet
+    samples:
+    - orders/2025/*.parquet
+    - exports/daily.parquet
+  body: duckdb -c "create secret (type s3, provider credential_chain); select count(*) from read_parquet('s3://$BUCKET/$KEY')"
+  destructive: false
+  source: https://duckdb.org/docs/2.0/core_extensions/httpfs/s3api.html
+  verified: docs
+- id: duckdb.s3.head
+  group: cloud
+  intents:
+  - peek at the first rows of s3://{BUCKET}/{KEY}
+  - preview an s3 parquet without downloading it
+  - head a file on s3 with duckdb
+  - look at s3 data quickly
+  vars:
+  - name: BUCKET
+    default: <bucket>
+    samples:
+    - acme-data-lake
+    - ml-features
+    ctx: s3_bucket
+  - name: KEY
+    default: events/part-0000.parquet
+    samples:
+    - orders/2025/06/data.parquet
+  body: duckdb -c "create secret (type s3, provider credential_chain); select * from 's3://$BUCKET/$KEY' limit 10"
+  destructive: false
+  source: https://duckdb.org/docs/2.0/core_extensions/httpfs/s3api.html
+  verified: docs
+- id: duckdb.convert.csv2parquet
+  group: convert
+  intents:
+  - convert {FILE} to parquet as {OUT_FILE}
+  - csv to parquet with duckdb
+  - turn a csv into a zstd parquet
+  - write a csv out as parquet
+  vars:
+  - name: FILE
+    default: data.csv
+    samples:
+    - orders.csv
+    - exports/customers.csv
+    - events_2025-06.csv
+    ctx: local_file
+  - name: OUT_FILE
+    default: data.parquet
+    samples:
+    - orders.parquet
+    - customers.parquet
+  body: duckdb -c "copy (select * from read_csv('$FILE')) to '$OUT_FILE' (format parquet, compression zstd)"
+  destructive: false
+  source: https://duckdb.org/docs/2.0/sql/statements/copy.html
+  verified: docs
+- id: duckdb.convert.parquet2csv
+  group: convert
+  intents:
+  - convert parquet {FILE} to csv {OUT_FILE}
+  - parquet to csv
+  - export a parquet as csv with a header
+  - dump parquet into csv
+  vars:
+  - name: FILE
+    default: data.parquet
+    samples:
+    - sales_2025.parquet
+    - events/part-0001.parquet
+    - orders.parquet
+    ctx: local_file
+  - name: OUT_FILE
+    default: data.csv
+    samples:
+    - orders.csv
+    - sample.csv
+  body: duckdb -c "copy (select * from '$FILE') to '$OUT_FILE' (header, delimiter ',')"
+  destructive: false
+  source: https://duckdb.org/docs/2.0/sql/statements/copy.html
+  verified: docs
+- id: duckdb.convert.json2parquet
+  group: convert
+  intents:
+  - convert json lines {FILE} to parquet {OUT_FILE}
+  - ndjson to parquet
+  - turn api json dump into parquet
+  - json to parquet with duckdb
+  vars:
+  - name: FILE
+    default: events.json
+    samples:
+    - logs.ndjson
+    - dump.jsonl
+    ctx: local_file
+  - name: OUT_FILE
+    default: events.parquet
+    samples:
+    - logs.parquet
+  body: duckdb -c "copy (select * from read_json('$FILE')) to '$OUT_FILE' (format parquet)"
+  destructive: false
+  source: https://duckdb.org/docs/2.0/sql/statements/copy.html
+  verified: docs
+- id: duckdb.convert.partitioned
+  group: convert
+  intents:
+  - write {FILE} as parquet partitioned by {COLUMN} into {DIR}
+  - hive partition a dataset by a column
+  - split a file into partitioned parquet
+  - partition_by export
+  vars:
+  - name: FILE
+    default: data.parquet
+    samples:
+    - orders.csv
+    - events.parquet
+    - users.json
+    ctx: local_file
+  - name: DIR
+    default: out
+    samples:
+    - lake/orders
+    - partitioned
+  - name: COLUMN
+    default: dt
+    samples:
+    - country
+    - event_date
+  body: duckdb -c "copy (select * from '$FILE') to '$DIR' (format parquet, partition_by ($COLUMN), overwrite_or_ignore)"
+  destructive: true
+  source: https://duckdb.org/docs/2.0/sql/statements/copy.html
+  verified: docs
+- id: duckdb.filter
+  group: query
+  intents:
+  - filter {FILE} where {WHERE}
+  - select rows matching a condition from a file
+  - grep-like filter on a parquet with sql
+  - show matching rows
+  vars:
+  - name: FILE
+    default: data.parquet
+    samples:
+    - orders.csv
+    - events.parquet
+    - users.json
+    ctx: local_file
+  - name: WHERE
+    default: status = 'failed'
+    samples:
+    - amount > 1000
+    - country = 'DE'
+    - created_at >= date '2025-01-01'
+  body: duckdb -c "select * from '$FILE' where $WHERE limit 100"
+  destructive: false
+  source: https://duckdb.org/docs/2.0/clients/cli/arguments.html
+  verified: docs
+- id: duckdb.groupby
+  group: query
+  intents:
+  - count rows by {COLUMN} in {FILE}
+  - group by a column and count
+  - top values of a column
+  - value counts for a column
+  - frequency of each value
+  vars:
+  - name: COLUMN
+    default: status
+    samples:
+    - country
+    - event_type
+    - customer_id
+  - name: FILE
+    default: data.parquet
+    samples:
+    - orders.csv
+    - events.parquet
+    - users.json
+    ctx: local_file
+  body: duckdb -c "select $COLUMN, count(*) n from '$FILE' group by all order by n desc limit 20"
+  destructive: false
+  source: https://duckdb.org/docs/2.0/clients/cli/arguments.html
+  verified: docs
+- id: duckdb.distinct
+  group: query
+  intents:
+  - how many distinct {COLUMN} values in {FILE}
+  - count unique values of a column
+  - cardinality of a column
+  - number of unique ids
+  vars:
+  - name: COLUMN
+    default: user_id
+    samples:
+    - order_id
+    - session_id
+  - name: FILE
+    default: data.parquet
+    samples:
+    - orders.csv
+    - events.parquet
+    - users.json
+    ctx: local_file
+  body: duckdb -c "select count(distinct $COLUMN) from '$FILE'"
+  destructive: false
+  source: https://duckdb.org/docs/2.0/clients/cli/arguments.html
+  verified: docs
+- id: duckdb.dupes
+  group: query
+  intents:
+  - find duplicate {COLUMN} values in {FILE}
+  - check a key is unique
+  - show ids that appear more than once
+  - duplicate key check
+  vars:
+  - name: COLUMN
+    default: id
+    samples:
+    - order_id
+    - email
+  - name: FILE
+    default: data.parquet
+    samples:
+    - orders.csv
+    - events.parquet
+    - users.json
+    ctx: local_file
+  body: duckdb -c "select $COLUMN, count(*) n from '$FILE' group by all having n > 1 order by n desc limit 20"
+  destructive: false
+  source: https://duckdb.org/docs/2.0/clients/cli/arguments.html
+  verified: docs
+- id: duckdb.join
+  group: query
+  intents:
+  - join {LEFT} and {RIGHT} on {KEY}
+  - join two files with duckdb
+  - combine a parquet and a csv on a key
+  - inner join two data files
+  vars:
+  - name: LEFT
+    default: orders.parquet
+    samples:
+    - events.parquet
+    - sales.csv
+    ctx: local_file
+  - name: RIGHT
+    default: customers.csv
+    samples:
+    - users.parquet
+    - products.csv
+    ctx: local_file
+  - name: KEY
+    default: customer_id
+    samples:
+    - user_id
+    - product_id
+  body: duckdb -c "select * from '$LEFT' l join '$RIGHT' r using ($KEY) limit 20"
+  destructive: false
+  source: https://duckdb.org/docs/2.0/clients/cli/arguments.html
+  verified: docs
+- id: duckdb.anti_join
+  group: query
+  intents:
+  - which {KEY} values are in {LEFT} but not {RIGHT}
+  - rows missing from the other file
+  - anti join two files
+  - diff keys between two datasets
+  vars:
+  - name: LEFT
+    default: orders.parquet
+    samples:
+    - today.csv
+    ctx: local_file
+  - name: RIGHT
+    default: orders_old.parquet
+    samples:
+    - yesterday.csv
+    ctx: local_file
+  - name: KEY
+    default: order_id
+    samples:
+    - id
+    - user_id
+  body: duckdb -c "select * from '$LEFT' anti join '$RIGHT' using ($KEY)"
+  destructive: false
+  source: https://duckdb.org/docs/2.0/clients/cli/arguments.html
+  verified: docs
+- id: duckdb.out.csv
+  group: output
+  intents:
+  - print query results as csv to stdout
+  - duckdb csv output mode
+  - run {QUERY} and output csv
+  - csv output from duckdb for piping
+  vars:
+  - name: QUERY
+    default: select * from 'data.parquet' limit 10
+    samples:
+    - select status, count(*) from 'orders.csv' group by all
+  body: duckdb -csv -c "$QUERY"
+  destructive: false
+  source: https://duckdb.org/docs/2.0/clients/cli/arguments.html
+  verified: docs
+- id: duckdb.out.json.jq
+  group: output
+  intents:
+  - get rows of {FILE} as json and pipe to jq
+  - duckdb json output into jq
+  - convert rows to json objects
+  - query a file and process with jq
+  vars:
+  - name: FILE
+    default: data.parquet
+    samples:
+    - orders.csv
+    - events.parquet
+    - users.json
+    ctx: local_file
+  body: duckdb -json -c "select * from '$FILE' limit 5" | jq '.[0]'
+  destructive: false
+  source: https://duckdb.org/docs/2.0/clients/cli/arguments.html
+  verified: docs
+- id: duckdb.out.line
+  group: output
+  intents:
+  - show one record vertically from {FILE}
+  - print a wide row one column per line
+  - duckdb line mode
+  - expanded display of a row
+  vars:
+  - name: FILE
+    default: data.parquet
+    samples:
+    - orders.csv
+    - events.parquet
+    - users.json
+    ctx: local_file
+  body: duckdb -line -c "select * from '$FILE' limit 1"
+  destructive: false
+  source: https://duckdb.org/docs/2.0/clients/cli/arguments.html
+  verified: docs
+- id: duckdb.out.markdown
+  group: output
+  intents:
+  - give me a markdown table of {QUERY}
+  - query results as markdown for a PR
+  - duckdb markdown output
+  - paste-able markdown table
+  vars:
+  - name: QUERY
+    default: select * from 'data.parquet' limit 10
+    samples:
+    - summarize select * from 'orders.csv'
+  body: duckdb -markdown -c "$QUERY"
+  destructive: false
+  source: https://duckdb.org/docs/2.0/clients/cli/arguments.html
+  verified: docs
+- id: duckdb.out.box
+  group: output
+  intents:
+  - pretty box table output of {QUERY}
+  - show results with box drawing
+  - duckdb box mode
+  - nicely bordered query output
+  vars:
+  - name: QUERY
+    default: select * from 'data.parquet' limit 10
+    samples:
+    - select 42 as answer
+  body: duckdb -box -c "$QUERY"
+  destructive: false
+  source: https://duckdb.org/docs/2.0/clients/cli/arguments.html
+  verified: docs
+- id: duckdb.out.column
+  group: output
+  intents:
+  - list just the distinct values of {COLUMN}, one per line
+  - bare values without headers
+  - duckdb output for xargs
+  - noheader list mode output
+  vars:
+  - name: COLUMN
+    default: country
+    samples:
+    - status
+    - table_name
+  - name: FILE
+    default: data.parquet
+    samples:
+    - orders.csv
+    - events.parquet
+    - users.json
+    ctx: local_file
+  body: duckdb -noheader -list -c "select distinct $COLUMN from '$FILE' order by 1"
+  destructive: false
+  source: https://duckdb.org/docs/2.0/clients/cli/arguments.html
+  verified: docs
+- id: duckdb.stdin.csv
+  group: stdin
+  intents:
+  - query csv coming from stdin
+  - pipe a csv into duckdb
+  - read csv from a pipe with duckdb
+  - aggregate output of another command with sql
+  vars:
+  - name: FILE
+    default: data.csv
+    samples:
+    - orders.csv
+    - exports/customers.csv
+    - events_2025-06.csv
+    ctx: local_file
+  body: cat "$FILE" | duckdb -c "select count(*) from read_csv('/dev/stdin')"
+  destructive: false
+  source: https://duckdb.org/docs/2.0/clients/cli/overview.html
+  verified: docs
+- id: duckdb.stdin.json
+  group: stdin
+  intents:
+  - pipe json from curl into duckdb
+  - query newline json from stdin
+  - read json piped from another tool
+  - sql over a json stream
+  vars:
+  - name: URL
+    default: https://api.example.com/items
+    samples:
+    - https://example.com/data.json
+  body: curl -s "$URL" | duckdb -c "select * from read_json('/dev/stdin') limit 20"
+  destructive: false
+  source: https://duckdb.org/docs/2.0/clients/cli/overview.html
+  verified: docs
+- id: duckdb.db.open
+  group: database
+  intents:
+  - open a persistent duckdb database {DB}
+  - start the duckdb shell on a file
+  - create or open a .duckdb file
+  - interactive duckdb with a saved db
+  vars:
+  - name: DB
+    default: analytics.duckdb
+    samples:
+    - local.duckdb
+    - dev.db
+    ctx: local_file
+  body: duckdb "$DB"
+  destructive: false
+  source: https://duckdb.org/docs/2.0/clients/cli/overview.html
+  verified: docs
+- id: duckdb.db.readonly
+  group: database
+  intents:
+  - open {DB} read only
+  - inspect a duckdb file without locking writes
+  - readonly duckdb session
+  - open a database safely without changes
+  vars:
+  - name: DB
+    default: analytics.duckdb
+    samples:
+    - prod_copy.duckdb
+    ctx: local_file
+  body: duckdb -readonly "$DB"
+  destructive: false
+  source: https://duckdb.org/docs/2.0/clients/cli/arguments.html
+  verified: docs
+- id: duckdb.db.load_table
+  group: database
+  intents:
+  - load {FILE} into table {TABLE} in {DB}
+  - create a table from a csv in a duckdb file
+  - import a file into duckdb
+  - persist a parquet as a duckdb table
+  vars:
+  - name: DB
+    default: analytics.duckdb
+    samples:
+    - local.duckdb
+    ctx: local_file
+  - name: TABLE
+    default: orders
+    samples:
+    - events
+    - customers
+  - name: FILE
+    default: data.parquet
+    samples:
+    - orders.csv
+    - events.parquet
+    - users.json
+    ctx: local_file
+  body: duckdb "$DB" -c "create or replace table $TABLE as select * from '$FILE'"
+  destructive: true
+  source: https://duckdb.org/docs/2.0/clients/cli/arguments.html
+  verified: docs
+- id: duckdb.db.tables
+  group: database
+  intents:
+  - list tables in {DB}
+  - show tables of a duckdb database
+  - what tables are in this duckdb file
+  - duckdb show all tables
+  vars:
+  - name: DB
+    default: analytics.duckdb
+    samples:
+    - local.duckdb
+    ctx: local_file
+  body: duckdb "$DB" -c "show all tables"
+  destructive: false
+  source: https://duckdb.org/docs/2.0/clients/cli/arguments.html
+  verified: docs
+- id: duckdb.db.query_file
+  group: database
+  intents:
+  - run the sql script {SQL_FILE} against {DB}
+  - execute a .sql file in duckdb
+  - duckdb -f script
+  - apply sql file to a duckdb database
+  vars:
+  - name: DB
+    default: analytics.duckdb
+    samples:
+    - local.duckdb
+    ctx: local_file
+  - name: SQL_FILE
+    default: transform.sql
+    samples:
+    - models/daily.sql
+    ctx: local_file
+  body: duckdb "$DB" -f "$SQL_FILE"
+  destructive: false
+  source: https://duckdb.org/docs/2.0/clients/cli/arguments.html
+  verified: docs
+- id: duckdb.attach.postgres
+  group: attach
+  intents:
+  - query a postgres table from duckdb
+  - attach postgres database {PG_DB} on {PG_HOST}
+  - read postgres data with duckdb
+  - duckdb postgres scanner
+  vars:
+  - name: PG_DB
+    default: <dbname>
+    samples:
+    - analytics
+    - app
+  - name: PG_HOST
+    default: localhost
+    samples:
+    - db.example.com
+    - 10.0.0.5
+  - name: TABLE
+    default: public.orders
+    samples:
+    - public.users
+    - sales.invoices
+  body: duckdb -c "attach 'dbname=$PG_DB host=$PG_HOST' as pg (type postgres, read_only); select * from pg.$TABLE limit 10"
+  destructive: false
+  source: https://duckdb.org/docs/2.0/core_extensions/postgres/overview
+  verified: docs
+- id: duckdb.pg.export
+  group: attach
+  intents:
+  - copy postgres table {TABLE} to parquet {OUT_FILE}
+  - export a postgres table to parquet with duckdb
+  - postgres to parquet
+  - dump postgres data to a parquet file
+  vars:
+  - name: PG_DB
+    default: <dbname>
+    samples:
+    - analytics
+    - app
+  - name: TABLE
+    default: public.orders
+    samples:
+    - public.users
+  - name: OUT_FILE
+    default: orders.parquet
+    samples:
+    - users.parquet
+  body: duckdb -c "attach 'dbname=$PG_DB' as pg (type postgres, read_only); copy pg.$TABLE to '$OUT_FILE' (format parquet)"
+  destructive: false
+  source: https://duckdb.org/docs/2.0/core_extensions/postgres/overview
+  verified: docs
+- id: duckdb.attach.sqlite
+  group: attach
+  intents:
+  - query a sqlite database file with duckdb
+  - list tables in sqlite file {SQLITE_DB} via duckdb
+  - attach sqlite in duckdb
+  - read sqlite tables from duckdb
+  vars:
+  - name: SQLITE_DB
+    default: app.sqlite
+    samples:
+    - data.db
+    - chinook.db
+    ctx: local_file
+  body: duckdb -c "attach '$SQLITE_DB' as s (type sqlite, read_only); show all tables"
+  destructive: false
+  source: https://duckdb.org/docs/2.0/sql/statements/attach.html
+  verified: docs

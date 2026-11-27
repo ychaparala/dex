@@ -1,0 +1,163 @@
+tool: yq
+binaries: [yq]
+category: files
+priority: standard
+target_pairs: 80
+version_note: "mikefarah/yq v4 (Go) syntax; not the Python kislyuk/yq jq wrapper"
+install:
+- macos: ["brew install yq"]
+  linux: ["sudo snap install yq"]
+  source: ["https://github.com/mikefarah/yq/blob/master/README.md"]
+sources:
+  - url: https://github.com/mikefarah/yq/blob/master/README.md
+    license: "MIT (mikefarah/yq repo)"
+  - url: https://github.com/mikefarah/yq/tree/master/pkg/yqlib/doc/operators
+    license: "MIT (mikefarah/yq repo)"
+destructive_patterns:
+  - '\byq\s+(-i|--inplace)\b'
+templates:
+  - id: yq.setup.install
+    group: setup
+    intents:
+      - install mikefarah yq on linux
+      - download the latest yq binary
+      - get the go version of yq
+      - set up yq for editing yaml
+    body: sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/local/bin/yq && sudo chmod +x /usr/local/bin/yq
+    destructive: false
+    source: https://github.com/mikefarah/yq/blob/master/README.md
+    verified: docs
+
+  - id: yq.read_path
+    group: read
+    intents:
+      - read {YAML_PATH} from {FILE}
+      - get a value out of a yaml file
+      - what image does this deployment use
+      - yq read a nested key
+      - print one setting from the yaml
+    vars:
+      - {name: YAML_PATH, default: .image.tag, samples: [.image.tag, ".spec.template.spec.containers[0].image", .executor, .dags.gitSync.repo]}
+      - {name: FILE, default: values.yaml, samples: [values.yaml, deployment.yaml, docker-compose.yml], ctx: local_file}
+    body: yq "$YAML_PATH" "$FILE"
+    destructive: false
+    source: https://github.com/mikefarah/yq/blob/master/pkg/yqlib/doc/operators/traverse-read.md
+    verified: docs
+
+  - id: yq.keys
+    group: read
+    intents:
+      - list top level keys of {FILE}
+      - what sections does this yaml have
+      - show the services in a compose file
+      - yq keys
+    vars:
+      - {name: YAML_PATH, default: ., samples: [., .services, .spec]}
+      - {name: FILE, default: values.yaml, samples: [docker-compose.yml, values.yaml], ctx: local_file}
+    body: yq "$YAML_PATH | keys" "$FILE"
+    destructive: false
+    source: https://github.com/mikefarah/yq/blob/master/pkg/yqlib/doc/operators/keys.md
+    verified: docs
+
+  - id: yq.set_inplace
+    group: edit
+    intents:
+      - set {YAML_PATH} to {VALUE} in {FILE} in place
+      - change the image tag in the helm values file
+      - edit a yaml value from the command line
+      - yq -i update a key
+    vars:
+      - {name: YAML_PATH, default: .image.tag, samples: [.image.tag, .replicas, .config.core.parallelism]}
+      - {name: VALUE, default: "1.0.0", samples: ["3.4.0", "2026.03.15", latest]}
+      - {name: FILE, default: values.yaml, samples: [values.yaml, values-prod.yaml], ctx: local_file}
+    body: yq -i "$YAML_PATH = \"$VALUE\"" "$FILE"
+    destructive: true
+    source: https://github.com/mikefarah/yq/blob/master/README.md
+    verified: docs
+
+  - id: yq.set_from_env
+    group: edit
+    intents:
+      - set the image tag in {FILE} from the TAG environment variable
+      - update yaml with a value from an env var
+      - yq strenv in place edit
+      - write $TAG into values.yaml
+    vars:
+      - {name: FILE, default: values.yaml, samples: [values.yaml, chart/values.yaml], ctx: local_file}
+    body: yq -i '.image.tag = strenv(TAG)' "$FILE"
+    destructive: true
+    source: https://github.com/mikefarah/yq/blob/master/pkg/yqlib/doc/operators/env-variable-operators.md
+    verified: docs
+
+  - id: yq.delete_key
+    group: edit
+    intents:
+      - print {FILE} without the {YAML_PATH} key
+      - remove a key from yaml output
+      - yq del a field
+      - drop a section of the yaml
+    vars:
+      - {name: YAML_PATH, default: .metadata.annotations, samples: [.metadata.annotations, .status, .resources]}
+      - {name: FILE, default: values.yaml, samples: [deployment.yaml, values.yaml], ctx: local_file}
+    body: yq "del($YAML_PATH)" "$FILE"
+    destructive: false
+    source: https://github.com/mikefarah/yq/blob/master/pkg/yqlib/doc/operators/delete.md
+    verified: docs
+
+  - id: yq.to_json
+    group: convert
+    intents:
+      - convert {FILE} to json
+      - yaml to json with yq
+      - output this yaml as json
+      - turn a k8s manifest into json
+    vars:
+      - {name: FILE, default: values.yaml, samples: [values.yaml, config.yml, deployment.yaml], ctx: local_file}
+    body: yq -o=json "$FILE"
+    destructive: false
+    source: https://github.com/mikefarah/yq/blob/master/README.md
+    verified: docs
+
+  - id: yq.json_to_yaml
+    group: convert
+    intents:
+      - convert json file {FILE} to yaml
+      - json to yaml with yq
+      - pretty print json as yaml
+      - read a json file and output yaml
+    vars:
+      - {name: FILE, default: data.json, samples: [config.json, response.json], ctx: local_file}
+    body: yq -P -oy "$FILE"
+    destructive: false
+    source: https://github.com/mikefarah/yq/blob/master/README.md
+    verified: docs
+
+  - id: yq.select
+    group: read
+    intents:
+      - find the container named {NAME} in {FILE}
+      - filter a yaml list by name
+      - yq select where name equals
+      - show only the matching item from a yaml array
+    vars:
+      - {name: NAME, default: <name>, samples: [scheduler, worker, spark-driver]}
+      - {name: FILE, default: deployment.yaml, samples: [deployment.yaml, pod.yaml], ctx: local_file}
+    body: yq ".spec.template.spec.containers[] | select(.name == \"$NAME\")" "$FILE"
+    destructive: false
+    source: https://github.com/mikefarah/yq/blob/master/pkg/yqlib/doc/operators/select.md
+    verified: docs
+
+  - id: yq.merge
+    group: merge
+    intents:
+      - merge {OVERRIDE_FILE} on top of {FILE}
+      - deep merge two yaml files, the second wins
+      - combine base and override values files
+      - yq eval-all merge
+    vars:
+      - {name: FILE, default: values.yaml, samples: [values.yaml, base.yaml], ctx: local_file}
+      - {name: OVERRIDE_FILE, default: values-prod.yaml, samples: [values-prod.yaml, override.yaml]}
+    body: yq eval-all '. as $item ireduce ({}; . * $item)' "$FILE" "$OVERRIDE_FILE"
+    destructive: false
+    source: https://github.com/mikefarah/yq/blob/master/pkg/yqlib/doc/operators/multiply-merge.md
+    verified: docs

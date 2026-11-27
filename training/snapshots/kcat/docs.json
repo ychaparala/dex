@@ -1,0 +1,10 @@
+{
+ "https://github.com/edenhill/kcat/blob/master/kcat.c": {
+  "sha256": "35153ede913f354d7354d476345841622a38930e82f71ca8497d04e1fa654c7b",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/edenhill/kcat/blob/master/README.md": {
+  "sha256": "fcba290b4ec0ecfa8809dd74138a61261c2754a40ca9d87938eadcfb6f6f617a",
+  "fetched": "2026-11-26"
+ }
+}

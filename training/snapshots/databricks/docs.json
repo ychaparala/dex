@@ -1,0 +1,54 @@
+{
+ "https://github.com/databricks/cli/blob/main/cmd/workspace/jobs/jobs.go": {
+  "sha256": "9df7972222621382260b73fa1b9f1410d141e47c130da2914c338cbb68435063",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/databricks/cli/blob/main/cmd/workspace/clusters/clusters.go": {
+  "sha256": "9c71b59037a744ca926da39de36f0cc41cd8608e354daf736349bb802d986102",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/databricks/cli/blob/main/cmd/workspace/workspace/overrides.go": {
+  "sha256": "d3903be34b2323d3f122eae7cf2d7512000d2bb6360e8c16e84fdb319785e364",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/databricks/cli/blob/main/cmd/workspace/secrets/put_secret.go": {
+  "sha256": "6fa68feeb2c6fb8544f3e1030b6f8393e342743cd055e7483057bfd10a868d7a",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/databricks/cli/blob/main/cmd/workspace/warehouses/warehouses.go": {
+  "sha256": "5f5cde5c7dadad711ad55fd046af9e640f94882784e1246788add0307c92a2e2",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/databricks/cli/blob/main/cmd/fs/cp.go": {
+  "sha256": "49bb018ee0b7350086cf2a7480eef5595ba63e47f856143381078868b37f7f82",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/databricks/cli/blob/main/cmd/auth/login.go": {
+  "sha256": "dfbcebac05cb17b67b36b5a9ac1bc9d7d42a276363b6305ff79b3525247366f6",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/databricks/cli/blob/main/cmd/configure/flags.go": {
+  "sha256": "a4da0e45a92d07c511ceb06704d3a857656f578494cde778d52c5e13f63bec91",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/databricks/cli/blob/main/cmd/bundle/deploy.go": {
+  "sha256": "ab4df595f0c0b988cd214e42b8cff8463478108f2ec08098bf6a113c71987f03",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/databricks/cli/blob/main/bundle/run/job_options.go": {
+  "sha256": "eb836b03248e70dfb036d05b8c1d6962ddf396649aced6f69ee4f426560a5dc4",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/databricks/cli/blob/main/cmd/root/io.go": {
+  "sha256": "161334ee6815986e8629a0569a070ebae31ceb2dde7443acf507c1752b048cd4",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/databricks/homebrew-tap/blob/main/README.md": {
+  "sha256": "87de55de19dcbbe99778ac1c2933f27d354d7468f4627e369284f0509aa9af7f",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/databricks/setup-cli/blob/main/README.md": {
+  "sha256": "9b989de6dd26a23bafd64f31fd1abdd10591ff2bb9d855df575eff12cde60564",
+  "fetched": "2026-11-26"
+ }
+}

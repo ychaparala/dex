@@ -1,0 +1,395 @@
+tool: snowsql
+binaries:
+- snowsql
+category: warehouses
+priority: core
+target_pairs: 150
+version_note: SnowSQL 1.x (legacy Snowflake client; Snowflake CLI 'snow' is its successor)
+sources:
+- url: https://docs.snowflake.com/en/user-guide/snowsql-start
+  license: vendor docs, all rights reserved; facts only
+- url: https://docs.snowflake.com/en/user-guide/snowsql-config
+  license: vendor docs, all rights reserved; facts only
+- url: https://docs.snowflake.com/en/user-guide/snowsql-install-config
+  license: vendor docs, all rights reserved; facts only
+destructive_patterns:
+- (?i)\b(drop|truncate)\s+(table|schema|database|stage|view|warehouse)\b
+- (?i)\bdelete\s+from\b
+- (?i)\bremove\s+@
+- (?i)\boverwrite\s*=\s*true\b
+templates:
+- id: snowsql.install.brew
+  group: setup
+  intents:
+  - install snowsql with homebrew
+  - brew cask snowsql
+  - get the legacy snowflake client on mac
+  - install snowsql on macos
+  vars: []
+  body: brew install --cask snowflake-snowsql
+  destructive: false
+  source: https://docs.snowflake.com/en/user-guide/snowsql-install-config
+  verified: docs
+- id: snowsql.install.linux
+  group: setup
+  intents:
+  - run the snowsql linux installer
+  - install snowsql from the downloaded bash script
+  - set up snowsql on linux
+  - execute snowsql-linux_x86_64.bash
+  vars: []
+  body: bash snowsql-linux_x86_64.bash
+  destructive: false
+  source: https://docs.snowflake.com/en/user-guide/snowsql-install-config
+  verified: docs
+- id: snowsql.version
+  group: setup
+  intents:
+  - what snowsql version do i have
+  - snowsql -v
+  - check snowsql is installed
+  - print snowsql version
+  vars: []
+  body: snowsql -v
+  destructive: false
+  source: https://docs.snowflake.com/en/user-guide/snowsql-install-config
+  verified: docs
+- id: snowsql.connect.named
+  group: connect
+  intents:
+  - open snowsql with connection {CONN}
+  - connect to snowflake using a named connection
+  - start snowsql -c {CONN}
+  - snowsql interactive session from my config
+  vars:
+  - name: CONN
+    default: default
+    samples:
+    - dev
+    - prod
+    - reporting
+    ctx: snowflake_connection
+  body: snowsql -c "$CONN"
+  destructive: false
+  source: https://docs.snowflake.com/en/user-guide/snowsql-start
+  verified: docs
+- id: snowsql.connect.flags
+  group: connect
+  intents:
+  - connect snowsql to account {ACCOUNT} as {SF_USER} with warehouse {WAREHOUSE}
+  - snowsql login with account user and warehouse
+  - start snowsql with -a -u -w
+  - open snowsql without a config entry
+  vars:
+  - name: ACCOUNT
+    default: <org-account>
+    samples:
+    - myorg-myaccount
+    - acme-prod
+  - name: SF_USER
+    default: <user>
+    samples:
+    - etl_user
+    - jdoe
+  - name: WAREHOUSE
+    default: COMPUTE_WH
+    samples:
+    - ETL_WH
+    - REPORTING_WH
+  body: snowsql -a "$ACCOUNT" -u "$SF_USER" -w "$WAREHOUSE"
+  destructive: false
+  source: https://docs.snowflake.com/en/user-guide/snowsql-start
+  verified: docs
+- id: snowsql.connect.full
+  group: connect
+  intents:
+  - connect to {DATABASE}.{SCHEMA} with role {ROLE}
+  - snowsql with database schema and role set
+  - open snowsql in a specific db, schema and role
+  - set default db schema role on snowsql login
+  vars:
+  - name: CONN
+    default: default
+    samples:
+    - dev
+    - prod
+    - reporting
+    ctx: snowflake_connection
+  - name: DATABASE
+    default: ANALYTICS
+    samples:
+    - RAW
+    - PROD_DB
+  - name: SCHEMA
+    default: PUBLIC
+    samples:
+    - CORE
+    - STAGING
+  - name: ROLE
+    default: ANALYST
+    samples:
+    - TRANSFORMER
+    - SYSADMIN
+  body: snowsql -c "$CONN" -d "$DATABASE" -s "$SCHEMA" -r "$ROLE"
+  destructive: false
+  source: https://docs.snowflake.com/en/user-guide/snowsql-start
+  verified: docs
+- id: snowsql.connect.sso
+  group: connect
+  intents:
+  - log in to snowsql with browser sso
+  - snowsql external browser auth for {SF_USER}
+  - connect via okta/sso in the browser
+  - snowsql externalbrowser authenticator
+  vars:
+  - name: ACCOUNT
+    default: <org-account>
+    samples:
+    - myorg-myaccount
+    - acme-prod
+  - name: SF_USER
+    default: <user>
+    samples:
+    - jdoe@example.com
+    - analyst@example.com
+  body: snowsql -a "$ACCOUNT" -u "$SF_USER" --authenticator externalbrowser
+  destructive: false
+  source: https://docs.snowflake.com/en/user-guide/snowsql-start
+  verified: docs
+- id: snowsql.query
+  group: query
+  intents:
+  - run {QUERY} with snowsql
+  - execute one query and exit
+  - snowsql -q
+  - quick snowflake query from bash on {CONN}
+  vars:
+  - name: CONN
+    default: default
+    samples:
+    - dev
+    - prod
+    - reporting
+    ctx: snowflake_connection
+  - name: QUERY
+    default: select current_version()
+    samples:
+    - select count(*) from analytics.public.orders
+    - show warehouses
+    - select current_role()
+  body: snowsql -c "$CONN" -q "$QUERY"
+  destructive: false
+  source: https://docs.snowflake.com/en/user-guide/snowsql-start
+  verified: docs
+- id: snowsql.file
+  group: query
+  intents:
+  - run sql file {FILE} with snowsql
+  - execute a script in batch mode
+  - snowsql -f
+  - apply {FILE} to snowflake
+  vars:
+  - name: CONN
+    default: default
+    samples:
+    - dev
+    - prod
+    - reporting
+    ctx: snowflake_connection
+  - name: FILE
+    default: script.sql
+    samples:
+    - ddl/create_tables.sql
+    - load.sql
+    ctx: local_file
+  body: snowsql -c "$CONN" -f "$FILE"
+  destructive: false
+  source: https://docs.snowflake.com/en/user-guide/snowsql-start
+  verified: docs
+- id: snowsql.file.exit_on_error
+  group: query
+  intents:
+  - run {FILE} and stop at the first error
+  - batch sql that fails fast
+  - snowsql script with exit_on_error
+  - make snowsql exit when a statement fails
+  vars:
+  - name: CONN
+    default: default
+    samples:
+    - dev
+    - prod
+    - reporting
+    ctx: snowflake_connection
+  - name: FILE
+    default: migrate.sql
+    samples:
+    - deploy.sql
+    - ddl.sql
+    ctx: local_file
+  body: snowsql -c "$CONN" -f "$FILE" -o exit_on_error=true
+  destructive: false
+  source: https://docs.snowflake.com/en/user-guide/snowsql-config
+  verified: docs
+- id: snowsql.export.csv
+  group: export
+  intents:
+  - export {QUERY} to {OUT_FILE} as csv
+  - save a query result to csv with snowsql
+  - clean csv output from snowsql with a header
+  - dump snowflake table to csv without the banner
+  vars:
+  - name: CONN
+    default: default
+    samples:
+    - dev
+    - prod
+    - reporting
+    ctx: snowflake_connection
+  - name: QUERY
+    default: select * from analytics.public.orders
+    samples:
+    - select * from raw.events limit 1000
+  - name: OUT_FILE
+    default: out.csv
+    samples:
+    - orders.csv
+    - events.csv
+  body: snowsql -c "$CONN" -q "$QUERY" -o output_format=csv -o header=true -o timing=false -o friendly=false > "$OUT_FILE"
+  destructive: false
+  source: https://docs.snowflake.com/en/user-guide/snowsql-config
+  verified: docs
+- id: snowsql.export.tsv.noheader
+  group: export
+  intents:
+  - get bare values from {QUERY} with no header
+  - print just the rows tab separated
+  - snowsql quiet tsv output for scripting
+  - snowsql output for piping into other commands
+  vars:
+  - name: CONN
+    default: default
+    samples:
+    - dev
+    - prod
+    - reporting
+    ctx: snowflake_connection
+  - name: QUERY
+    default: select table_name from analytics.information_schema.tables
+    samples:
+    - select id from raw.events limit 10
+  body: snowsql -c "$CONN" -q "$QUERY" -o output_format=tsv -o header=false -o timing=false -o friendly=false
+  destructive: false
+  source: https://docs.snowflake.com/en/user-guide/snowsql-config
+  verified: docs
+- id: snowsql.put
+  group: transfer
+  intents:
+  - upload {LOCAL_FILE} to stage {STAGE}
+  - PUT a local file into a snowflake stage
+  - stage a csv with snowsql
+  - copy a file from my laptop to an internal stage
+  vars:
+  - name: CONN
+    default: default
+    samples:
+    - dev
+    - prod
+    - reporting
+    ctx: snowflake_connection
+  - name: LOCAL_FILE
+    default: /tmp/data.csv
+    samples:
+    - /data/orders.csv
+    - ./events.json
+  - name: STAGE
+    default: '@my_stage'
+    samples:
+    - '@~/uploads'
+    - '@raw.public.landing'
+  body: snowsql -c "$CONN" -q "PUT file://$LOCAL_FILE $STAGE AUTO_COMPRESS=TRUE"
+  destructive: false
+  source: https://docs.snowflake.com/en/user-guide/snowsql-start
+  verified: docs
+- id: snowsql.get
+  group: transfer
+  intents:
+  - download {STAGE_FILE} into {LOCAL_DIR}
+  - GET a file from a stage
+  - pull staged files down with snowsql
+  - copy from internal stage to local
+  vars:
+  - name: CONN
+    default: default
+    samples:
+    - dev
+    - prod
+    - reporting
+    ctx: snowflake_connection
+  - name: STAGE_FILE
+    default: '@my_stage/data.csv.gz'
+    samples:
+    - '@~/unload/orders_0_0_0.csv.gz'
+    - '@raw.public.landing/events.json.gz'
+  - name: LOCAL_DIR
+    default: /tmp/downloads/
+    samples:
+    - /data/unload/
+    - /tmp/out/
+  body: snowsql -c "$CONN" -q "GET $STAGE_FILE file://$LOCAL_DIR"
+  destructive: false
+  source: https://docs.snowflake.com/en/user-guide/snowsql-start
+  verified: docs
+- id: snowsql.config.edit
+  group: setup
+  intents:
+  - edit the snowsql config file
+  - where are snowsql connections defined
+  - open ~/.snowsql/config
+  - add a named connection to snowsql
+  vars: []
+  body: ${EDITOR:-vi} ~/.snowsql/config
+  destructive: false
+  source: https://docs.snowflake.com/en/user-guide/snowsql-config
+  verified: docs
+- id: snowsql.pwd.env
+  group: setup
+  intents:
+  - is SNOWSQL_PWD set
+  - check snowsql environment variables
+  - which SNOWSQL_ vars are exported
+  - list snowsql env settings
+  vars: []
+  body: env | grep '^SNOWSQL_' | cut -d= -f1
+  destructive: false
+  source: https://docs.snowflake.com/en/user-guide/snowsql-start
+  verified: docs
+- id: snowsql.variable
+  group: query
+  intents:
+  - run {FILE} with variable tablename set to {TABLE}
+  - pass a variable into a snowsql script
+  - snowsql -D variable substitution
+  - parameterize a snowsql script
+  vars:
+  - name: CONN
+    default: default
+    samples:
+    - dev
+    - prod
+    - reporting
+    ctx: snowflake_connection
+  - name: FILE
+    default: report.sql
+    samples:
+    - load.sql
+    ctx: local_file
+  - name: TABLE
+    default: orders
+    samples:
+    - customers
+    - events
+  body: snowsql -c "$CONN" -f "$FILE" -D tablename="$TABLE" -o variable_substitution=true
+  destructive: false
+  source: https://docs.snowflake.com/en/user-guide/snowsql-start
+  verified: docs

@@ -1,0 +1,14 @@
+{
+ "https://github.com/dlt-hub/dlt/blob/devel/dlt/_workspace/cli/commands.py": {
+  "sha256": "d55321d68f3844c3588ff1c9126935f39e43eec838d78108725cbf3fb6ac1cdf",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/dlt-hub/dlt/blob/devel/dlt/_workspace/cli/_dlt.py": {
+  "sha256": "54247bcd0d17b153d75dd136c8a66d87e3349094124ea5f4b3035b9ed193cc0d",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/dlt-hub/dlt/blob/devel/README.md": {
+  "sha256": "a55079fa040d362d1a9febff0d57f1439298588ca352d4063d7dc061e6daf5d0",
+  "fetched": "2026-11-26"
+ }
+}

@@ -1,0 +1,366 @@
+{
+ "abctl": {
+  "macos": [
+   "brew tap airbytehq/tap && brew install abctl"
+  ],
+  "docs": [
+   "https://docs.airbyte.com/platform/deploying-airbyte/abctl/"
+  ]
+ },
+ "argo": {
+  "macos": [
+   "brew install argo"
+  ]
+ },
+ "astro": {
+  "macos": [
+   "brew install astro"
+  ],
+  "docs": [
+   "https://github.com/astronomer/astro-cli/blob/main/README.md"
+  ]
+ },
+ "aws": {
+  "macos": [
+   "brew install awscli"
+  ],
+  "docs": [
+   "https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html"
+  ]
+ },
+ "az": {
+  "macos": [
+   "brew install azure-cli"
+  ],
+  "docs": [
+   "https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux"
+  ]
+ },
+ "bq": {
+  "macos": [
+   "brew install --cask gcloud-cli"
+  ],
+  "linux": [
+   "sudo snap install google-cloud-cli --classic"
+  ]
+ },
+ "brew": {
+  "docs": [
+   "https://brew.sh/"
+  ]
+ },
+ "clickhouse": {
+  "macos": [
+   "brew install --cask clickhouse"
+  ]
+ },
+ "confluent": {
+  "macos": [
+   "brew install confluentinc/tap/cli"
+  ]
+ },
+ "create-dagster": {
+  "any": [
+   "uv tool install create-dagster",
+   "pipx install create-dagster"
+  ]
+ },
+ "csvcut": {
+  "any": [
+   "uv tool install csvkit",
+   "pipx install csvkit"
+  ]
+ },
+ "csvformat": {
+  "any": [
+   "uv tool install csvkit",
+   "pipx install csvkit"
+  ]
+ },
+ "csvgrep": {
+  "any": [
+   "uv tool install csvkit",
+   "pipx install csvkit"
+  ]
+ },
+ "csvjson": {
+  "any": [
+   "uv tool install csvkit",
+   "pipx install csvkit"
+  ]
+ },
+ "csvlook": {
+  "any": [
+   "uv tool install csvkit",
+   "pipx install csvkit"
+  ]
+ },
+ "csvsort": {
+  "any": [
+   "uv tool install csvkit",
+   "pipx install csvkit"
+  ]
+ },
+ "csvsql": {
+  "any": [
+   "uv tool install csvkit",
+   "pipx install csvkit"
+  ]
+ },
+ "csvstack": {
+  "any": [
+   "uv tool install csvkit",
+   "pipx install csvkit"
+  ]
+ },
+ "csvstat": {
+  "any": [
+   "uv tool install csvkit",
+   "pipx install csvkit"
+  ]
+ },
+ "curl": {
+  "linux": [
+   "sudo apt-get install curl"
+  ]
+ },
+ "dagster": {
+  "any": [
+   "uv tool install dagster --with dagster-webserver",
+   "pipx install dagster && pipx inject dagster dagster-webserver"
+  ]
+ },
+ "dagster-daemon": {
+  "any": [
+   "uv tool install dagster --with dagster-webserver",
+   "pipx install dagster && pipx inject dagster dagster-webserver"
+  ]
+ },
+ "databricks": {
+  "macos": [
+   "brew install databricks/tap/databricks"
+  ],
+  "docs": [
+   "https://docs.databricks.com/aws/en/dev-tools/cli/install"
+  ]
+ },
+ "dbt": {
+  "any": [
+   "uv tool install dbt-core --with dbt-<adapter>",
+   "pipx install dbt-core && pipx inject dbt-core dbt-<adapter>"
+  ]
+ },
+ "dg": {
+  "any": [
+   "uv tool install dagster-dg-cli",
+   "pipx install dagster-dg-cli"
+  ]
+ },
+ "dlt": {
+  "any": [
+   "uv tool install dlt",
+   "pipx install dlt"
+  ]
+ },
+ "docker": {
+  "macos": [
+   "brew install --cask docker-desktop"
+  ],
+  "docs": [
+   "https://docs.docker.com/engine/install/ubuntu/"
+  ]
+ },
+ "duckdb": {
+  "macos": [
+   "brew install duckdb"
+  ],
+  "any": [
+   "uv tool install duckdb-cli",
+   "pipx install duckdb-cli"
+  ]
+ },
+ "flink": {
+  "macos": [
+   "brew install apache-flink"
+  ]
+ },
+ "gcloud": {
+  "macos": [
+   "brew install --cask gcloud-cli"
+  ],
+  "linux": [
+   "sudo snap install google-cloud-cli --classic"
+  ]
+ },
+ "gsutil": {
+  "macos": [
+   "brew install --cask gcloud-cli"
+  ],
+  "linux": [
+   "sudo snap install google-cloud-cli --classic"
+  ]
+ },
+ "helm": {
+  "macos": [
+   "brew install helm"
+  ],
+  "docs": [
+   "https://helm.sh/docs/intro/install/"
+  ]
+ },
+ "in2csv": {
+  "any": [
+   "uv tool install csvkit",
+   "pipx install csvkit"
+  ]
+ },
+ "jq": {
+  "macos": [
+   "brew install jq"
+  ],
+  "linux": [
+   "sudo apt-get install jq"
+  ]
+ },
+ "kcat": {
+  "macos": [
+   "brew install kcat"
+  ],
+  "linux": [
+   "sudo apt-get install kcat"
+  ]
+ },
+ "kubectl": {
+  "macos": [
+   "brew install kubectl"
+  ],
+  "linux": [
+   "sudo snap install kubectl --classic"
+  ]
+ },
+ "meltano": {
+  "any": [
+   "uv tool install meltano",
+   "pipx install meltano"
+  ]
+ },
+ "mysql": {
+  "linux": [
+   "sudo apt-get install mysql-client"
+  ]
+ },
+ "mysqldump": {
+  "linux": [
+   "sudo apt-get install mysql-client"
+  ]
+ },
+ "pg_dump": {
+  "linux": [
+   "sudo apt-get install postgresql-client"
+  ]
+ },
+ "pg_restore": {
+  "linux": [
+   "sudo apt-get install postgresql-client"
+  ]
+ },
+ "pipx": {
+  "macos": [
+   "brew install pipx"
+  ],
+  "linux": [
+   "sudo apt-get install pipx"
+  ],
+  "docs": [
+   "https://pipx.pypa.io/stable/installation/"
+  ]
+ },
+ "prefect": {
+  "any": [
+   "uv tool install prefect",
+   "pipx install prefect"
+  ]
+ },
+ "psql": {
+  "linux": [
+   "sudo apt-get install postgresql-client"
+  ]
+ },
+ "pyspark": {
+  "macos": [
+   "brew install apache-spark"
+  ]
+ },
+ "rclone": {
+  "macos": [
+   "brew install rclone"
+  ],
+  "docs": [
+   "https://github.com/rclone/rclone/blob/master/docs/content/install.md"
+  ]
+ },
+ "rpk": {
+  "macos": [
+   "brew install redpanda-data/tap/redpanda"
+  ]
+ },
+ "snow": {
+  "macos": [
+   "brew install snowflake-cli"
+  ],
+  "any": [
+   "uv tool install snowflake-cli"
+  ]
+ },
+ "spark-class": {
+  "macos": [
+   "brew install apache-spark"
+  ]
+ },
+ "spark-shell": {
+  "macos": [
+   "brew install apache-spark"
+  ]
+ },
+ "spark-sql": {
+  "macos": [
+   "brew install apache-spark"
+  ]
+ },
+ "spark-submit": {
+  "macos": [
+   "brew install apache-spark"
+  ]
+ },
+ "sqlite3": {
+  "linux": [
+   "sudo apt-get install sqlite3"
+  ]
+ },
+ "terraform": {
+  "macos": [
+   "brew tap hashicorp/tap && brew install hashicorp/tap/terraform"
+  ]
+ },
+ "trino": {
+  "macos": [
+   "brew install trino"
+  ]
+ },
+ "uv": {
+  "macos": [
+   "brew install uv"
+  ],
+  "docs": [
+   "https://docs.astral.sh/uv/getting-started/installation/"
+  ]
+ },
+ "yq": {
+  "macos": [
+   "brew install yq"
+  ],
+  "linux": [
+   "sudo snap install yq"
+  ]
+ }
+}

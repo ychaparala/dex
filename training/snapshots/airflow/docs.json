@@ -1,0 +1,18 @@
+{
+ "https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py": {
+  "sha256": "3b18876855c91566db0db80c72e83595ed5916e0dabe523c9bd5bf212a6c5b1a",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/apache/airflow/blob/2.10.5/airflow/cli/cli_config.py": {
+  "sha256": "76092d743acae9928e498c69fbb3fe2af79196cb4494fd5f7c999e20a248445d",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/apache/airflow/blob/2.10.5/airflow/providers/fab/auth_manager/cli_commands/definition.py": {
+  "sha256": "86371bdc82fe1b5b35db451c74e65c579b2c802eeeb937d39871021a59abedb9",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/apache/airflow/blob/main/airflow-core/docs/start.rst": {
+  "sha256": "dfbec2118e901ac4888d2822549826210380e7e6a3c0b0e2042fc0ab46f186c9",
+  "fetched": "2026-11-26"
+ }
+}

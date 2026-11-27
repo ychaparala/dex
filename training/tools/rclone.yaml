@@ -1,0 +1,172 @@
+tool: rclone
+binaries: [rclone]
+category: files
+priority: standard
+target_pairs: 80
+version_note: "rclone 1.6x+"
+install:
+- macos: ["brew install rclone"]
+  docs: "https://github.com/rclone/rclone/blob/master/docs/content/install.md"
+  source: ["https://github.com/rclone/rclone/blob/master/docs/content/install.md"]
+sources:
+  - url: https://github.com/rclone/rclone/tree/master/docs/content/commands
+    license: "MIT (rclone/rclone repo COPYING)"
+  - url: https://github.com/rclone/rclone/blob/master/docs/content/flags.md
+    license: "MIT (rclone/rclone repo COPYING)"
+  - url: https://github.com/rclone/rclone/blob/master/docs/content/install.md
+    license: "MIT (rclone/rclone repo COPYING)"
+destructive_patterns:
+  - '\brclone\s+(delete|purge|deletefile|rmdir|rmdirs|cleanup)\b'
+  - '\brclone\s+sync\b(?!.*(--dry-run|-n\b))'
+templates:
+  - id: rclone.setup.install
+    group: setup
+    intents:
+      - install rclone
+      - get rclone with the official install script
+      - set up rclone on linux
+      - install the rclone binary system wide
+    body: sudo -v ; curl https://rclone.org/install.sh | sudo bash
+    destructive: false
+    source: https://github.com/rclone/rclone/blob/master/docs/content/install.md
+    verified: docs
+
+  - id: rclone.config
+    group: setup
+    intents:
+      - set up a new rclone remote
+      - configure rclone interactively
+      - add an s3 or gcs remote to rclone
+      - rclone config
+    body: rclone config
+    destructive: false
+    source: https://github.com/rclone/rclone/blob/master/docs/content/commands/rclone_config.md
+    verified: docs
+
+  - id: rclone.listremotes
+    group: setup
+    intents:
+      - which rclone remotes are configured
+      - list my rclone remotes
+      - show remote names and types
+      - rclone listremotes
+    body: rclone listremotes --long
+    destructive: false
+    source: https://github.com/rclone/rclone/blob/master/docs/content/commands/rclone_listremotes.md
+    verified: docs
+
+  - id: rclone.lsd
+    group: list
+    intents:
+      - list the folders in {REMOTE_PATH}
+      - show top level directories or buckets on a remote
+      - rclone lsd
+      - what buckets does this remote have
+    vars:
+      - {name: REMOTE_PATH, default: "<remote>:", samples: ["s3:", "gcs:analytics-exports", "azblob:raw"]}
+    body: rclone lsd "$REMOTE_PATH"
+    destructive: false
+    source: https://github.com/rclone/rclone/blob/master/docs/content/commands/rclone_lsd.md
+    verified: docs
+
+  - id: rclone.ls
+    group: list
+    intents:
+      - list files with sizes under {REMOTE_PATH}
+      - recursively list objects on a remote
+      - rclone ls a bucket path
+      - show every file in a remote folder
+    vars:
+      - {name: REMOTE_PATH, default: "<remote>:<bucket>/path", samples: ["s3:acme-raw/events", "gcs:analytics-exports/2026", "drive:reports"]}
+    body: rclone ls "$REMOTE_PATH" | head -n 50
+    destructive: false
+    source: https://github.com/rclone/rclone/blob/master/docs/content/commands/rclone_ls.md
+    verified: docs
+
+  - id: rclone.copy
+    group: transfer
+    intents:
+      - copy {SRC} to {DEST} with progress
+      - upload a local folder to a remote without deleting anything
+      - rclone copy
+      - copy files between s3 and gcs
+    vars:
+      - {name: SRC, default: ./data, samples: [./output, "s3:acme-raw/events", "gcs:exports/daily"]}
+      - {name: DEST, default: "<remote>:<bucket>/path", samples: ["s3:acme-raw/landing", "gcs:archive/events", ./downloads]}
+    body: rclone copy "$SRC" "$DEST" -P
+    destructive: false
+    source: https://github.com/rclone/rclone/blob/master/docs/content/commands/rclone_copy.md
+    verified: docs
+
+  - id: rclone.sync_dry_run
+    group: transfer
+    intents:
+      - preview syncing {SRC} to {DEST}
+      - dry run an rclone sync to see what would be deleted
+      - what would rclone sync change
+      - rclone sync with --dry-run
+    vars:
+      - {name: SRC, default: ./data, samples: [./output, "s3:acme-raw/events"]}
+      - {name: DEST, default: "<remote>:<bucket>/path", samples: ["s3:acme-backup/events", "gcs:mirror/raw"]}
+    body: rclone sync "$SRC" "$DEST" --dry-run
+    destructive: false
+    source: https://github.com/rclone/rclone/blob/master/docs/content/commands/rclone_sync.md
+    verified: docs
+
+  - id: rclone.sync
+    group: transfer
+    intents:
+      - mirror {SRC} to {DEST}, deleting extra files at the destination
+      - make the remote folder identical to the source
+      - rclone sync with progress
+      - one-way sync a bucket to a backup
+    vars:
+      - {name: SRC, default: ./data, samples: [./output, "s3:acme-raw/events"]}
+      - {name: DEST, default: "<remote>:<bucket>/path", samples: ["s3:acme-backup/events", "gcs:mirror/raw"]}
+    body: rclone sync "$SRC" "$DEST" -P
+    destructive: true
+    source: https://github.com/rclone/rclone/blob/master/docs/content/commands/rclone_sync.md
+    verified: docs
+
+  - id: rclone.check
+    group: verify
+    intents:
+      - check that {SRC} and {DEST} have the same files
+      - verify a copy finished correctly
+      - compare source and destination hashes
+      - rclone check only one way
+    vars:
+      - {name: SRC, default: ./data, samples: [./output, "s3:acme-raw/events"]}
+      - {name: DEST, default: "<remote>:<bucket>/path", samples: ["s3:acme-backup/events", "gcs:mirror/raw"]}
+    body: rclone check "$SRC" "$DEST" --one-way
+    destructive: false
+    source: https://github.com/rclone/rclone/blob/master/docs/content/commands/rclone_check.md
+    verified: docs
+
+  - id: rclone.size
+    group: verify
+    intents:
+      - how big is {REMOTE_PATH}
+      - total size and object count of a remote folder
+      - rclone size
+      - how much data is in this bucket
+    vars:
+      - {name: REMOTE_PATH, default: "<remote>:<bucket>/path", samples: ["s3:acme-raw", "gcs:analytics-exports/2026"]}
+    body: rclone size "$REMOTE_PATH"
+    destructive: false
+    source: https://github.com/rclone/rclone/blob/master/docs/content/commands/rclone_size.md
+    verified: docs
+
+  - id: rclone.cat
+    group: read
+    intents:
+      - print the start of remote file {REMOTE_FILE}
+      - peek at a csv on a remote without downloading it
+      - rclone cat into head
+      - show the first lines of an object
+    vars:
+      - {name: REMOTE_FILE, default: "<remote>:<bucket>/file.csv", samples: ["s3:acme-raw/orders/2026-03-15.csv", "gcs:exports/customers.csv"]}
+    body: rclone cat "$REMOTE_FILE" | head -n 20
+    destructive: false
+    source: https://github.com/rclone/rclone/blob/master/docs/content/commands/rclone_cat.md
+    verified: docs

@@ -1,0 +1,300 @@
+tool: prefect
+binaries:
+- prefect
+category: orchestration
+priority: standard
+target_pairs: 100
+version_note: Prefect 3.x CLI (main branch, 3.9 era)
+install:
+- any: ["uv tool install prefect", "pipx install prefect"]
+  source: ["https://github.com/PrefectHQ/prefect/blob/main/README.md", "https://docs.astral.sh/uv/guides/tools/", "https://pipx.pypa.io/stable/"]
+sources:
+- url: https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/deployment.py
+  license: Apache-2.0 (repo)
+- url: https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/deploy/_commands.py
+  license: Apache-2.0 (repo)
+- url: https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/flow_run.py
+  license: Apache-2.0 (repo)
+- url: https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/work_pool.py
+  license: Apache-2.0 (repo)
+- url: https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/worker.py
+  license: Apache-2.0 (repo)
+- url: https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/server.py
+  license: Apache-2.0 (repo)
+- url: https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/config.py
+  license: Apache-2.0 (repo)
+- url: https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/cloud/__init__.py
+  license: Apache-2.0 (repo)
+- url: https://github.com/PrefectHQ/prefect/blob/main/README.md
+  license: Apache-2.0 (repo)
+destructive_patterns:
+- \bprefect\s+(deployment|flow-run|work-pool|profile|block|variable)\s+delete\b
+- \bprefect\s+server\s+database\s+reset\b
+templates:
+- id: prefect.install.pip
+  group: setup
+  intents:
+  - install prefect
+  - pip install prefect
+  - upgrade prefect to the latest version
+  - set up the prefect cli
+  vars: []
+  body: pip install -U prefect
+  destructive: false
+  source: https://github.com/PrefectHQ/prefect/blob/main/README.md
+  verified: docs
+- id: prefect.version
+  group: setup
+  intents:
+  - prefect version
+  - what prefect version am I on
+  - check prefect and api versions
+  - show prefect version info
+  vars: []
+  body: prefect version
+  destructive: false
+  source: https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/version.py
+  verified: source
+- id: prefect.server.start
+  group: setup
+  intents:
+  - start a local prefect server
+  - run the prefect ui locally
+  - prefect server start
+  - spin up self-hosted prefect
+  vars: []
+  body: prefect server start
+  destructive: false
+  source: https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/server.py
+  verified: source
+- id: prefect.server.start.port
+  group: setup
+  intents:
+  - start the prefect server on port {PORT}
+  - run prefect server listening on all interfaces
+  - prefect server on a custom host and port
+  - host the prefect api on {PORT}
+  vars:
+  - {name: PORT, default: '4200', samples: ['4201', '8080']}
+  body: prefect server start --host 0.0.0.0 --port "$PORT"
+  destructive: false
+  source: https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/server.py
+  verified: source
+- id: prefect.config.api_url
+  group: setup
+  intents:
+  - point prefect at api url {API_URL}
+  - set PREFECT_API_URL in my profile
+  - configure which prefect server to talk to
+  - prefect config set api url
+  vars:
+  - {name: API_URL, default: 'http://127.0.0.1:4200/api', samples: ['http://prefect.example.com:4200/api', 'http://localhost:4200/api']}
+  body: prefect config set PREFECT_API_URL="$API_URL"
+  destructive: false
+  source: https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/config.py
+  verified: source
+- id: prefect.config.view
+  group: setup
+  intents:
+  - show prefect settings
+  - prefect config view
+  - what is my current prefect configuration
+  - print active profile settings
+  vars: []
+  body: prefect config view
+  destructive: false
+  source: https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/config.py
+  verified: source
+- id: prefect.cloud.login
+  group: auth
+  intents:
+  - log in to prefect cloud with my api key
+  - authenticate prefect cloud using PREFECT_API_KEY
+  - prefect cloud login non-interactively
+  - connect the cli to prefect cloud
+  vars: []
+  body: prefect cloud login --key "$PREFECT_API_KEY"
+  destructive: false
+  source: https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/cloud/__init__.py
+  verified: source
+- id: prefect.profile.use
+  group: auth
+  intents:
+  - switch to prefect profile {PROFILE}
+  - use a different prefect profile
+  - change active profile
+  - prefect profile use
+  vars:
+  - {name: PROFILE, default: local, samples: [cloud-prod, staging]}
+  body: prefect profile use "$PROFILE"
+  destructive: false
+  source: https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/profile.py
+  verified: source
+- id: prefect.deploy
+  group: deploy
+  intents:
+  - deploy flow {ENTRYPOINT} as {NAME} to pool {POOL}
+  - create a prefect deployment for a flow
+  - prefect deploy a flow to a work pool
+  - register a deployment from a python file
+  vars:
+  - {name: ENTRYPOINT, default: 'flows/etl.py:etl', samples: ['pipelines/sales.py:daily_sales', 'flow.py:main']}
+  - {name: NAME, default: daily, samples: [prod, hourly]}
+  - {name: POOL, default: my-pool, samples: [process-pool, k8s-pool, default]}
+  body: prefect deploy "$ENTRYPOINT" --name "$NAME" --pool "$POOL"
+  destructive: false
+  source: https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/deploy/_commands.py
+  verified: source
+- id: prefect.deploy.all
+  group: deploy
+  intents:
+  - deploy everything in prefect.yaml
+  - prefect deploy all deployments
+  - apply all deployments from the project file
+  - push every deployment
+  vars: []
+  body: prefect deploy --all
+  destructive: false
+  source: https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/deploy/_commands.py
+  verified: source
+- id: prefect.deployment.ls
+  group: deployments
+  intents:
+  - list prefect deployments
+  - prefect deployment ls
+  - show all deployments
+  - what deployments exist
+  vars: []
+  body: prefect deployment ls
+  destructive: false
+  source: https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/deployment.py
+  verified: source
+- id: prefect.deployment.run
+  group: deployments
+  intents:
+  - run deployment {DEPLOYMENT}
+  - trigger a prefect deployment
+  - kick off a flow run from a deployment
+  - prefect deployment run
+  vars:
+  - {name: DEPLOYMENT, default: etl/daily, samples: [sales-pipeline/prod, ingest-orders/hourly]}
+  body: prefect deployment run "$DEPLOYMENT"
+  destructive: false
+  source: https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/deployment.py
+  verified: source
+- id: prefect.deployment.run.param
+  group: deployments
+  intents:
+  - run {DEPLOYMENT} with parameter {PARAM}
+  - trigger a deployment passing a parameter
+  - run a deployment with key=value params and watch it
+  - start a flow run with custom params
+  vars:
+  - {name: DEPLOYMENT, default: etl/daily, samples: [sales-pipeline/prod, ingest-orders/hourly]}
+  - {name: PARAM, default: date=2025-06-01, samples: [full_refresh=true, table=orders]}
+  body: prefect deployment run "$DEPLOYMENT" --param "$PARAM" --watch
+  destructive: false
+  source: https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/deployment.py
+  verified: source
+- id: prefect.deployment.inspect
+  group: deployments
+  intents:
+  - inspect deployment {DEPLOYMENT}
+  - show details of a prefect deployment
+  - describe a deployment as json
+  - what's the config of this deployment
+  vars:
+  - {name: DEPLOYMENT, default: etl/daily, samples: [sales-pipeline/prod, ingest-orders/hourly]}
+  body: prefect deployment inspect "$DEPLOYMENT" --output json
+  destructive: false
+  source: https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/deployment.py
+  verified: source
+- id: prefect.flow_run.ls
+  group: runs
+  intents:
+  - list recent flow runs
+  - show the last {LIMIT} prefect flow runs
+  - prefect flow-run ls
+  - what flows ran recently
+  vars:
+  - {name: LIMIT, default: '20', samples: ['10', '50']}
+  body: prefect flow-run ls --limit "$LIMIT"
+  destructive: false
+  source: https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/flow_run.py
+  verified: source
+- id: prefect.flow_run.ls.failed
+  group: runs
+  intents:
+  - list failed flow runs
+  - show prefect runs that failed
+  - which flow runs are in a failed state
+  - find failed runs
+  vars: []
+  body: prefect flow-run ls --state-type FAILED
+  destructive: false
+  source: https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/flow_run.py
+  verified: source
+- id: prefect.flow_run.logs
+  group: runs
+  intents:
+  - show logs for flow run {FLOW_RUN_ID}
+  - print the logs of a prefect run
+  - prefect flow-run logs
+  - get the tail of a flow run's logs
+  vars:
+  - {name: FLOW_RUN_ID, default: <flow-run-id>, samples: [0b4c3a5e-8f1d-4e2a-9c3b-7d6e5f4a3b21, 3f2e1d0c-9b8a-4765-a4b3-c2d1e0f9a8b7]}
+  body: prefect flow-run logs "$FLOW_RUN_ID" --tail
+  destructive: false
+  source: https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/flow_run.py
+  verified: source
+- id: prefect.flow_run.cancel
+  group: runs
+  intents:
+  - cancel flow run {FLOW_RUN_ID}
+  - stop a running prefect flow run
+  - abort a flow run
+  - prefect flow-run cancel
+  vars:
+  - {name: FLOW_RUN_ID, default: <flow-run-id>, samples: [0b4c3a5e-8f1d-4e2a-9c3b-7d6e5f4a3b21, 3f2e1d0c-9b8a-4765-a4b3-c2d1e0f9a8b7]}
+  body: prefect flow-run cancel "$FLOW_RUN_ID"
+  destructive: false
+  source: https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/flow_run.py
+  verified: source
+- id: prefect.work_pool.create
+  group: workers
+  intents:
+  - create a process work pool called {POOL}
+  - make a new prefect work pool
+  - prefect work-pool create
+  - add a work pool of type process
+  vars:
+  - {name: POOL, default: my-pool, samples: [process-pool, k8s-pool, default]}
+  body: prefect work-pool create "$POOL" --type process
+  destructive: false
+  source: https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/work_pool.py
+  verified: source
+- id: prefect.work_pool.ls
+  group: workers
+  intents:
+  - list work pools
+  - prefect work-pool ls
+  - show all prefect work pools
+  - which work pools exist
+  vars: []
+  body: prefect work-pool ls
+  destructive: false
+  source: https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/work_pool.py
+  verified: source
+- id: prefect.worker.start
+  group: workers
+  intents:
+  - start a worker for pool {POOL}
+  - run a prefect worker polling {POOL}
+  - prefect worker start
+  - launch a worker to execute flow runs
+  vars:
+  - {name: POOL, default: my-pool, samples: [process-pool, k8s-pool, default]}
+  body: prefect worker start --pool "$POOL"
+  destructive: false
+  source: https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/worker.py
+  verified: source

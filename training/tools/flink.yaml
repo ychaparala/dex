@@ -1,0 +1,325 @@
+tool: flink
+binaries: [flink, sql-client.sh, start-cluster.sh, stop-cluster.sh]
+category: compute
+priority: standard
+target_pairs: 120
+version_note: Apache Flink 1.20 / 2.x CLI (bin/ scripts on PATH)
+install:
+- binaries: ["flink"]
+  macos: ["brew install apache-flink"]
+  source: ["https://github.com/Homebrew/homebrew-core/blob/HEAD/Formula/a/apache-flink.rb"]
+sources:
+- url: https://github.com/apache/flink/blob/master/docs/content/docs/deployment/cli.md
+  license: Apache-2.0 (repo)
+- url: https://github.com/apache/flink/blob/master/flink-clients/src/main/java/org/apache/flink/client/cli/CliFrontendParser.java
+  license: Apache-2.0 (repo)
+- url: https://github.com/apache/flink/blob/master/flink-clients/src/main/java/org/apache/flink/client/cli/CliFrontend.java
+  license: Apache-2.0 (repo)
+- url: https://github.com/apache/flink/blob/master/flink-table/flink-sql-client/src/main/java/org/apache/flink/table/client/cli/CliOptionsParser.java
+  license: Apache-2.0 (repo)
+- url: https://github.com/apache/flink/blob/master/flink-dist/src/main/flink-bin/bin
+  license: Apache-2.0 (repo)
+destructive_patterns:
+- \bflink\s+cancel\b
+- \bflink\s+savepoint\b.*(-d|--dispose)\b
+templates:
+- id: flink.cluster.start
+  group: cluster
+  intents:
+  - start a local flink cluster
+  - bring up flink standalone jobmanager and taskmanager
+  - run start-cluster.sh
+  - launch flink locally
+  vars: []
+  body: start-cluster.sh
+  destructive: false
+  source: https://github.com/apache/flink/blob/master/flink-dist/src/main/flink-bin/bin
+  verified: source
+- id: flink.cluster.stop
+  group: cluster
+  intents:
+  - stop the local flink cluster
+  - shut down flink standalone
+  - stop-cluster.sh
+  - turn off flink jobmanager and taskmanagers
+  vars: []
+  body: stop-cluster.sh
+  destructive: false
+  source: https://github.com/apache/flink/blob/master/flink-dist/src/main/flink-bin/bin
+  verified: source
+- id: flink.run.detached
+  group: jobs
+  intents:
+  - submit {JAR} to flink in detached mode
+  - run a flink job jar and return immediately
+  - flink run -d
+  - deploy a streaming job jar in the background
+  vars:
+  - name: JAR
+    default: target/my-job.jar
+    samples: [build/libs/orders-pipeline.jar, examples/streaming/StateMachineExample.jar]
+    ctx: local_file
+  body: flink run --detached "$JAR"
+  destructive: false
+  source: https://github.com/apache/flink/blob/master/docs/content/docs/deployment/cli.md
+  verified: docs
+- id: flink.run.class_parallelism
+  group: jobs
+  intents:
+  - run main class {CLASS} from {JAR} with parallelism {P}
+  - submit a flink job with a specific entry class and parallelism
+  - flink run -c class -p parallelism
+  - start a detached flink job with custom parallelism
+  vars:
+  - name: P
+    default: '4'
+    samples: ['2', '8', '16']
+  - name: CLASS
+    default: com.example.OrdersJob
+    samples: [com.example.etl.Main, org.example.StreamingJob]
+  - name: JAR
+    default: target/my-job.jar
+    samples: [build/libs/orders-pipeline.jar, examples/streaming/StateMachineExample.jar]
+    ctx: local_file
+  body: flink run -d -p "$P" -c "$CLASS" "$JAR"
+  destructive: false
+  source: https://github.com/apache/flink/blob/master/flink-clients/src/main/java/org/apache/flink/client/cli/CliFrontendParser.java
+  verified: source
+- id: flink.run.remote
+  group: jobs
+  intents:
+  - submit {JAR} to the flink jobmanager at {JOBMANAGER}
+  - run a job on a remote flink cluster
+  - flink run against a specific jobmanager address
+  - deploy a jar to another flink session cluster
+  vars:
+  - name: JOBMANAGER
+    default: localhost:8081
+    samples: ['flink-jm.example.com:8081', '10.0.0.12:8081']
+  - name: JAR
+    default: target/my-job.jar
+    samples: [build/libs/orders-pipeline.jar, examples/streaming/StateMachineExample.jar]
+    ctx: local_file
+  body: flink run -m "$JOBMANAGER" -d "$JAR"
+  destructive: false
+  source: https://github.com/apache/flink/blob/master/flink-clients/src/main/java/org/apache/flink/client/cli/CliFrontendParser.java
+  verified: source
+- id: flink.run.python
+  group: jobs
+  intents:
+  - run the pyflink job {PY_FILE}
+  - submit a python flink job
+  - flink run -py
+  - execute a pyflink script on the cluster
+  vars:
+  - name: PY_FILE
+    default: job.py
+    samples: [word_count.py, pipelines/enrich_orders.py]
+    ctx: local_file
+  body: flink run -d -py "$PY_FILE"
+  destructive: false
+  source: https://github.com/apache/flink/blob/master/docs/content/docs/deployment/cli.md
+  verified: docs
+- id: flink.run.from_savepoint
+  group: jobs
+  intents:
+  - restart {JAR} from savepoint {SAVEPOINT}
+  - resume a flink job from a savepoint
+  - flink run with --fromSavepoint
+  - redeploy a job restoring its state
+  vars:
+  - name: SAVEPOINT
+    default: s3://my-bucket/flink/savepoints/savepoint-cca7bc-bb1e257f0dab
+    samples: [/tmp/flink-savepoints/savepoint-99c59f-1a2b3c4d5e6f]
+  - name: JAR
+    default: target/my-job.jar
+    samples: [build/libs/orders-pipeline.jar, examples/streaming/StateMachineExample.jar]
+    ctx: local_file
+  body: flink run -d --fromSavepoint "$SAVEPOINT" "$JAR"
+  destructive: false
+  source: https://github.com/apache/flink/blob/master/docs/content/docs/deployment/cli.md
+  verified: docs
+- id: flink.list
+  group: jobs
+  intents:
+  - list flink jobs
+  - show running and scheduled flink jobs
+  - what jobs are on the flink cluster
+  - flink list
+  vars: []
+  body: flink list
+  destructive: false
+  source: https://github.com/apache/flink/blob/master/docs/content/docs/deployment/cli.md
+  verified: docs
+- id: flink.list.running
+  group: jobs
+  intents:
+  - list only running flink jobs
+  - show job ids of running flink jobs
+  - flink list -r
+  - which flink jobs are running now
+  vars: []
+  body: flink list -r
+  destructive: false
+  source: https://github.com/apache/flink/blob/master/flink-clients/src/main/java/org/apache/flink/client/cli/CliFrontendParser.java
+  verified: source
+- id: flink.list.all
+  group: jobs
+  intents:
+  - list all flink jobs including finished and cancelled
+  - show every flink job with status
+  - flink list all
+  - job history on the flink cluster
+  vars: []
+  body: flink list -a
+  destructive: false
+  source: https://github.com/apache/flink/blob/master/flink-clients/src/main/java/org/apache/flink/client/cli/CliFrontendParser.java
+  verified: source
+- id: flink.cancel
+  group: jobs
+  intents:
+  - cancel flink job {JOB_ID}
+  - kill a running flink job without a savepoint
+  - flink cancel
+  - abort this flink job
+  vars:
+  - name: JOB_ID
+    default: <job-id>
+    samples: [cca7bc1061d61cf15238e92312c2fc20, 99c59fead08c613763944f533bf90c0f]
+  body: flink cancel "$JOB_ID"
+  destructive: true
+  source: https://github.com/apache/flink/blob/master/docs/content/docs/deployment/cli.md
+  verified: docs
+- id: flink.stop.savepoint
+  group: jobs
+  intents:
+  - stop flink job {JOB_ID} with a savepoint in {SAVEPOINT_DIR}
+  - gracefully stop a job and save its state
+  - flink stop --savepointPath
+  - suspend a flink job with savepoint
+  vars:
+  - name: SAVEPOINT_DIR
+    default: s3://my-bucket/flink/savepoints
+    samples: [/tmp/flink-savepoints, 'hdfs:///flink/savepoints']
+  - name: JOB_ID
+    default: <job-id>
+    samples: [cca7bc1061d61cf15238e92312c2fc20, 99c59fead08c613763944f533bf90c0f]
+  body: flink stop --savepointPath "$SAVEPOINT_DIR" "$JOB_ID"
+  destructive: false
+  source: https://github.com/apache/flink/blob/master/docs/content/docs/deployment/cli.md
+  verified: docs
+- id: flink.stop.drain
+  group: jobs
+  intents:
+  - stop {JOB_ID} with a savepoint and drain the pipeline
+  - stop a flink job emitting final watermarks
+  - flink stop --drain
+  - finish a job permanently with a final savepoint
+  vars:
+  - name: SAVEPOINT_DIR
+    default: s3://my-bucket/flink/savepoints
+    samples: [/tmp/flink-savepoints, 'hdfs:///flink/savepoints']
+  - name: JOB_ID
+    default: <job-id>
+    samples: [cca7bc1061d61cf15238e92312c2fc20, 99c59fead08c613763944f533bf90c0f]
+  body: flink stop --drain --savepointPath "$SAVEPOINT_DIR" "$JOB_ID"
+  destructive: false
+  source: https://github.com/apache/flink/blob/master/flink-clients/src/main/java/org/apache/flink/client/cli/CliFrontendParser.java
+  verified: source
+- id: flink.savepoint
+  group: savepoints
+  intents:
+  - take a savepoint of {JOB_ID} to {SAVEPOINT_DIR}
+  - trigger a flink savepoint without stopping
+  - flink savepoint
+  - snapshot the state of a running job
+  vars:
+  - name: JOB_ID
+    default: <job-id>
+    samples: [cca7bc1061d61cf15238e92312c2fc20, 99c59fead08c613763944f533bf90c0f]
+  - name: SAVEPOINT_DIR
+    default: s3://my-bucket/flink/savepoints
+    samples: [/tmp/flink-savepoints, 'hdfs:///flink/savepoints']
+  body: flink savepoint "$JOB_ID" "$SAVEPOINT_DIR"
+  destructive: false
+  source: https://github.com/apache/flink/blob/master/docs/content/docs/deployment/cli.md
+  verified: docs
+- id: flink.checkpoint
+  group: savepoints
+  intents:
+  - trigger a checkpoint for flink job {JOB_ID}
+  - force a manual checkpoint
+  - flink checkpoint
+  - checkpoint this job now
+  vars:
+  - name: JOB_ID
+    default: <job-id>
+    samples: [cca7bc1061d61cf15238e92312c2fc20, 99c59fead08c613763944f533bf90c0f]
+  body: flink checkpoint "$JOB_ID"
+  destructive: false
+  source: https://github.com/apache/flink/blob/master/docs/content/docs/deployment/cli.md
+  verified: docs
+- id: flink.info
+  group: jobs
+  intents:
+  - show the execution plan of {JAR}
+  - print the flink job graph as json without running it
+  - flink info
+  - inspect what a job jar would execute
+  vars:
+  - name: JAR
+    default: target/my-job.jar
+    samples: [build/libs/orders-pipeline.jar, examples/streaming/StateMachineExample.jar]
+    ctx: local_file
+  body: flink info "$JAR"
+  destructive: false
+  source: https://github.com/apache/flink/blob/master/flink-clients/src/main/java/org/apache/flink/client/cli/CliFrontend.java
+  verified: source
+- id: flink.sql.file
+  group: sql
+  intents:
+  - run the flink sql script {SQL_FILE}
+  - execute a sql file with the flink sql client
+  - sql-client.sh -f
+  - submit flink sql statements from a file
+  vars:
+  - name: SQL_FILE
+    default: pipeline.sql
+    samples: [jobs/orders_agg.sql, kafka_to_iceberg.sql]
+    ctx: local_file
+  body: sql-client.sh -f "$SQL_FILE"
+  destructive: false
+  source: https://github.com/apache/flink/blob/master/flink-table/flink-sql-client/src/main/java/org/apache/flink/table/client/cli/CliOptionsParser.java
+  verified: source
+- id: flink.sql.init
+  group: sql
+  intents:
+  - open the flink sql client with init script {INIT_FILE}
+  - start an interactive flink sql shell after running setup ddl
+  - sql client with -i init file
+  - flink sql shell with catalogs preloaded
+  vars:
+  - name: INIT_FILE
+    default: init.sql
+    samples: [catalogs.sql, setup/tables.sql]
+    ctx: local_file
+  body: sql-client.sh -i "$INIT_FILE"
+  destructive: false
+  source: https://github.com/apache/flink/blob/master/flink-table/flink-sql-client/src/main/java/org/apache/flink/table/client/cli/CliOptionsParser.java
+  verified: source
+- id: flink.sql.jar
+  group: sql
+  intents:
+  - start the flink sql client with connector jar {JAR}
+  - sql client with an extra jar like the kafka connector
+  - load a connector jar into flink sql
+  - sql-client.sh -j
+  vars:
+  - name: JAR
+    default: flink-sql-connector-kafka.jar
+    samples: [lib/iceberg-flink-runtime.jar, flink-sql-avro-confluent-registry.jar]
+    ctx: local_file
+  body: sql-client.sh -j "$JAR"
+  destructive: false
+  source: https://github.com/apache/flink/blob/master/flink-table/flink-sql-client/src/main/java/org/apache/flink/table/client/cli/CliOptionsParser.java
+  verified: source

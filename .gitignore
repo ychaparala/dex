@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+.venv/
+venv/
+build/
+dist/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Models and training artifacts
+*.gguf
+*.safetensors
+/models/
+training/outputs/
+training/**/checkpoint-*/
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/
+
+coverage.xml
+htmlcov/
+.coverage

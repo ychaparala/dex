@@ -1,0 +1,1013 @@
+tool: airflow
+binaries:
+- airflow
+category: orchestration
+priority: core
+target_pairs: 350
+version_note: Apache Airflow 3.x CLI (checked against 3.4.0); templates with id suffix .af2 are Airflow 2.x syntax (2.10, common on MWAA)
+version_cmd: airflow version
+version_label: airflow
+versions:
+- {version: "3.4.0", install: "pip:apache-airflow==3.4.0"}
+- {version: "2.10.5", install: "pip:apache-airflow==2.10.5", python: "3.12", constraints: "https://raw.githubusercontent.com/apache/airflow/constraints-2.10.5/constraints-3.12.txt"}
+sources:
+- url: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  license: Apache-2.0 (repo)
+- url: https://github.com/apache/airflow/blob/2.10.5/airflow/cli/cli_config.py
+  license: Apache-2.0 (repo)
+- url: https://github.com/apache/airflow/blob/2.10.5/airflow/providers/fab/auth_manager/cli_commands/definition.py
+  license: Apache-2.0 (repo)
+- url: https://github.com/apache/airflow/blob/main/airflow-core/docs/start.rst
+  license: Apache-2.0 (repo)
+destructive_patterns:
+- \bairflow\s+dags\s+delete\b
+- \bairflow\s+(connections|variables|pools)\s+delete\b
+- \bairflow\s+db\s+(reset|clean|drop-archived|downgrade)\b
+templates:
+- id: airflow.dags.list
+  group: dags
+  intents:
+  - list all dags
+  - show me every dag airflow knows about
+  - airflow list dags
+  - which dags are deployed
+  - what dags do we have
+  vars: []
+  body: airflow dags list
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.dags.list.ids
+  group: dags
+  intents:
+  - print just the dag ids
+  - list dag ids only, one per line
+  - get the names of all dags as plain text
+  - dump dag ids from airflow as json and extract them
+  vars: []
+  body: airflow dags list -o json | jq -r '.[].dag_id'
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.dags.list.grep
+  group: dags
+  intents:
+  - find dags whose name contains {PATTERN}
+  - search the dag list for {PATTERN}
+  - is there a dag matching {PATTERN}
+  - grep airflow dags by name
+  vars:
+  - {name: PATTERN, default: sales, samples: [orders, finance, s3]}
+  body: airflow dags list | grep -i "$PATTERN"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.dags.list_import_errors
+  group: dags
+  intents:
+  - show dag import errors
+  - why are my dags broken, list import errors
+  - which dag files failed to parse
+  - airflow import errors
+  - list dags that fail to load
+  vars: []
+  body: airflow dags list-import-errors
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.dags.details
+  group: dags
+  intents:
+  - show details for dag {DAG_ID}
+  - describe the {DAG_ID} dag
+  - get schedule and owner info for a dag
+  - airflow dag details
+  vars:
+  - {name: DAG_ID, default: daily_sales_etl, samples: [orders_ingest, customer_dim_refresh, hourly_events_load], ctx: airflow_dag}
+  body: airflow dags details "$DAG_ID"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.dags.trigger
+  group: dags
+  intents:
+  - trigger {DAG_ID}
+  - kick off a run of {DAG_ID} now
+  - start the dag manually
+  - run dag {DAG_ID} right now
+  - manually trigger an airflow dag
+  vars:
+  - {name: DAG_ID, default: daily_sales_etl, samples: [orders_ingest, customer_dim_refresh, hourly_events_load], ctx: airflow_dag}
+  body: airflow dags trigger "$DAG_ID"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.dags.trigger.conf
+  group: dags
+  intents:
+  - trigger {DAG_ID} with config {CONF}
+  - start a dag run passing json conf
+  - 'run {DAG_ID} with these params: {CONF}'
+  - trigger a dag with a conf payload
+  vars:
+  - {name: DAG_ID, default: daily_sales_etl, samples: [orders_ingest, customer_dim_refresh, hourly_events_load], ctx: airflow_dag}
+  - {name: CONF, default: '{"run_date": "2025-06-01"}', samples: ['{"full_refresh": true}', '{"table": "orders", "limit": 100}', '{"env": "staging"}']}
+  body: airflow dags trigger "$DAG_ID" --conf "$CONF"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.dags.trigger.logical_date
+  group: dags
+  intents:
+  - trigger {DAG_ID} for logical date {LOGICAL_DATE}
+  - run the dag as of {LOGICAL_DATE}
+  - start a dag run for a specific date
+  - trigger dag with a logical date
+  vars:
+  - {name: DAG_ID, default: daily_sales_etl, samples: [orders_ingest, customer_dim_refresh, hourly_events_load], ctx: airflow_dag}
+  - {name: LOGICAL_DATE, default: '2025-06-01', samples: ['2025-01-15', '2024-12-31', '2025-06-01T06:00:00']}
+  body: airflow dags trigger "$DAG_ID" --logical-date "$LOGICAL_DATE"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.dags.trigger.run_id
+  group: dags
+  intents:
+  - trigger {DAG_ID} with run id {RUN_ID}
+  - start a dag run and name the run {RUN_ID}
+  - trigger a dag with a custom run id
+  - kick off {DAG_ID} using my own run id
+  vars:
+  - {name: DAG_ID, default: daily_sales_etl, samples: [orders_ingest, customer_dim_refresh, hourly_events_load], ctx: airflow_dag}
+  - {name: RUN_ID, default: manual_backfill_fix_01, samples: [hotfix_rerun_2025_06_01, adhoc_test_run, reload_after_outage]}
+  body: airflow dags trigger "$DAG_ID" --run-id "$RUN_ID"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.dags.pause
+  group: dags
+  intents:
+  - pause {DAG_ID}
+  - stop scheduling the dag {DAG_ID}
+  - turn off the dag
+  - disable a dag so it doesn't run
+  - pause an airflow dag
+  vars:
+  - {name: DAG_ID, default: daily_sales_etl, samples: [orders_ingest, customer_dim_refresh, hourly_events_load], ctx: airflow_dag}
+  body: airflow dags pause "$DAG_ID"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.dags.unpause
+  group: dags
+  intents:
+  - unpause {DAG_ID}
+  - turn the dag {DAG_ID} back on
+  - resume scheduling a dag
+  - enable a paused dag
+  - activate dag {DAG_ID}
+  vars:
+  - {name: DAG_ID, default: daily_sales_etl, samples: [orders_ingest, customer_dim_refresh, hourly_events_load], ctx: airflow_dag}
+  body: airflow dags unpause "$DAG_ID"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.dags.pause.regex
+  group: dags
+  intents:
+  - pause every dag matching {PATTERN}
+  - pause all dags whose id matches a regex
+  - turn off all {PATTERN} dags at once
+  - bulk pause dags by pattern without prompting
+  vars:
+  - {name: PATTERN, default: ^finance_, samples: [_staging$, ^legacy_, hourly]}
+  body: airflow dags pause "$PATTERN" --treat-dag-id-as-regex --yes
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.dags.list_runs
+  group: runs
+  intents:
+  - list runs of {DAG_ID}
+  - show recent dag runs for {DAG_ID}
+  - what runs has this dag had
+  - airflow dag run history
+  - show run history for a dag
+  vars:
+  - {name: DAG_ID, default: daily_sales_etl, samples: [orders_ingest, customer_dim_refresh, hourly_events_load], ctx: airflow_dag}
+  body: airflow dags list-runs "$DAG_ID"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.dags.list_runs.state
+  group: runs
+  intents:
+  - show {STATE} runs of {DAG_ID}
+  - list dag runs filtered by state
+  - which runs of {DAG_ID} are {STATE}
+  - find {STATE} dag runs
+  vars:
+  - {name: DAG_ID, default: daily_sales_etl, samples: [orders_ingest, customer_dim_refresh, hourly_events_load], ctx: airflow_dag}
+  - {name: STATE, default: failed, samples: [running, success, queued]}
+  body: airflow dags list-runs "$DAG_ID" --state "$STATE"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.dags.list_runs.json
+  group: runs
+  intents:
+  - get the run ids and states of {DAG_ID} as json
+  - list dag runs as json with jq
+  - print run id and state for each run of a dag
+  - dag runs in json, just id and state
+  vars:
+  - {name: DAG_ID, default: daily_sales_etl, samples: [orders_ingest, customer_dim_refresh, hourly_events_load], ctx: airflow_dag}
+  body: airflow dags list-runs "$DAG_ID" -o json | jq -r '.[] | [.run_id, .state] | @tsv'
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.dags.state
+  group: runs
+  intents:
+  - what's the status of run {RUN_ID} of {DAG_ID}
+  - check the state of a dag run
+  - did the dag run succeed
+  - get dag run state for {DAG_ID}
+  vars:
+  - {name: DAG_ID, default: daily_sales_etl, samples: [orders_ingest, customer_dim_refresh, hourly_events_load], ctx: airflow_dag}
+  - {name: RUN_ID, default: 'manual__2025-06-01T00:00:00+00:00', samples: ['scheduled__2025-05-31T00:00:00+00:00', 'manual__2025-06-02T08:30:00+00:00', '2025-06-01']}
+  body: airflow dags state "$DAG_ID" "$RUN_ID"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.dags.next_execution
+  group: dags
+  intents:
+  - when does {DAG_ID} run next
+  - next scheduled run of a dag
+  - show the next logical date for {DAG_ID}
+  - when is the next execution
+  vars:
+  - {name: DAG_ID, default: daily_sales_etl, samples: [orders_ingest, customer_dim_refresh, hourly_events_load], ctx: airflow_dag}
+  body: airflow dags next-execution "$DAG_ID"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.dags.test
+  group: dev
+  intents:
+  - test {DAG_ID} locally for {LOGICAL_DATE}
+  - run the whole dag once in-process to debug it
+  - do a local test run of dag {DAG_ID}
+  - debug a dag end to end without the scheduler
+  vars:
+  - {name: DAG_ID, default: daily_sales_etl, samples: [orders_ingest, customer_dim_refresh, hourly_events_load], ctx: airflow_dag}
+  - {name: LOGICAL_DATE, default: '2025-06-01', samples: ['2025-01-15', '2024-12-31', '2025-06-01T06:00:00']}
+  body: airflow dags test "$DAG_ID" "$LOGICAL_DATE"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.dags.show
+  group: dags
+  intents:
+  - save a graph image of {DAG_ID} to {FILE}
+  - render the dag structure to a png
+  - export the dag's task graph as an image
+  - draw dag dependencies to a file
+  vars:
+  - {name: DAG_ID, default: daily_sales_etl, samples: [orders_ingest, customer_dim_refresh, hourly_events_load], ctx: airflow_dag}
+  - {name: FILE, default: dag.png, samples: [etl_graph.png, dag.dot, graph.svg], ctx: local_file}
+  body: airflow dags show "$DAG_ID" --save "$FILE"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.dags.reserialize
+  group: dags
+  intents:
+  - reserialize all dags
+  - force airflow to re-parse dags into the db
+  - refresh serialized dags in the metadata db
+  - dags out of sync, reserialize them
+  vars: []
+  body: airflow dags reserialize
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.dags.delete
+  group: dags
+  intents:
+  - delete all records of dag {DAG_ID}
+  - remove a dag's history from the metadata db
+  - wipe dag {DAG_ID} from airflow without prompting
+  - purge a dag's runs and metadata
+  vars:
+  - {name: DAG_ID, default: daily_sales_etl, samples: [orders_ingest, customer_dim_refresh, hourly_events_load], ctx: airflow_dag}
+  body: airflow dags delete "$DAG_ID" --yes
+  destructive: true
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.tasks.list
+  group: tasks
+  intents:
+  - list tasks in {DAG_ID}
+  - what tasks does this dag have
+  - show the task ids of a dag
+  - airflow tasks list for {DAG_ID}
+  vars:
+  - {name: DAG_ID, default: daily_sales_etl, samples: [orders_ingest, customer_dim_refresh, hourly_events_load], ctx: airflow_dag}
+  body: airflow tasks list "$DAG_ID"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.tasks.test
+  group: dev
+  intents:
+  - test task {TASK_ID} in {DAG_ID}
+  - run a single task locally without recording state
+  - debug one airflow task for {LOGICAL_DATE}
+  - try out a task in isolation
+  vars:
+  - {name: DAG_ID, default: daily_sales_etl, samples: [orders_ingest, customer_dim_refresh, hourly_events_load], ctx: airflow_dag}
+  - {name: TASK_ID, default: extract_orders, samples: [load_to_warehouse, transform_sales, send_report]}
+  - {name: LOGICAL_DATE, default: '2025-06-01', samples: ['2025-01-15', '2024-12-31', '2025-06-01T06:00:00']}
+  body: airflow tasks test "$DAG_ID" "$TASK_ID" "$LOGICAL_DATE"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.tasks.states_for_dag_run
+  group: tasks
+  intents:
+  - show the state of every task in run {RUN_ID}
+  - which tasks failed in this dag run
+  - task statuses for a dag run of {DAG_ID}
+  - list task instance states for a run
+  vars:
+  - {name: DAG_ID, default: daily_sales_etl, samples: [orders_ingest, customer_dim_refresh, hourly_events_load], ctx: airflow_dag}
+  - {name: RUN_ID, default: 'manual__2025-06-01T00:00:00+00:00', samples: ['scheduled__2025-05-31T00:00:00+00:00', 'manual__2025-06-02T08:30:00+00:00', '2025-06-01']}
+  body: airflow tasks states-for-dag-run "$DAG_ID" "$RUN_ID"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.tasks.state
+  group: tasks
+  intents:
+  - what's the state of task {TASK_ID} in run {RUN_ID}
+  - check one task instance status
+  - did task {TASK_ID} succeed
+  - get task instance state
+  vars:
+  - {name: DAG_ID, default: daily_sales_etl, samples: [orders_ingest, customer_dim_refresh, hourly_events_load], ctx: airflow_dag}
+  - {name: TASK_ID, default: extract_orders, samples: [load_to_warehouse, transform_sales, send_report]}
+  - {name: RUN_ID, default: 'manual__2025-06-01T00:00:00+00:00', samples: ['scheduled__2025-05-31T00:00:00+00:00', 'manual__2025-06-02T08:30:00+00:00', '2025-06-01']}
+  body: airflow tasks state "$DAG_ID" "$TASK_ID" "$RUN_ID"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.tasks.failed_deps
+  group: tasks
+  intents:
+  - why isn't task {TASK_ID} running
+  - show unmet dependencies for a task instance
+  - what is blocking this task from being scheduled
+  - explain why a task is stuck
+  vars:
+  - {name: DAG_ID, default: daily_sales_etl, samples: [orders_ingest, customer_dim_refresh, hourly_events_load], ctx: airflow_dag}
+  - {name: TASK_ID, default: extract_orders, samples: [load_to_warehouse, transform_sales, send_report]}
+  - {name: RUN_ID, default: 'manual__2025-06-01T00:00:00+00:00', samples: ['scheduled__2025-05-31T00:00:00+00:00', 'manual__2025-06-02T08:30:00+00:00', '2025-06-01']}
+  body: airflow tasks failed-deps "$DAG_ID" "$TASK_ID" "$RUN_ID"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.tasks.render
+  group: tasks
+  intents:
+  - show the rendered templates of {TASK_ID}
+  - render jinja for a task instance
+  - see what sql a task will run after templating
+  - print rendered template fields
+  vars:
+  - {name: DAG_ID, default: daily_sales_etl, samples: [orders_ingest, customer_dim_refresh, hourly_events_load], ctx: airflow_dag}
+  - {name: TASK_ID, default: extract_orders, samples: [load_to_warehouse, transform_sales, send_report]}
+  - {name: RUN_ID, default: 'manual__2025-06-01T00:00:00+00:00', samples: ['scheduled__2025-05-31T00:00:00+00:00', 'manual__2025-06-02T08:30:00+00:00', '2025-06-01']}
+  body: airflow tasks render "$DAG_ID" "$TASK_ID" "$RUN_ID"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.tasks.clear
+  group: tasks
+  intents:
+  - clear task {TASK_REGEX} in {DAG_ID} between {START_DATE} and {END_DATE}
+  - rerun tasks matching a regex over a date range
+  - clear task instances so they run again
+  - reset tasks in a window so the scheduler reruns them
+  vars:
+  - {name: DAG_ID, default: daily_sales_etl, samples: [orders_ingest, customer_dim_refresh, hourly_events_load], ctx: airflow_dag}
+  - {name: TASK_REGEX, default: ^load_, samples: [transform_sales, extract_.*, ^dbt_]}
+  - {name: START_DATE, default: '2025-06-01', samples: ['2025-05-01', '2025-01-01']}
+  - {name: END_DATE, default: '2025-06-07', samples: ['2025-05-31', '2025-01-31']}
+  body: airflow tasks clear "$DAG_ID" --task-regex "$TASK_REGEX" --start-date "$START_DATE" --end-date "$END_DATE" --yes
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.tasks.clear.failed
+  group: tasks
+  intents:
+  - clear only the failed tasks of {DAG_ID} since {START_DATE}
+  - rerun failed tasks in a dag
+  - retry everything that failed since a date
+  - clear failed task instances without asking
+  vars:
+  - {name: DAG_ID, default: daily_sales_etl, samples: [orders_ingest, customer_dim_refresh, hourly_events_load], ctx: airflow_dag}
+  - {name: START_DATE, default: '2025-06-01', samples: ['2025-05-20', '2025-01-01']}
+  body: airflow tasks clear "$DAG_ID" --only-failed --start-date "$START_DATE" --yes
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.tasks.clear.downstream
+  group: tasks
+  intents:
+  - clear {TASK_REGEX} and everything downstream
+  - rerun a task plus its downstream tasks
+  - clear a task and its children in {DAG_ID}
+  - reset task and downstream for {START_DATE}
+  vars:
+  - {name: DAG_ID, default: daily_sales_etl, samples: [orders_ingest, customer_dim_refresh, hourly_events_load], ctx: airflow_dag}
+  - {name: TASK_REGEX, default: ^transform_sales$, samples: [^extract_orders$, ^stage_]}
+  - {name: START_DATE, default: '2025-06-01', samples: ['2025-05-31', '2025-04-15']}
+  body: airflow tasks clear "$DAG_ID" -t "$TASK_REGEX" --downstream --start-date "$START_DATE" --end-date "$START_DATE" --yes
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.backfill.create
+  group: backfill
+  intents:
+  - backfill {DAG_ID} from {FROM_DATE} to {TO_DATE}
+  - create a backfill for a date range
+  - rerun history for a dag over a window
+  - airflow 3 backfill
+  - fill in missing runs between two dates
+  vars:
+  - {name: DAG_ID, default: daily_sales_etl, samples: [orders_ingest, customer_dim_refresh, hourly_events_load], ctx: airflow_dag}
+  - {name: FROM_DATE, default: '2025-01-01', samples: ['2025-05-01', '2024-12-01']}
+  - {name: TO_DATE, default: '2025-01-31', samples: ['2025-05-31', '2024-12-31']}
+  body: airflow backfill create --dag-id "$DAG_ID" --from-date "$FROM_DATE" --to-date "$TO_DATE"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.backfill.create.reprocess
+  group: backfill
+  intents:
+  - backfill {DAG_ID} and also rerun failed runs
+  - backfill a range, redoing runs that errored
+  - backfill with reprocess failed and max {MAX_RUNS} active runs
+  - backfill but reprocess failures
+  vars:
+  - {name: DAG_ID, default: daily_sales_etl, samples: [orders_ingest, customer_dim_refresh, hourly_events_load], ctx: airflow_dag}
+  - {name: FROM_DATE, default: '2025-01-01', samples: ['2025-03-01', '2024-11-01']}
+  - {name: TO_DATE, default: '2025-01-31', samples: ['2025-03-31', '2024-11-30']}
+  - {name: MAX_RUNS, default: '3', samples: ['1', '5', '10']}
+  body: airflow backfill create --dag-id "$DAG_ID" --from-date "$FROM_DATE" --to-date "$TO_DATE" --reprocess-behavior failed --max-active-runs "$MAX_RUNS"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.backfill.dry_run
+  group: backfill
+  intents:
+  - dry run a backfill of {DAG_ID}
+  - preview which runs a backfill would create
+  - what would a backfill from {FROM_DATE} to {TO_DATE} do
+  - simulate a backfill without running it
+  vars:
+  - {name: DAG_ID, default: daily_sales_etl, samples: [orders_ingest, customer_dim_refresh, hourly_events_load], ctx: airflow_dag}
+  - {name: FROM_DATE, default: '2025-01-01', samples: ['2025-02-01', '2024-10-01']}
+  - {name: TO_DATE, default: '2025-01-07', samples: ['2025-02-28', '2024-10-31']}
+  body: airflow backfill create --dag-id "$DAG_ID" --from-date "$FROM_DATE" --to-date "$TO_DATE" --dry-run
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.connections.list
+  group: connections
+  intents:
+  - list airflow connections
+  - show all connection ids
+  - what connections are configured
+  - airflow connections
+  vars: []
+  body: airflow connections list
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.connections.get
+  group: connections
+  intents:
+  - show connection {CONN_ID}
+  - get the details of a connection as json
+  - what host does {CONN_ID} point to
+  - describe airflow connection
+  vars:
+  - {name: CONN_ID, default: postgres_dwh, samples: [snowflake_default, aws_default, my_mysql]}
+  body: airflow connections get "$CONN_ID" -o json
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.connections.add.uri
+  group: connections
+  intents:
+  - add connection {CONN_ID} with uri {CONN_URI}
+  - create an airflow connection from a uri
+  - register a new connection using a connection string
+  - add a db connection to airflow
+  vars:
+  - {name: CONN_ID, default: postgres_dwh, samples: [snowflake_default, aws_default, my_mysql]}
+  - {name: CONN_URI, default: 'postgresql://etl_user:changeme@db.example.com:5432/analytics', samples: ['mysql://app:changeme@mysql.example.com:3306/shop', 'redis://cache.example.com:6379/0']}
+  body: airflow connections add "$CONN_ID" --conn-uri "$CONN_URI"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.connections.add.fields
+  group: connections
+  intents:
+  - add a {CONN_TYPE} connection {CONN_ID} to host {CONN_HOST}
+  - create a connection with type host and login, password from env
+  - set up a connection field by field
+  - add connection using DB_PASSWORD from my environment
+  vars:
+  - {name: CONN_ID, default: postgres_dwh, samples: [snowflake_default, aws_default, my_mysql]}
+  - {name: CONN_TYPE, default: postgres, samples: [mysql, snowflake, http]}
+  - {name: CONN_HOST, default: db.example.com, samples: [warehouse.example.com, 10.0.0.12]}
+  - {name: LOGIN, default: etl_user, samples: [airflow, svc_loader]}
+  body: airflow connections add "$CONN_ID" --conn-type "$CONN_TYPE" --conn-host "$CONN_HOST" --conn-login "$LOGIN" --conn-password "$DB_PASSWORD"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.connections.test
+  group: connections
+  intents:
+  - test connection {CONN_ID}
+  - check if a connection works
+  - can airflow reach {CONN_ID}
+  - verify an airflow connection
+  vars:
+  - {name: CONN_ID, default: postgres_dwh, samples: [snowflake_default, aws_default, my_mysql]}
+  body: airflow connections test "$CONN_ID"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.connections.delete
+  group: connections
+  intents:
+  - delete connection {CONN_ID}
+  - remove an airflow connection
+  - drop the {CONN_ID} connection
+  - get rid of a connection
+  vars:
+  - {name: CONN_ID, default: postgres_dwh, samples: [snowflake_default, aws_default, my_mysql]}
+  body: airflow connections delete "$CONN_ID"
+  destructive: true
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.connections.export
+  group: connections
+  intents:
+  - export all connections to {FILE}
+  - back up airflow connections to a file
+  - dump connections to json
+  - save connections so I can move them
+  vars:
+  - {name: FILE, default: connections.json, samples: [conns_backup.json, connections.yaml], ctx: local_file}
+  body: airflow connections export "$FILE"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.connections.import
+  group: connections
+  intents:
+  - import connections from {FILE}
+  - load airflow connections from a file
+  - restore connections from a backup
+  - bulk add connections from json
+  vars:
+  - {name: FILE, default: connections.json, samples: [conns_backup.json, connections.yaml], ctx: local_file}
+  body: airflow connections import "$FILE"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.variables.list
+  group: variables
+  intents:
+  - list airflow variables
+  - show all variable keys
+  - what variables are set
+  - airflow variables
+  vars: []
+  body: airflow variables list
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.variables.get
+  group: variables
+  intents:
+  - get variable {KEY}
+  - what is the value of airflow variable {KEY}
+  - read an airflow variable
+  - print variable value
+  vars:
+  - {name: KEY, default: env_name, samples: [s3_bucket, slack_channel, batch_size]}
+  body: airflow variables get "$KEY"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.variables.set
+  group: variables
+  intents:
+  - set variable {KEY} to {VALUE}
+  - create an airflow variable
+  - update variable {KEY}
+  - store a value in airflow variables
+  vars:
+  - {name: KEY, default: env_name, samples: [s3_bucket, slack_channel, batch_size]}
+  - {name: VALUE, default: prod, samples: [my-data-bucket, '#data-alerts', '5000']}
+  body: airflow variables set "$KEY" "$VALUE"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.variables.set.json
+  group: variables
+  intents:
+  - set variable {KEY} to json {VALUE}
+  - store a json object as an airflow variable
+  - save a json config variable
+  - set a variable and serialize it as json
+  vars:
+  - {name: KEY, default: pipeline_config, samples: [tables, alert_settings]}
+  - {name: VALUE, default: '{"tables": ["orders", "users"]}', samples: ['{"retries": 3}', '{"channel": "#alerts"}']}
+  body: airflow variables set "$KEY" "$VALUE" --json
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.variables.import
+  group: variables
+  intents:
+  - import variables from {FILE}
+  - load airflow variables from a json file
+  - bulk create variables from a file
+  - restore variables
+  vars:
+  - {name: FILE, default: variables.json, samples: [vars_prod.json, variables.yaml], ctx: local_file}
+  body: airflow variables import "$FILE"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.variables.export
+  group: variables
+  intents:
+  - export variables to {FILE}
+  - back up all airflow variables
+  - dump variables to json
+  - save every variable to a file
+  vars:
+  - {name: FILE, default: variables.json, samples: [vars_backup.json, airflow_vars.json], ctx: local_file}
+  body: airflow variables export "$FILE"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.variables.delete
+  group: variables
+  intents:
+  - delete variable {KEY}
+  - remove an airflow variable
+  - unset {KEY}
+  - drop a variable from airflow
+  vars:
+  - {name: KEY, default: env_name, samples: [s3_bucket, slack_channel, batch_size]}
+  body: airflow variables delete "$KEY"
+  destructive: true
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.pools.list
+  group: pools
+  intents:
+  - list pools
+  - show airflow pools and their slots
+  - how many slots does each pool have
+  - airflow pools
+  vars: []
+  body: airflow pools list
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.pools.set
+  group: pools
+  intents:
+  - create pool {POOL} with {SLOTS} slots
+  - set the size of a pool
+  - resize pool {POOL}
+  - add an airflow pool
+  vars:
+  - {name: POOL, default: warehouse_pool, samples: [api_calls, spark_jobs, default_pool]}
+  - {name: SLOTS, default: '8', samples: ['4', '16', '32']}
+  - {name: DESCRIPTION, default: limit warehouse load, samples: [throttle api, spark concurrency]}
+  body: airflow pools set "$POOL" "$SLOTS" "$DESCRIPTION"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.pools.delete
+  group: pools
+  intents:
+  - delete pool {POOL}
+  - remove an airflow pool
+  - drop the {POOL} pool
+  - get rid of a pool
+  vars:
+  - {name: POOL, default: warehouse_pool, samples: [api_calls, old_pool]}
+  body: airflow pools delete "$POOL"
+  destructive: true
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.config.get_value
+  group: config
+  intents:
+  - get config value {SECTION}.{OPTION}
+  - what is {OPTION} set to in airflow config
+  - read one airflow setting
+  - show an airflow config option
+  vars:
+  - {name: SECTION, default: core, samples: [database, scheduler, api]}
+  - {name: OPTION, default: executor, samples: [sql_alchemy_conn, dags_folder, parallelism]}
+  body: airflow config get-value "$SECTION" "$OPTION"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.config.dags_folder
+  group: config
+  intents:
+  - where is my dags folder
+  - which directory does airflow read dags from
+  - show the dags folder path
+  - airflow dags folder location
+  vars: []
+  body: airflow config get-value core dags_folder
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.config.list.section
+  group: config
+  intents:
+  - show all config for section {SECTION}
+  - list the {SECTION} settings
+  - print airflow config for one section
+  - dump config options of a section
+  vars:
+  - {name: SECTION, default: scheduler, samples: [core, logging, api]}
+  body: airflow config list --section "$SECTION"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.db.check
+  group: db
+  intents:
+  - check the metadata db connection
+  - can airflow reach its database
+  - airflow db check
+  - is the airflow database up
+  vars: []
+  body: airflow db check
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.db.migrate
+  group: db
+  intents:
+  - migrate the airflow metadata db
+  - initialize or upgrade the airflow database
+  - run airflow db migrations
+  - set up the airflow db schema
+  vars: []
+  body: airflow db migrate
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.db.clean
+  group: db
+  intents:
+  - purge metadata older than {TIMESTAMP}
+  - clean old rows out of the airflow db
+  - delete old task and dag run history before a date
+  - shrink the metadata db by removing old records
+  vars:
+  - {name: TIMESTAMP, default: '2025-01-01', samples: ['2024-06-30', '2025-03-01 00:00:00']}
+  body: airflow db clean --clean-before-timestamp "$TIMESTAMP" --yes
+  destructive: true
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.db.clean.dry_run
+  group: db
+  intents:
+  - preview a db clean before {TIMESTAMP}
+  - what would airflow db clean delete
+  - dry run the metadata cleanup
+  - see how much old data would be purged
+  vars:
+  - {name: TIMESTAMP, default: '2025-01-01', samples: ['2024-06-30', '2025-03-01']}
+  body: airflow db clean --clean-before-timestamp "$TIMESTAMP" --dry-run
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.providers.list
+  group: info
+  intents:
+  - list installed providers
+  - which airflow provider packages are installed
+  - show provider versions
+  - airflow providers
+  vars: []
+  body: airflow providers list
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.providers.grep
+  group: info
+  intents:
+  - is the {PROVIDER} provider installed
+  - check the version of the {PROVIDER} provider
+  - find a provider package in the list
+  - grep airflow providers
+  vars:
+  - {name: PROVIDER, default: amazon, samples: [snowflake, google, postgres]}
+  body: airflow providers list | grep -i "$PROVIDER"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.version
+  group: setup
+  intents:
+  - what version of airflow is installed
+  - airflow version
+  - check airflow version
+  - show the airflow release I'm on
+  vars: []
+  body: airflow version
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.info
+  group: setup
+  intents:
+  - show airflow environment info
+  - print airflow system and config info for a bug report
+  - airflow info anonymized
+  - dump airflow env details without personal info
+  vars: []
+  body: airflow info --anonymize
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.standalone
+  group: setup
+  intents:
+  - start airflow standalone
+  - run a local all-in-one airflow for development
+  - spin up airflow locally with one command
+  - quick local airflow instance
+  vars: []
+  body: airflow standalone
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.scheduler
+  group: setup
+  intents:
+  - start the airflow scheduler
+  - run the scheduler
+  - launch airflow scheduler in the foreground
+  - bring up the scheduler process
+  vars: []
+  body: airflow scheduler
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.api_server
+  group: setup
+  intents:
+  - start the airflow api server on port {PORT}
+  - run the airflow 3 web ui
+  - launch the airflow api server
+  - bring up the airflow ui locally
+  vars:
+  - {name: PORT, default: '8080', samples: ['8081', '9090']}
+  body: airflow api-server --port "$PORT"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.cheat_sheet
+  group: setup
+  intents:
+  - show the airflow cli cheat sheet
+  - list all airflow commands
+  - quick reference of airflow cli
+  - what commands does airflow have
+  vars: []
+  body: airflow cheat-sheet
+  destructive: false
+  source: https://github.com/apache/airflow/blob/3.4.0/airflow-core/src/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.install.pip
+  group: setup
+  intents:
+  - install airflow {AIRFLOW_VERSION} with pip using the constraints file
+  - pip install apache airflow the official way
+  - install airflow for python {PYTHON_VERSION}
+  - set up airflow with constraints
+  vars:
+  - {name: AIRFLOW_VERSION, default: 3.4.0, samples: [3.3.1, 3.2.0]}
+  - {name: PYTHON_VERSION, default: '3.12', samples: ['3.11', '3.13', '3.10']}
+  body: pip install "apache-airflow==$AIRFLOW_VERSION" --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-$AIRFLOW_VERSION/constraints-$PYTHON_VERSION.txt"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/main/airflow-core/docs/start.rst
+  verified: docs
+- id: airflow.dags.trigger.exec_date.af2
+  group: dags
+  intents:
+  - trigger {DAG_ID} for execution date {EXEC_DATE} on airflow 2
+  - airflow 2 trigger dag with an execution date
+  - start a dag run for a date on mwaa
+  - 'airflow2: run dag {DAG_ID} as of a date'
+  vars:
+  - {name: DAG_ID, default: daily_sales_etl, samples: [orders_ingest, customer_dim_refresh, hourly_events_load], ctx: airflow_dag}
+  - {name: EXEC_DATE, default: '2025-06-01', samples: ['2025-01-15', '2024-12-31']}
+  body: airflow dags trigger "$DAG_ID" -e "$EXEC_DATE"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/2.10.5/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.dags.list_runs.af2
+  group: runs
+  intents:
+  - list runs of {DAG_ID} on airflow 2
+  - airflow 2 show dag run history
+  - dag runs for {DAG_ID} on mwaa
+  - airflow2 list-runs for a dag
+  vars:
+  - {name: DAG_ID, default: daily_sales_etl, samples: [orders_ingest, customer_dim_refresh, hourly_events_load], ctx: airflow_dag}
+  body: airflow dags list-runs -d "$DAG_ID"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/2.10.5/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.dags.backfill.af2
+  group: backfill
+  intents:
+  - backfill {DAG_ID} from {START_DATE} to {END_DATE} on airflow 2
+  - airflow 2 backfill a date range
+  - old style dags backfill
+  - 'airflow2: rerun a dag over past dates'
+  vars:
+  - {name: DAG_ID, default: daily_sales_etl, samples: [orders_ingest, customer_dim_refresh, hourly_events_load], ctx: airflow_dag}
+  - {name: START_DATE, default: '2025-01-01', samples: ['2025-05-01', '2024-12-01']}
+  - {name: END_DATE, default: '2025-01-31', samples: ['2025-05-31', '2024-12-31']}
+  body: airflow dags backfill "$DAG_ID" -s "$START_DATE" -e "$END_DATE"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/2.10.5/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.dags.backfill.rerun_failed.af2
+  group: backfill
+  intents:
+  - airflow 2 backfill {DAG_ID} and rerun failed tasks
+  - backfill on airflow 2 re-running failures
+  - airflow2 backfill with rerun failed tasks
+  - backfill a range again, retrying failed ones (airflow 2)
+  vars:
+  - {name: DAG_ID, default: daily_sales_etl, samples: [orders_ingest, customer_dim_refresh, hourly_events_load], ctx: airflow_dag}
+  - {name: START_DATE, default: '2025-01-01', samples: ['2025-04-01', '2024-11-01']}
+  - {name: END_DATE, default: '2025-01-07', samples: ['2025-04-30', '2024-11-30']}
+  body: airflow dags backfill "$DAG_ID" -s "$START_DATE" -e "$END_DATE" --rerun-failed-tasks
+  destructive: false
+  source: https://github.com/apache/airflow/blob/2.10.5/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.webserver.af2
+  group: setup
+  intents:
+  - start the airflow 2 webserver on port {PORT}
+  - run the airflow 2 web ui
+  - launch airflow webserver
+  - bring up the ui on airflow 2
+  vars:
+  - {name: PORT, default: '8080', samples: ['8081', '8793']}
+  body: airflow webserver -p "$PORT"
+  destructive: false
+  source: https://github.com/apache/airflow/blob/2.10.5/airflow/cli/cli_config.py
+  verified: source
+- id: airflow.users.create.af2
+  group: setup
+  intents:
+  - create an airflow 2 admin user {USERNAME}
+  - add a ui login user on airflow 2
+  - make a new airflow user with a random password
+  - airflow2 users create with role {ROLE}
+  vars:
+  - {name: USERNAME, default: admin, samples: [jdoe, etl_viewer]}
+  - {name: FIRSTNAME, default: Ada, samples: [Sam, Alex]}
+  - {name: LASTNAME, default: Admin, samples: [Doe, Lee]}
+  - {name: ROLE, default: Admin, samples: [Viewer, Op, User]}
+  body: airflow users create --username "$USERNAME" --firstname "$FIRSTNAME" --lastname "$LASTNAME" --role "$ROLE" --email "$USERNAME@example.com" --use-random-password
+  destructive: false
+  source: https://github.com/apache/airflow/blob/2.10.5/airflow/providers/fab/auth_manager/cli_commands/definition.py
+  verified: source

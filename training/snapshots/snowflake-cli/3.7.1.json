@@ -1,0 +1,18 @@
+{
+"snow": [
+"--commands-registration",
+"--config-file",
+"--disable-external-command-plugins",
+"--docs",
+"--help",
+"--info",
+"--install-completion",
+"--pycharm-debug-library-path",
+"--pycharm-debug-server-host",
+"--pycharm-debug-server-port",
+"--show-completion",
+"--structure",
+"--version",
+"-h"
+]
+}

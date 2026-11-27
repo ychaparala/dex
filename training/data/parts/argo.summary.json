@@ -1,0 +1,21 @@
+{
+ "templates": 27,
+ "pairs": 124,
+ "dropped_templates": {},
+ "versions_pinned": [
+  "4.1.7",
+  "3.7.18"
+ ],
+ "versions_checked": [
+  "4.1.7",
+  "3.7.18"
+ ],
+ "per_version_status": {
+  "4.1.7": {
+   "ok": 108
+  },
+  "3.7.18": {
+   "ok": 108
+  }
+ }
+}

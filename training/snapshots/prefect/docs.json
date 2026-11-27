@@ -1,0 +1,38 @@
+{
+ "https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/deployment.py": {
+  "sha256": "039564fbc21a808abcbbda21851c6770ff035764d2d0ad47d5ce476750daaffb",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/deploy/_commands.py": {
+  "sha256": "a90d751fb0db599add1da71ff257ec0cf954a2571dd0d20c8c048fc4cd818db0",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/flow_run.py": {
+  "sha256": "6d4f1dd70e879825e59e34d6e532277e01281c5a515ae8ba1f7df21bf19b13ac",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/work_pool.py": {
+  "sha256": "97c16198e29d6f590b4a41890164712f987687d0f24710b7550f36ca044722a5",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/worker.py": {
+  "sha256": "eceb2d9d10f50e251404a4e83c811ff7ec76c5cbf2f52482b94000f51387cf66",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/server.py": {
+  "sha256": "0d713e134806413e8731574131bd3986461b2dc5762e192b0b5cd4b55829ee1b",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/config.py": {
+  "sha256": "8fd71b20af63706041123e7b05cb5f6c1875621e7a9fe8c6ad7d2675c7b9a903",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/PrefectHQ/prefect/blob/main/src/prefect/cli/cloud/__init__.py": {
+  "sha256": "3a67289cbfb6e28d8b562993db6239cf49d5d3bd7925df7f27db9b6eaab0a326",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/PrefectHQ/prefect/blob/main/README.md": {
+  "sha256": "ea65184760f7e6d32def7fc740e6b1bebe31edae113323a891d80243d704795e",
+  "fetched": "2026-11-26"
+ }
+}

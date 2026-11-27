@@ -1,0 +1,747 @@
+tool: confluent
+binaries: [confluent]
+category: streaming
+priority: core
+target_pairs: 300
+version_note: Confluent CLI v4.x (checked against v4.83 source); Confluent Cloud commands unless noted
+version_cmd: confluent version
+version_label: confluent
+versions:
+- {version: "4.83.0", install: "go:github.com/confluentinc/cli@v4.83.0 (./cmd/confluent, CGO)"}
+install:
+- macos: ["brew install confluentinc/tap/cli"]
+  source: ["https://github.com/confluentinc/cli/blob/main/README.md"]
+sources:
+- url: https://docs.confluent.io/confluent-cli/current/install.html
+  license: vendor docs, all rights reserved; facts only
+- url: https://github.com/confluentinc/cli/blob/main/README.md
+  license: Confluent Community License (repo); facts only
+- url: https://github.com/confluentinc/cli/blob/main/install.sh
+  license: Confluent Community License (repo); facts only
+- url: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/login
+  license: Confluent Community License (repo); facts only
+- url: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/context
+  license: Confluent Community License (repo); facts only
+- url: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/environment
+  license: Confluent Community License (repo); facts only
+- url: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/kafka/cluster
+  license: Confluent Community License (repo); facts only
+- url: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/kafka/topic
+  license: Confluent Community License (repo); facts only
+- url: https://github.com/confluentinc/cli/blob/main/internal/kafka/command_topic_consume.go
+  license: Confluent Community License (repo); facts only
+- url: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/kafka/consumer/group
+  license: Confluent Community License (repo); facts only
+- url: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/api-key
+  license: Confluent Community License (repo); facts only
+- url: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/schema-registry
+  license: Confluent Community License (repo); facts only
+- url: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/connect/cluster
+  license: Confluent Community License (repo); facts only
+- url: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/flink
+  license: Confluent Community License (repo); facts only
+- url: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/local/kafka
+  license: Confluent Community License (repo); facts only
+destructive_patterns:
+- \bconfluent\s+kafka\s+topic\s+delete\b
+- \bconfluent\s+api-key\s+delete\b
+- \bconfluent\s+(environment|kafka\s+cluster|schema-registry\s+schema|schema-registry\s+subject|connect\s+cluster|flink\s+statement)\s+delete\b
+- \bconfluent\s+local\s+destroy\b
+templates:
+- id: confluent.install.brew
+  group: setup
+  intents:
+  - install the confluent cli with homebrew
+  - brew install confluent cli
+  - how do i get the confluent command on my mac
+  - set up confluent cli via brew
+  - install confluent cloud cli on macos
+  vars: []
+  body: brew install confluentinc/tap/cli
+  destructive: false
+  source: https://github.com/confluentinc/cli/blob/main/README.md
+  verified: docs
+- id: confluent.install.script
+  group: setup
+  intents:
+  - install the confluent cli with the official install script
+  - download latest confluent cli on linux with curl
+  - get the confluent binary using the install script
+  - curl install confluent cli
+  vars: []
+  body: curl -sL --http1.1 https://cnfl.io/cli | sh -s -- latest
+  destructive: false
+  source: https://docs.confluent.io/confluent-cli/current/install.html
+  verified: docs
+- id: confluent.version
+  group: setup
+  intents:
+  - what version of the confluent cli do i have
+  - confluent cli version
+  - check confluent version
+  - print the installed confluent cli version
+  vars: []
+  body: confluent version
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output
+  verified: source
+- id: confluent.update
+  group: setup
+  intents:
+  - update the confluent cli to the latest version
+  - upgrade confluent cli
+  - self-update confluent
+  - is there a newer confluent cli, update it
+  vars: []
+  body: confluent update
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output
+  verified: source
+- id: confluent.login.save
+  group: auth
+  intents:
+  - log in to confluent cloud and save my credentials
+  - confluent login and remember me
+  - sign in to confluent cloud so i stay logged in
+  - login to confluent with --save
+  - authenticate the confluent cli and keep the session
+  vars: []
+  body: confluent login --save
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/login
+  verified: source
+- id: confluent.login.org
+  group: auth
+  intents:
+  - log in to confluent cloud organization {ORG_ID}
+  - confluent login to a specific org
+  - sign in to org {ORG_ID} on confluent cloud
+  - authenticate against a different confluent organization
+  vars:
+  - name: ORG_ID
+    default: <organization-id>
+    samples: [00000000-0000-0000-0000-000000000000, 11111111-2222-3333-4444-555555555555]
+  body: confluent login --organization "$ORG_ID"
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/login
+  verified: source
+- id: confluent.context.list
+  group: auth
+  intents:
+  - list my confluent cli contexts
+  - which confluent contexts are configured
+  - show confluent login contexts
+  - confluent context list
+  vars: []
+  body: confluent context list
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/context
+  verified: source
+- id: confluent.environment.list
+  group: environments
+  intents:
+  - list confluent cloud environments
+  - show all my confluent environments
+  - what environments do i have in confluent cloud
+  - confluent env list
+  vars: []
+  body: confluent environment list
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/environment
+  verified: source
+- id: confluent.environment.use
+  group: environments
+  intents:
+  - switch to confluent environment {ENV_ID}
+  - use environment {ENV_ID} in confluent cli
+  - set the active confluent environment
+  - change my current confluent cloud environment
+  vars:
+  - name: ENV_ID
+    default: <environment-id>
+    samples: [env-a1b2c3, env-prod42, env-0dev77]
+  body: confluent environment use "$ENV_ID"
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/environment
+  verified: source
+- id: confluent.cluster.list
+  group: clusters
+  intents:
+  - list kafka clusters in confluent cloud
+  - show my confluent kafka clusters
+  - what kafka clusters are in this environment
+  - confluent kafka cluster list
+  vars: []
+  body: confluent kafka cluster list
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/kafka/cluster
+  verified: source
+- id: confluent.cluster.list_all
+  group: clusters
+  intents:
+  - list kafka clusters across all confluent environments
+  - show every confluent cloud cluster in all environments
+  - find all my kafka clusters regardless of environment
+  - confluent cluster list everywhere
+  vars: []
+  body: confluent kafka cluster list --all
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/kafka/cluster
+  verified: source
+- id: confluent.cluster.use
+  group: clusters
+  intents:
+  - use kafka cluster {CLUSTER_ID}
+  - switch the confluent cli to cluster {CLUSTER_ID}
+  - set the active kafka cluster in confluent
+  - make this cluster the default for topic commands
+  vars:
+  - name: CLUSTER_ID
+    default: <cluster-id>
+    samples: [lkc-12ab34, lkc-9xyz88, lkc-55kq0p]
+  body: confluent kafka cluster use "$CLUSTER_ID"
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/kafka/cluster
+  verified: source
+- id: confluent.cluster.describe
+  group: clusters
+  intents:
+  - describe confluent kafka cluster {CLUSTER_ID}
+  - show details and bootstrap endpoint of a confluent cluster
+  - get the bootstrap server for cluster {CLUSTER_ID}
+  - info about my confluent cloud kafka cluster
+  vars:
+  - name: CLUSTER_ID
+    default: <cluster-id>
+    samples: [lkc-12ab34, lkc-9xyz88, lkc-55kq0p]
+  body: confluent kafka cluster describe "$CLUSTER_ID"
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/kafka/cluster
+  verified: source
+- id: confluent.topic.list
+  group: topics
+  intents:
+  - list topics in confluent cloud
+  - show kafka topic names with the confluent cli
+  - what topics exist on the current confluent cluster
+  - confluent topic names only
+  - print just the topic names from confluent
+  vars: []
+  body: confluent kafka topic list -o json | jq -r '.[].name'
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/kafka/topic
+  verified: source
+- id: confluent.topic.create
+  group: topics
+  intents:
+  - create topic {TOPIC} with {PARTITIONS} partitions in confluent cloud
+  - make a new confluent kafka topic
+  - confluent create topic {TOPIC}
+  - add a kafka topic with a set partition count
+  vars:
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  - name: PARTITIONS
+    default: '6'
+    samples: ['3', '12', '24']
+  body: confluent kafka topic create "$TOPIC" --partitions "$PARTITIONS"
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/kafka/topic
+  verified: source
+- id: confluent.topic.create_retention
+  group: topics
+  intents:
+  - create topic {TOPIC} with retention {RETENTION_MS} ms
+  - make a confluent topic with custom retention
+  - new kafka topic in confluent with retention.ms set
+  - create a topic that keeps data for a limited time
+  vars:
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  - name: PARTITIONS
+    default: '6'
+    samples: ['3', '12', '24']
+  - name: RETENTION_MS
+    default: '604800000'
+    samples: ['86400000', '259200000', '2592000000']
+  body: confluent kafka topic create "$TOPIC" --partitions "$PARTITIONS" --config retention.ms="$RETENTION_MS"
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/kafka/topic
+  verified: source
+- id: confluent.topic.create_compacted
+  group: topics
+  intents:
+  - create a compacted topic {TOPIC} in confluent cloud
+  - make a log-compacted kafka topic with confluent
+  - confluent topic with cleanup.policy compact
+  - new compacted changelog topic
+  vars:
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: confluent kafka topic create "$TOPIC" --config cleanup.policy=compact --if-not-exists
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/kafka/topic
+  verified: source
+- id: confluent.topic.describe
+  group: topics
+  intents:
+  - describe confluent topic {TOPIC}
+  - show configs of kafka topic {TOPIC} in confluent
+  - what are the settings on this confluent topic
+  - inspect a topic with the confluent cli
+  vars:
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: confluent kafka topic describe "$TOPIC"
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/kafka/topic
+  verified: source
+- id: confluent.topic.update_retention
+  group: topics
+  intents:
+  - change retention of topic {TOPIC} to {RETENTION_MS} ms
+  - update retention.ms on a confluent topic
+  - set topic {TOPIC} retention with confluent cli
+  - modify how long a confluent topic keeps data
+  vars:
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  - name: RETENTION_MS
+    default: '604800000'
+    samples: ['86400000', '259200000', '2592000000']
+  body: confluent kafka topic update "$TOPIC" --config retention.ms="$RETENTION_MS"
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/kafka/topic
+  verified: source
+- id: confluent.topic.delete
+  group: topics
+  intents:
+  - delete confluent topic {TOPIC}
+  - remove kafka topic {TOPIC} from confluent cloud
+  - drop a topic with the confluent cli
+  - get rid of this confluent topic
+  vars:
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: confluent kafka topic delete "$TOPIC"
+  destructive: true
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/kafka/topic
+  verified: source
+- id: confluent.topic.consume_beginning
+  group: consume
+  intents:
+  - consume topic {TOPIC} from the beginning with confluent
+  - read all messages in a confluent topic
+  - tail {TOPIC} from offset zero
+  - confluent consume from start
+  - show me every message in this topic
+  vars:
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: confluent kafka topic consume "$TOPIC" --from-beginning
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/kafka/topic
+  verified: source
+- id: confluent.topic.consume_group_keys
+  group: consume
+  intents:
+  - consume {TOPIC} as consumer group {GROUP} and print keys
+  - read a confluent topic with a named group showing message keys
+  - confluent consume with group id and keys
+  - consume messages with keys using a specific consumer group
+  vars:
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  - name: GROUP
+    default: orders-consumer
+    samples: [billing-service, etl-loader, fraud-detector]
+  body: confluent kafka topic consume "$TOPIC" --group "$GROUP" --print-key
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/kafka/topic
+  verified: source
+- id: confluent.topic.consume_avro
+  group: consume
+  intents:
+  - consume avro messages from {TOPIC} using schema registry
+  - read an avro topic with confluent and decode it
+  - decode avro values from a confluent topic
+  - confluent consume avro from beginning
+  vars:
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: confluent kafka topic consume "$TOPIC" --value-format avro --from-beginning
+  destructive: false
+  source: https://github.com/confluentinc/cli/blob/main/internal/kafka/command_topic_consume.go
+  verified: source
+- id: confluent.topic.consume_meta
+  group: consume
+  intents:
+  - consume {TOPIC} showing partition, offset and timestamp
+  - read a confluent topic with offsets and timestamps
+  - confluent consume print offset and time
+  - see where each message sits in the topic
+  vars:
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: confluent kafka topic consume "$TOPIC" --from-beginning --print-key --print-offset --timestamp
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/kafka/topic
+  verified: source
+- id: confluent.topic.consume_partition_offset
+  group: consume
+  intents:
+  - consume partition {PARTITION} of {TOPIC} starting at offset {OFFSET}
+  - read one partition from a given offset in confluent
+  - confluent consume specific partition and offset
+  - replay a partition from a known offset
+  vars:
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  - name: PARTITION
+    default: '0'
+    samples: ['1', '3', '5']
+  - name: OFFSET
+    default: '100'
+    samples: ['0', '5000', '123456']
+  body: confluent kafka topic consume "$TOPIC" --partition "$PARTITION" --offset "$OFFSET"
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/kafka/topic
+  verified: source
+- id: confluent.topic.produce
+  group: produce
+  intents:
+  - produce messages to {TOPIC} with confluent
+  - send messages to a confluent topic from the terminal
+  - open a producer on {TOPIC}
+  - confluent produce
+  vars:
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: confluent kafka topic produce "$TOPIC"
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/kafka/topic
+  verified: source
+- id: confluent.topic.produce_keys
+  group: produce
+  intents:
+  - produce keyed messages to {TOPIC} with key:value lines
+  - send messages with keys using confluent produce
+  - confluent produce parse key with colon delimiter
+  - write key value records to a topic
+  vars:
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: confluent kafka topic produce "$TOPIC" --parse-key --delimiter ":"
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/kafka/topic
+  verified: source
+- id: confluent.topic.produce_file
+  group: produce
+  intents:
+  - load lines from {FILE} into topic {TOPIC}
+  - pipe a file into a confluent topic
+  - produce each line of a file as a message
+  - bulk send messages from a text file with confluent
+  vars:
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  - name: FILE
+    default: orders.txt
+    samples: [events.csv, sample_messages.txt]
+    ctx: local_file
+  body: confluent kafka topic produce "$TOPIC" < "$FILE"
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/kafka/topic
+  verified: source
+- id: confluent.topic.produce_avro
+  group: produce
+  intents:
+  - produce avro messages to {TOPIC} using schema {SCHEMA_FILE}
+  - send avro records with a local schema file
+  - confluent produce with avro value format
+  - write avro data to a topic via schema registry
+  vars:
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  - name: SCHEMA_FILE
+    default: order.avsc
+    samples: [schemas/payment.avsc, user_event.avsc]
+    ctx: local_file
+  body: confluent kafka topic produce "$TOPIC" --value-format avro --schema "$SCHEMA_FILE"
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/kafka/topic
+  verified: source
+- id: confluent.apikey.create
+  group: api-keys
+  intents:
+  - create an api key for kafka cluster {CLUSTER_ID}
+  - make a new confluent api key for my cluster
+  - generate kafka credentials in confluent cloud
+  - new api key and secret for a cluster
+  vars:
+  - name: CLUSTER_ID
+    default: <cluster-id>
+    samples: [lkc-12ab34, lkc-9xyz88, lkc-55kq0p]
+  body: confluent api-key create --resource "$CLUSTER_ID"
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/api-key
+  verified: source
+- id: confluent.apikey.create_use
+  group: api-keys
+  intents:
+  - create an api key for {CLUSTER_ID} and start using it
+  - make a cluster api key and set it active
+  - generate a key so i can consume and produce from the cli
+  - confluent api-key create with --use
+  vars:
+  - name: CLUSTER_ID
+    default: <cluster-id>
+    samples: [lkc-12ab34, lkc-9xyz88, lkc-55kq0p]
+  body: confluent api-key create --resource "$CLUSTER_ID" --use
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/api-key
+  verified: source
+- id: confluent.apikey.list
+  group: api-keys
+  intents:
+  - list api keys for cluster {CLUSTER_ID}
+  - show confluent api keys on my kafka cluster
+  - which api keys exist for this cluster
+  - confluent api-key list for a resource
+  vars:
+  - name: CLUSTER_ID
+    default: <cluster-id>
+    samples: [lkc-12ab34, lkc-9xyz88, lkc-55kq0p]
+  body: confluent api-key list --resource "$CLUSTER_ID"
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/api-key
+  verified: source
+- id: confluent.apikey.store
+  group: api-keys
+  intents:
+  - store an existing api key {API_KEY} for cluster {CLUSTER_ID}
+  - save an api key and secret in the confluent cli
+  - register a key i already have with confluent
+  - confluent api-key store with the secret from env
+  vars:
+  - name: API_KEY
+    default: <api-key>
+    samples: [ABCD1234EFGH5678, QWER7890TYUI1234]
+  - name: CLUSTER_ID
+    default: <cluster-id>
+    samples: [lkc-12ab34, lkc-9xyz88, lkc-55kq0p]
+  body: confluent api-key store "$API_KEY" "$CONFLUENT_API_SECRET" --resource "$CLUSTER_ID"
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/api-key
+  verified: source
+- id: confluent.apikey.use
+  group: api-keys
+  intents:
+  - use api key {API_KEY} for kafka commands
+  - set the active confluent api key
+  - switch which api key the cli uses
+  - confluent api-key use
+  vars:
+  - name: API_KEY
+    default: <api-key>
+    samples: [ABCD1234EFGH5678, QWER7890TYUI1234]
+  body: confluent api-key use "$API_KEY"
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/api-key
+  verified: source
+- id: confluent.apikey.delete
+  group: api-keys
+  intents:
+  - delete confluent api key {API_KEY}
+  - revoke an api key in confluent cloud
+  - remove an old api key
+  - confluent api-key delete
+  vars:
+  - name: API_KEY
+    default: <api-key>
+    samples: [ABCD1234EFGH5678, QWER7890TYUI1234]
+  body: confluent api-key delete "$API_KEY"
+  destructive: true
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/api-key
+  verified: source
+- id: confluent.group.list
+  group: consumer-groups
+  intents:
+  - list consumer groups on the confluent cluster
+  - show kafka consumer groups in confluent cloud
+  - what consumer groups exist
+  - confluent consumer group list
+  vars: []
+  body: confluent kafka consumer group list
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/kafka/consumer/group
+  verified: source
+- id: confluent.group.describe
+  group: consumer-groups
+  intents:
+  - describe consumer group {GROUP}
+  - show members and state of a confluent consumer group
+  - inspect consumer group {GROUP} in confluent
+  - who is in this consumer group
+  vars:
+  - name: GROUP
+    default: orders-consumer
+    samples: [billing-service, etl-loader, fraud-detector]
+  body: confluent kafka consumer group describe "$GROUP"
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/kafka/consumer/group
+  verified: source
+- id: confluent.group.lag_summary
+  group: consumer-groups
+  intents:
+  - summarize lag for consumer group {GROUP}
+  - how far behind is consumer group {GROUP}
+  - total consumer lag in confluent cloud
+  - check if my consumers are keeping up
+  vars:
+  - name: GROUP
+    default: orders-consumer
+    samples: [billing-service, etl-loader, fraud-detector]
+  body: confluent kafka consumer group lag summarize "$GROUP"
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/kafka/consumer/group/lag
+  verified: source
+- id: confluent.group.lag_list
+  group: consumer-groups
+  intents:
+  - list per-partition lag for group {GROUP}
+  - show lag of each partition for a confluent consumer group
+  - partition level consumer lag
+  - confluent lag list for group
+  vars:
+  - name: GROUP
+    default: orders-consumer
+    samples: [billing-service, etl-loader, fraud-detector]
+  body: confluent kafka consumer group lag list "$GROUP"
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/kafka/consumer/group/lag
+  verified: source
+- id: confluent.sr.subject_list
+  group: schema-registry
+  intents:
+  - list schema registry subjects
+  - show all subjects in confluent schema registry
+  - what schemas are registered
+  - confluent sr subject list
+  vars: []
+  body: confluent schema-registry subject list
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/schema-registry/subject
+  verified: source
+- id: confluent.sr.schema_latest
+  group: schema-registry
+  intents:
+  - show the latest schema for subject {SUBJECT}
+  - describe the newest version of a schema registry subject
+  - get current avro schema for {SUBJECT}
+  - print the latest registered schema
+  vars:
+  - name: SUBJECT
+    default: orders-value
+    samples: [payments-value, user-events-value, clickstream.v1-key]
+  body: confluent schema-registry schema describe --subject "$SUBJECT" --version latest
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/schema-registry/schema
+  verified: source
+- id: confluent.sr.schema_create
+  group: schema-registry
+  intents:
+  - register avro schema {SCHEMA_FILE} under subject {SUBJECT}
+  - create a new schema version in schema registry
+  - upload an avsc file to confluent schema registry
+  - register a schema for a topic value
+  vars:
+  - name: SUBJECT
+    default: orders-value
+    samples: [payments-value, user-events-value, clickstream.v1-key]
+  - name: SCHEMA_FILE
+    default: order.avsc
+    samples: [schemas/payment.avsc, user_event.avsc]
+    ctx: local_file
+  body: confluent schema-registry schema create --subject "$SUBJECT" --schema "$SCHEMA_FILE" --type avro
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/schema-registry/schema
+  verified: source
+- id: confluent.connect.list
+  group: connect
+  intents:
+  - list connectors in confluent cloud
+  - show managed kafka connect connectors
+  - what connectors are running on my cluster
+  - confluent connect cluster list
+  vars: []
+  body: confluent connect cluster list
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/connect/cluster
+  verified: source
+- id: confluent.flink.statement_list
+  group: flink
+  intents:
+  - list running flink sql statements in confluent cloud
+  - show active confluent flink statements
+  - which flink statements are running
+  - confluent flink statement list running
+  vars: []
+  body: confluent flink statement list --status running
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/flink/statement
+  verified: source
+- id: confluent.flink.shell
+  group: flink
+  intents:
+  - open the confluent flink sql shell on compute pool {POOL_ID}
+  - start an interactive flink sql shell in confluent cloud
+  - run flink sql interactively against my cluster
+  - confluent flink shell
+  vars:
+  - name: POOL_ID
+    default: <compute-pool-id>
+    samples: [lfcp-abc123, lfcp-9z8y7x]
+  body: confluent flink shell --compute-pool "$POOL_ID"
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/flink
+  verified: source
+- id: confluent.local.start
+  group: local
+  intents:
+  - start a local kafka with the confluent cli
+  - spin up confluent local kafka in docker
+  - run kafka locally using confluent local
+  - confluent local kafka start
+  vars: []
+  body: confluent local kafka start
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/local/kafka
+  verified: source
+- id: confluent.local.stop
+  group: local
+  intents:
+  - stop the local confluent kafka
+  - shut down confluent local kafka
+  - turn off the local kafka container from confluent
+  - confluent local kafka stop
+  vars: []
+  body: confluent local kafka stop
+  destructive: false
+  source: https://github.com/confluentinc/cli/tree/main/test/fixtures/output/local/kafka
+  verified: source

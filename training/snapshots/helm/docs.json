@@ -1,0 +1,10 @@
+{
+ "https://github.com/helm/helm-www/blob/main/docs/intro/install.mdx": {
+  "sha256": "b1cb83c14c5e9f565bf147c7e0d0c25b2c118bd6f37360add2d427bbb615325f",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/kubeflow/spark-operator/blob/master/README.md": {
+  "sha256": "eb46e89b8cfedf16d3311d3a2efb5942683b9fe05a6c1bd3fcdd0a1ce2c7583b",
+  "fetched": "2026-11-26"
+ }
+}

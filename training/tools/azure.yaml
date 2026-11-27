@@ -1,0 +1,327 @@
+tool: azure
+binaries: [az]
+category: cloud
+priority: standard
+target_pairs: 150
+version_note: "Azure CLI 2.x; az databricks and az datafactory are CLI extensions (az extension add)"
+install:
+- macos: ["brew install azure-cli"]
+  docs: "https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux"
+  source: ["https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-macos", "https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux?pivots=apt"]
+sources:
+  - url: https://github.com/Azure/azure-cli/blob/dev/src/azure-cli/azure/cli/command_modules/storage/_help.py
+    license: "MIT (Azure/azure-cli repo)"
+  - url: https://github.com/Azure/azure-cli/blob/dev/src/azure-cli/azure/cli/command_modules/storage/_params.py
+    license: "MIT (Azure/azure-cli repo)"
+  - url: https://github.com/Azure/azure-cli/blob/dev/src/azure-cli/azure/cli/command_modules/profile/_help.py
+    license: "MIT (Azure/azure-cli repo)"
+  - url: https://github.com/Azure/azure-cli/blob/dev/src/azure-cli/azure/cli/command_modules/synapse/manual/_help.py
+    license: "MIT (Azure/azure-cli repo)"
+  - url: https://github.com/Azure/azure-cli/blob/dev/src/azure-cli/azure/cli/command_modules/synapse/manual/_params.py
+    license: "MIT (Azure/azure-cli repo)"
+  - url: https://github.com/Azure/azure-cli-extensions/blob/main/src/databricks/azext_databricks/aaz/latest/databricks/workspace/_list.py
+    license: "MIT (Azure/azure-cli-extensions repo)"
+  - url: https://github.com/Azure/azure-cli-extensions/blob/main/src/datafactory/azext_datafactory/generated/_help.py
+    license: "MIT (Azure/azure-cli-extensions repo)"
+  - url: https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux
+    license: "CC BY 4.0 (Microsoft Learn docs)"
+  - url: https://learn.microsoft.com/en-us/cli/azure/azure-cli-extensions-overview
+    license: "CC BY 4.0 (Microsoft Learn docs)"
+destructive_patterns:
+  - '\baz\s+storage\s+(blob|fs|container)\s+(delete|delete-batch)\b'
+  - '\baz\s+storage\s+fs\s+(file|directory)\s+delete\b'
+templates:
+  - id: azure.setup.install_deb
+    group: setup
+    intents:
+      - install the azure cli on ubuntu
+      - how do I get the az command on debian
+      - install az cli with microsoft's one-line deb script
+      - set up azure command line tools on linux
+    body: "curl -fsSL 'https://azurecliprod.blob.core.windows.net/$root/deb_install.sh' | sudo bash"
+    destructive: false
+    source: https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux
+    verified: docs
+
+  - id: azure.setup.version
+    group: setup
+    intents:
+      - which azure cli version do I have
+      - az version
+      - check installed az cli and extension versions
+      - show azure cli version
+    body: az version
+    destructive: false
+    source: https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux
+    verified: docs
+
+  - id: azure.setup.extension_add
+    group: setup
+    intents:
+      - install the az {EXTENSION} extension
+      - add the databricks extension to azure cli
+      - enable az {EXTENSION} commands
+      - az extension add
+    vars:
+      - {name: EXTENSION, default: databricks, samples: [databricks, datafactory]}
+    body: az extension add --name "$EXTENSION"
+    destructive: false
+    source: https://learn.microsoft.com/en-us/cli/azure/azure-cli-extensions-overview
+    verified: docs
+
+  - id: azure.auth.login
+    group: auth
+    intents:
+      - log in to azure
+      - az login in the browser
+      - sign in to my azure account from the terminal
+      - authenticate the azure cli
+    body: az login
+    destructive: false
+    source: https://github.com/Azure/azure-cli/blob/dev/src/azure-cli/azure/cli/command_modules/profile/_help.py
+    verified: source
+
+  - id: azure.auth.login_sp
+    group: auth
+    intents:
+      - log in to azure as a service principal
+      - az login with app id and client secret for ci
+      - authenticate a service principal in tenant {TENANT_ID}
+      - non-interactive azure login for a pipeline
+    vars:
+      - {name: TENANT_ID, default: <tenant-id>, samples: [00000000-0000-0000-0000-000000000000]}
+    body: az login --service-principal --username "$AZURE_CLIENT_ID" --password "$AZURE_CLIENT_SECRET" --tenant "$TENANT_ID"
+    destructive: false
+    source: https://github.com/Azure/azure-cli/blob/dev/src/azure-cli/azure/cli/command_modules/profile/_help.py
+    verified: source
+
+  - id: azure.account.set
+    group: auth
+    intents:
+      - switch to azure subscription {SUBSCRIPTION}
+      - set the default subscription
+      - use a different azure subscription
+      - az account set
+    vars:
+      - {name: SUBSCRIPTION, default: <subscription-id>, samples: [data-prod, analytics-dev], ctx: az_subscription}
+    body: az account set --subscription "$SUBSCRIPTION"
+    destructive: false
+    source: https://github.com/Azure/azure-cli/blob/dev/src/azure-cli/azure/cli/command_modules/profile/_help.py
+    verified: source
+
+  - id: azure.account.list
+    group: auth
+    intents:
+      - list my azure subscriptions
+      - which subscriptions can I use
+      - show subscriptions as a table
+      - az account list
+    body: az account list --output table
+    destructive: false
+    source: https://github.com/Azure/azure-cli/blob/dev/src/azure-cli/azure/cli/command_modules/profile/_help.py
+    verified: source
+
+  - id: azure.account.show
+    group: auth
+    intents:
+      - which azure subscription am I using
+      - show the current az account
+      - what subscription is active
+      - who am I logged in as in azure
+    body: az account show --output table
+    destructive: false
+    source: https://github.com/Azure/azure-cli/blob/dev/src/azure-cli/azure/cli/command_modules/profile/_help.py
+    verified: source
+
+  - id: azure.blob.list
+    group: storage
+    intents:
+      - list blobs in container {CONTAINER} under prefix {PREFIX}
+      - what files are in this azure container
+      - show blob names in a storage account container
+      - az storage blob list with my azure ad login
+    vars:
+      - {name: ACCOUNT, default: <storage-account>, samples: [acmedatalake, analyticsraw]}
+      - {name: CONTAINER, default: <container>, samples: [raw, landing, exports]}
+      - {name: PREFIX, default: <prefix>, samples: [events/2026/, orders/]}
+    body: az storage blob list --account-name "$ACCOUNT" -c "$CONTAINER" --prefix "$PREFIX" --auth-mode login --query "[].name" -o tsv
+    destructive: false
+    source: https://github.com/Azure/azure-cli/blob/dev/src/azure-cli/azure/cli/command_modules/storage/_help.py
+    verified: source
+
+  - id: azure.blob.upload
+    group: storage
+    intents:
+      - upload {FILE} to azure blob container {CONTAINER}
+      - put a local file into blob storage
+      - az storage blob upload using login auth
+      - copy this csv to an azure container
+    vars:
+      - {name: ACCOUNT, default: <storage-account>, samples: [acmedatalake, analyticsraw]}
+      - {name: CONTAINER, default: <container>, samples: [raw, landing]}
+      - {name: FILE, default: data.csv, samples: [orders.csv, events.parquet], ctx: local_file}
+      - {name: BLOB, default: data.csv, samples: [incoming/orders.csv, events/2026-03-15/events.parquet]}
+    body: az storage blob upload --account-name "$ACCOUNT" -c "$CONTAINER" -f "$FILE" -n "$BLOB" --auth-mode login
+    destructive: false
+    source: https://github.com/Azure/azure-cli/blob/dev/src/azure-cli/azure/cli/command_modules/storage/_help.py
+    verified: source
+
+  - id: azure.blob.download
+    group: storage
+    intents:
+      - download blob {BLOB} from {CONTAINER}
+      - get a file out of azure blob storage
+      - az storage blob download to a local path
+      - fetch one blob to my machine
+    vars:
+      - {name: ACCOUNT, default: <storage-account>, samples: [acmedatalake, analyticsraw]}
+      - {name: CONTAINER, default: <container>, samples: [raw, exports]}
+      - {name: BLOB, default: data.csv, samples: [exports/daily_sales.csv, models/churn.pkl]}
+      - {name: FILE, default: data.csv, samples: [daily_sales.csv, ./downloads/churn.pkl]}
+    body: az storage blob download --account-name "$ACCOUNT" -c "$CONTAINER" -n "$BLOB" -f "$FILE" --auth-mode login
+    destructive: false
+    source: https://github.com/Azure/azure-cli/blob/dev/src/azure-cli/azure/cli/command_modules/storage/_help.py
+    verified: source
+
+  - id: azure.blob.upload_batch
+    group: storage
+    intents:
+      - upload the whole {LOCAL_DIR} folder to container {CONTAINER}
+      - bulk upload a directory to azure blob storage
+      - az storage blob upload-batch
+      - push all files in a folder to blob storage
+    vars:
+      - {name: ACCOUNT, default: <storage-account>, samples: [acmedatalake, analyticsraw]}
+      - {name: CONTAINER, default: <container>, samples: [raw, landing]}
+      - {name: LOCAL_DIR, default: ./data, samples: [./output, ./exports]}
+    body: az storage blob upload-batch --account-name "$ACCOUNT" -d "$CONTAINER" -s "$LOCAL_DIR" --auth-mode login
+    destructive: false
+    source: https://github.com/Azure/azure-cli/blob/dev/src/azure-cli/azure/cli/command_modules/storage/_help.py
+    verified: source
+
+  - id: azure.fs.file_list
+    group: adls
+    intents:
+      - list files in adls gen2 filesystem {FILESYSTEM} under {DIR_PATH}
+      - browse a data lake directory with az
+      - az storage fs file list
+      - what's in this adls folder
+    vars:
+      - {name: ACCOUNT, default: <storage-account>, samples: [acmedatalake, analyticsraw]}
+      - {name: FILESYSTEM, default: <filesystem>, samples: [raw, curated, bronze]}
+      - {name: DIR_PATH, default: <directory>, samples: [events/2026/03, sales/orders]}
+    body: az storage fs file list --account-name "$ACCOUNT" -f "$FILESYSTEM" --path "$DIR_PATH" --auth-mode login -o table
+    destructive: false
+    source: https://github.com/Azure/azure-cli/blob/dev/src/azure-cli/azure/cli/command_modules/storage/_help.py
+    verified: source
+
+  - id: azure.fs.directory_upload
+    group: adls
+    intents:
+      - upload local folder {LOCAL_DIR} into adls gen2 directory {DIR_PATH}
+      - recursively copy a folder into the data lake
+      - az storage fs directory upload recursive
+      - push a directory to adls
+    vars:
+      - {name: ACCOUNT, default: <storage-account>, samples: [acmedatalake, analyticsraw]}
+      - {name: FILESYSTEM, default: <filesystem>, samples: [raw, bronze]}
+      - {name: LOCAL_DIR, default: ./data, samples: [./output, ./exports]}
+      - {name: DIR_PATH, default: <directory>, samples: [landing/2026-03-15, sales/orders]}
+    body: az storage fs directory upload --account-name "$ACCOUNT" -f "$FILESYSTEM" -s "$LOCAL_DIR" -d "$DIR_PATH" --recursive --auth-mode login
+    destructive: false
+    source: https://github.com/Azure/azure-cli/blob/dev/src/azure-cli/azure/cli/command_modules/storage/_help.py
+    verified: source
+
+  - id: azure.fs.directory_download
+    group: adls
+    intents:
+      - download adls directory {DIR_PATH} to {LOCAL_DIR}
+      - pull a folder from the data lake recursively
+      - az storage fs directory download
+      - copy an adls gen2 directory to my laptop
+    vars:
+      - {name: ACCOUNT, default: <storage-account>, samples: [acmedatalake, analyticsraw]}
+      - {name: FILESYSTEM, default: <filesystem>, samples: [curated, gold]}
+      - {name: DIR_PATH, default: <directory>, samples: [marts/daily_sales, events/2026/03]}
+      - {name: LOCAL_DIR, default: ./data, samples: [./downloads, /tmp/adls]}
+    body: az storage fs directory download --account-name "$ACCOUNT" -f "$FILESYSTEM" -s "$DIR_PATH" -d "$LOCAL_DIR" --recursive --auth-mode login
+    destructive: false
+    source: https://github.com/Azure/azure-cli/blob/dev/src/azure-cli/azure/cli/command_modules/storage/_help.py
+    verified: source
+
+  - id: azure.databricks.workspace_list
+    group: databricks
+    intents:
+      - list azure databricks workspaces in resource group {RESOURCE_GROUP}
+      - which databricks workspaces do we have in azure
+      - az databricks workspace list as a table
+      - show databricks workspaces
+    vars:
+      - {name: RESOURCE_GROUP, default: <resource-group>, samples: [rg-data-prod, rg-analytics-dev]}
+    body: az databricks workspace list --resource-group "$RESOURCE_GROUP" -o table
+    destructive: false
+    source: https://github.com/Azure/azure-cli-extensions/blob/main/src/databricks/azext_databricks/aaz/latest/databricks/workspace/_list.py
+    verified: source
+
+  - id: azure.synapse.spark_submit_pyspark
+    group: synapse
+    intents:
+      - submit a pyspark job {MAIN_FILE} to synapse spark pool {POOL}
+      - run a python spark job on azure synapse
+      - az synapse spark job submit for pyspark
+      - kick off a synapse spark batch with two small executors
+    vars:
+      - {name: WORKSPACE, default: <workspace>, samples: [synw-prod, synw-dev]}
+      - {name: POOL, default: <spark-pool>, samples: [pool01, etlpool]}
+      - {name: MAIN_FILE, default: <main-file>, samples: ["abfss://jobs@acmelake.dfs.core.windows.net/a.py"]}
+    body: az synapse spark job submit --workspace-name "$WORKSPACE" --spark-pool-name "$POOL" --name pyspark-job --main-definition-file "$MAIN_FILE" --language PySpark --executors 2 --executor-size Small
+    destructive: false
+    source: https://github.com/Azure/azure-cli/blob/dev/src/azure-cli/azure/cli/command_modules/synapse/manual/_params.py
+    verified: source
+
+  - id: azure.synapse.spark_job_list
+    group: synapse
+    intents:
+      - list spark jobs in synapse pool {POOL}
+      - which synapse spark batches are running
+      - az synapse spark job list
+      - show recent synapse spark jobs
+    vars:
+      - {name: WORKSPACE, default: <workspace>, samples: [synw-prod, synw-dev]}
+      - {name: POOL, default: <spark-pool>, samples: [pool01, etlpool]}
+    body: az synapse spark job list --workspace-name "$WORKSPACE" --spark-pool-name "$POOL" -o table
+    destructive: false
+    source: https://github.com/Azure/azure-cli/blob/dev/src/azure-cli/azure/cli/command_modules/synapse/manual/_help.py
+    verified: source
+
+  - id: azure.datafactory.create_run
+    group: datafactory
+    intents:
+      - trigger adf pipeline {PIPELINE} in factory {FACTORY}
+      - run an azure data factory pipeline from the cli
+      - az datafactory pipeline create-run
+      - start a data factory pipeline run now
+    vars:
+      - {name: RESOURCE_GROUP, default: <resource-group>, samples: [rg-data-prod, rg-analytics-dev]}
+      - {name: FACTORY, default: <factory-name>, samples: [adf-data-prod, adf-ingest]}
+      - {name: PIPELINE, default: <pipeline-name>, samples: [pl_copy_sales, pl_daily_load]}
+    body: az datafactory pipeline create-run --resource-group "$RESOURCE_GROUP" --factory-name "$FACTORY" --name "$PIPELINE"
+    destructive: false
+    source: https://github.com/Azure/azure-cli-extensions/blob/main/src/datafactory/azext_datafactory/generated/_help.py
+    verified: source
+
+  - id: azure.datafactory.run_show
+    group: datafactory
+    intents:
+      - check status of adf pipeline run {RUN_ID}
+      - did my data factory run succeed
+      - az datafactory pipeline-run show
+      - get the state of a data factory pipeline run
+    vars:
+      - {name: RESOURCE_GROUP, default: <resource-group>, samples: [rg-data-prod]}
+      - {name: FACTORY, default: <factory-name>, samples: [adf-data-prod, adf-ingest]}
+      - {name: RUN_ID, default: <run-id>, samples: [2f7fdb90-5df1-4b8e-ac2f-064cfa58202b]}
+    body: az datafactory pipeline-run show --resource-group "$RESOURCE_GROUP" --factory-name "$FACTORY" --run-id "$RUN_ID" --query status -o tsv
+    destructive: false
+    source: https://github.com/Azure/azure-cli-extensions/blob/main/src/datafactory/azext_datafactory/generated/_help.py
+    verified: source

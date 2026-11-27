@@ -1,0 +1,10 @@
+{
+ "https://github.com/trinodb/trino/blob/master/client/trino-cli/src/main/java/io/trino/cli/ClientOptions.java": {
+  "sha256": "c26cc32cf9854a93919c7998e22b8aa0ca9a9b41a3b30cc4ae9af62cc229c1c7",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/Homebrew/homebrew-core/blob/HEAD/Formula/t/trino.rb": {
+  "sha256": "7fc30a6c0ca4db44b9161caeda8ab9f53916056b573524ed891191bcc7a7dc2d",
+  "fetched": "2026-11-26"
+ }
+}

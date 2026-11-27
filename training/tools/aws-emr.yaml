@@ -1,0 +1,881 @@
+tool: aws-emr
+binaries: [aws]
+category: compute
+priority: core
+target_pairs: 440
+version_note: "AWS CLI v2 (aws emr / aws emr-serverless); EMR on EC2 release labels emr-6.x/emr-7.x"
+sources:
+  - url: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/emr/addsteps.py
+    license: "Apache-2.0 (aws/aws-cli repo)"
+  - url: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/emr/steputils.py
+    license: "Apache-2.0 (aws/aws-cli repo)"
+  - url: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/emr/createcluster.py
+    license: "Apache-2.0 (aws/aws-cli repo)"
+  - url: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/emr/emr.py
+    license: "Apache-2.0 (aws/aws-cli repo)"
+  - url: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/emr/describecluster.py
+    license: "Apache-2.0 (aws/aws-cli repo)"
+  - url: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/emr/modifyclusterattributes.py
+    license: "Apache-2.0 (aws/aws-cli repo)"
+  - url: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/emr/ssh.py
+    license: "Apache-2.0 (aws/aws-cli repo)"
+  - url: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/removals.py
+    license: "Apache-2.0 (aws/aws-cli repo)"
+  - url: https://github.com/boto/botocore/tree/develop/botocore/data/emr
+    license: "Apache-2.0 (boto/botocore repo)"
+  - url: https://github.com/boto/botocore/tree/develop/botocore/data/emr-serverless
+    license: "Apache-2.0 (boto/botocore repo)"
+  - url: https://awscli.amazonaws.com/v2/documentation/api/latest/reference/emr/index.html
+    license: "vendor docs; facts only"
+destructive_patterns:
+  - '\bterminate-clusters\b'
+  - '\bcancel-steps\b'
+  - '\bcancel-job-run\b'
+  - '\bdelete-application\b'
+templates:
+  # ---------------- steps: submit ----------------
+  - id: aws-emr.steps.add-spark
+    group: steps
+    intents:
+      - submit a spark step to emr cluster {CLUSTER_ID}
+      - submit a step running {SCRIPT} on my emr cluster
+      - add a pyspark job as an emr step
+      - run my spark script on emr in cluster mode
+      - emr add-steps spark {SCRIPT}
+      - kick off a spark step on the cluster
+    vars:
+      - {name: CLUSTER_ID, default: <cluster-id>, samples: [j-2AXK7Q1ZB3TQ9, j-1K48ZPLW9HCBT, j-3UN6WX5RRO2AG], ctx: emr_cluster}
+      - {name: SCRIPT, default: s3://<bucket>/jobs/etl.py, samples: [s3://acme-data/jobs/daily_etl.py, s3://analytics-code/spark/sessionize.py, s3://etl-artifacts/pyspark/load_orders.py]}
+      - {name: STEP_NAME, default: spark-step, samples: [daily-etl, sessionize, load-orders]}
+    body: aws emr add-steps --cluster-id "$CLUSTER_ID" --steps "Type=Spark,Name=$STEP_NAME,ActionOnFailure=CONTINUE,Args=[--deploy-mode,cluster,$SCRIPT]"
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/emr/steputils.py
+    verified: source
+
+  - id: aws-emr.steps.add-spark-profile
+    group: steps
+    intents:
+      - submit a spark step to {CLUSTER_ID} using profile {PROFILE} in {REGION}
+      - add a spark step with a specific aws profile and region
+      - run {SCRIPT} on emr with my {PROFILE} credentials
+      - submit spark job to emr in {REGION}
+      - push a spark step to the cluster under another account profile
+    vars:
+      - {name: CLUSTER_ID, default: <cluster-id>, samples: [j-2AXK7Q1ZB3TQ9, j-1K48ZPLW9HCBT, j-3UN6WX5RRO2AG], ctx: emr_cluster}
+      - {name: SCRIPT, default: s3://<bucket>/jobs/etl.py, samples: [s3://acme-data/jobs/daily_etl.py, s3://analytics-code/spark/dedupe.py]}
+      - {name: PROFILE, default: default, samples: [data-prod, analytics-dev, etl], ctx: aws_profile}
+      - {name: REGION, default: us-east-1, samples: [us-west-2, eu-west-1, ap-southeast-2], ctx: aws_region}
+    body: aws emr add-steps --cluster-id "$CLUSTER_ID" --steps "Type=Spark,Name=spark-step,ActionOnFailure=CONTINUE,Args=[--deploy-mode,cluster,$SCRIPT]" --profile "$PROFILE" --region "$REGION"
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/emr/steputils.py
+    verified: source
+
+  - id: aws-emr.steps.add-spark-conf
+    group: steps
+    intents:
+      - submit a spark step with {EXEC_MEM} executor memory
+      - add an emr spark step and set spark.executor.memory
+      - run spark on emr with bigger executors
+      - spark step with a custom executor memory conf on {CLUSTER_ID}
+      - emr step with spark conf override
+    vars:
+      - {name: CLUSTER_ID, default: <cluster-id>, samples: [j-2AXK7Q1ZB3TQ9, j-1K48ZPLW9HCBT], ctx: emr_cluster}
+      - {name: SCRIPT, default: s3://<bucket>/jobs/etl.py, samples: [s3://acme-data/jobs/aggregate.py, s3://analytics-code/spark/backfill.py]}
+      - {name: EXEC_MEM, default: 4g, samples: [8g, 16g, 2g]}
+    body: aws emr add-steps --cluster-id "$CLUSTER_ID" --steps "Type=Spark,Name=spark-step,ActionOnFailure=CONTINUE,Args=[--deploy-mode,cluster,--conf,spark.executor.memory=$EXEC_MEM,$SCRIPT]"
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/emr/steputils.py
+    verified: source
+
+  - id: aws-emr.steps.add-spark-args
+    group: steps
+    intents:
+      - submit a spark step and pass {RUN_DATE} as an argument to the script
+      - run my emr spark job for date {RUN_DATE}
+      - add spark step with script arguments
+      - backfill one day with a spark step on emr
+      - submit pyspark step with a --date parameter
+    vars:
+      - {name: CLUSTER_ID, default: <cluster-id>, samples: [j-2AXK7Q1ZB3TQ9, j-3UN6WX5RRO2AG], ctx: emr_cluster}
+      - {name: SCRIPT, default: s3://<bucket>/jobs/etl.py, samples: [s3://acme-data/jobs/daily_etl.py, s3://etl-artifacts/pyspark/load_orders.py]}
+      - {name: RUN_DATE, default: 2025-01-01, samples: [2025-06-30, 2024-12-31, 2025-03-15]}
+    body: aws emr add-steps --cluster-id "$CLUSTER_ID" --steps "Type=Spark,Name=spark-step,ActionOnFailure=CONTINUE,Args=[--deploy-mode,cluster,$SCRIPT,--date,$RUN_DATE]"
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/emr/steputils.py
+    verified: source
+
+  - id: aws-emr.steps.add-spark-class
+    group: steps
+    intents:
+      - submit a scala spark jar {JAR} with main class {MAIN_CLASS}
+      - run a spark jar as an emr step
+      - add a spark step with --class
+      - emr spark-submit a jar with a main class
+      - launch my compiled spark app on the cluster
+    vars:
+      - {name: CLUSTER_ID, default: <cluster-id>, samples: [j-2AXK7Q1ZB3TQ9, j-1K48ZPLW9HCBT], ctx: emr_cluster}
+      - {name: MAIN_CLASS, default: com.example.Main, samples: [com.acme.etl.DailyJob, org.example.Sessionize]}
+      - {name: JAR, default: s3://<bucket>/jars/app.jar, samples: [s3://acme-data/jars/etl-assembly-1.4.jar, s3://etl-artifacts/jars/sessionize.jar]}
+    body: aws emr add-steps --cluster-id "$CLUSTER_ID" --steps "Type=Spark,Name=spark-jar,ActionOnFailure=CONTINUE,Args=[--deploy-mode,cluster,--class,$MAIN_CLASS,$JAR]"
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/emr/steputils.py
+    verified: source
+
+  - id: aws-emr.steps.add-command-runner-spark
+    group: steps
+    intents:
+      - submit spark-submit through command-runner.jar on {CLUSTER_ID}
+      - add a custom jar step that calls spark-submit
+      - run spark-submit via command-runner
+      - emr step using command-runner.jar for {SCRIPT}
+      - submit a step with command-runner and spark-submit
+    vars:
+      - {name: CLUSTER_ID, default: <cluster-id>, samples: [j-2AXK7Q1ZB3TQ9, j-3UN6WX5RRO2AG], ctx: emr_cluster}
+      - {name: SCRIPT, default: s3://<bucket>/jobs/etl.py, samples: [s3://acme-data/jobs/daily_etl.py, s3://analytics-code/spark/sessionize.py]}
+      - {name: STEP_NAME, default: spark-submit, samples: [nightly-load, compaction]}
+    body: aws emr add-steps --cluster-id "$CLUSTER_ID" --steps "Type=CUSTOM_JAR,Name=$STEP_NAME,Jar=command-runner.jar,ActionOnFailure=CONTINUE,Args=[spark-submit,--deploy-mode,cluster,$SCRIPT]"
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/emr/steputils.py
+    verified: source
+
+  - id: aws-emr.steps.add-hive
+    group: steps
+    intents:
+      - run hive script {SCRIPT} as an emr step
+      - submit a hive step to cluster {CLUSTER_ID}
+      - add a hive query file step
+      - execute an hql file on emr
+      - emr hive step from s3
+    vars:
+      - {name: CLUSTER_ID, default: <cluster-id>, samples: [j-2AXK7Q1ZB3TQ9, j-1K48ZPLW9HCBT], ctx: emr_cluster}
+      - {name: SCRIPT, default: s3://<bucket>/hive/query.q, samples: [s3://acme-data/hive/daily_rollup.q, s3://analytics-code/hive/repair_partitions.hql]}
+    body: aws emr add-steps --cluster-id "$CLUSTER_ID" --steps "Type=Hive,Name=hive-step,ActionOnFailure=CONTINUE,Args=[-f,$SCRIPT]"
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/emr/steputils.py
+    verified: source
+
+  - id: aws-emr.steps.add-custom-jar
+    group: steps
+    intents:
+      - add a custom jar step {JAR} to the cluster
+      - run my own jar as an emr step
+      - submit a hadoop jar step with an argument
+      - emr custom_jar step
+      - run {JAR} on emr with input {ARG}
+    vars:
+      - {name: CLUSTER_ID, default: <cluster-id>, samples: [j-2AXK7Q1ZB3TQ9, j-3UN6WX5RRO2AG], ctx: emr_cluster}
+      - {name: JAR, default: s3://<bucket>/jars/app.jar, samples: [s3://acme-data/jars/wordcount.jar, s3://etl-artifacts/jars/ingest-2.1.jar]}
+      - {name: ARG, default: s3://<bucket>/input/, samples: [s3://acme-data/raw/2025/01/, s3://landing-zone/events/]}
+    body: aws emr add-steps --cluster-id "$CLUSTER_ID" --steps "Type=CUSTOM_JAR,Name=custom-jar,Jar=$JAR,ActionOnFailure=CONTINUE,Args=[$ARG]"
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/emr/steputils.py
+    verified: source
+
+  - id: aws-emr.steps.add-script-runner
+    group: steps
+    intents:
+      - run shell script {SCRIPT} from s3 as an emr step
+      - add a step that runs a bash script stored in s3
+      - emr script-runner step
+      - execute a .sh file on the master node via a step
+      - submit a shell script step to {CLUSTER_ID}
+    vars:
+      - {name: CLUSTER_ID, default: <cluster-id>, samples: [j-2AXK7Q1ZB3TQ9, j-1K48ZPLW9HCBT], ctx: emr_cluster}
+      - {name: REGION, default: us-east-1, samples: [us-west-2, eu-west-1], ctx: aws_region}
+      - {name: SCRIPT, default: s3://<bucket>/scripts/run.sh, samples: [s3://acme-data/scripts/install_deps.sh, s3://etl-artifacts/scripts/cleanup_tmp.sh]}
+    body: aws emr add-steps --cluster-id "$CLUSTER_ID" --steps "Type=CUSTOM_JAR,Name=script,ActionOnFailure=CONTINUE,Jar=s3://$REGION.elasticmapreduce/libs/script-runner/script-runner.jar,Args=[$SCRIPT]"
+    destructive: false
+    source: https://awscli.amazonaws.com/v2/documentation/api/latest/reference/emr/add-steps.html
+    verified: docs
+
+  - id: aws-emr.steps.add-from-file
+    group: steps
+    intents:
+      - add emr steps defined in {FILE}
+      - submit steps from a json file
+      - load step definitions from a local json and add them
+      - add-steps using file://
+      - submit several steps at once from a file
+    vars:
+      - {name: CLUSTER_ID, default: <cluster-id>, samples: [j-2AXK7Q1ZB3TQ9, j-3UN6WX5RRO2AG], ctx: emr_cluster}
+      - {name: FILE, default: steps.json, samples: [nightly_steps.json, conf/emr-steps.json], ctx: local_file}
+    body: aws emr add-steps --cluster-id "$CLUSTER_ID" --steps "file://$FILE"
+    destructive: false
+    source: https://awscli.amazonaws.com/v2/documentation/api/latest/reference/emr/add-steps.html
+    verified: docs
+
+  - id: aws-emr.steps.add-get-id
+    group: steps
+    intents:
+      - submit a spark step and print only the step id
+      - add a step and give me back the step id
+      - submit spark job to emr and capture the id
+      - add-steps returning just the id text
+    vars:
+      - {name: CLUSTER_ID, default: <cluster-id>, samples: [j-2AXK7Q1ZB3TQ9, j-1K48ZPLW9HCBT], ctx: emr_cluster}
+      - {name: SCRIPT, default: s3://<bucket>/jobs/etl.py, samples: [s3://acme-data/jobs/daily_etl.py, s3://analytics-code/spark/sessionize.py]}
+    body: aws emr add-steps --cluster-id "$CLUSTER_ID" --steps "Type=Spark,Name=spark-step,ActionOnFailure=CONTINUE,Args=[--deploy-mode,cluster,$SCRIPT]" --query 'StepIds[0]' --output text
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/emr/addsteps.py
+    verified: source
+
+  # ---------------- steps: monitor ----------------
+  - id: aws-emr.steps.list
+    group: steps
+    intents:
+      - list steps on emr cluster {CLUSTER_ID}
+      - show all steps for the cluster
+      - what steps ran on this cluster
+      - emr list-steps
+      - step history for {CLUSTER_ID}
+    vars:
+      - {name: CLUSTER_ID, default: <cluster-id>, samples: [j-2AXK7Q1ZB3TQ9, j-1K48ZPLW9HCBT, j-3UN6WX5RRO2AG], ctx: emr_cluster}
+    body: aws emr list-steps --cluster-id "$CLUSTER_ID"
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/emr
+    verified: help
+
+  - id: aws-emr.steps.list-by-state
+    group: steps
+    intents:
+      - list {STATE} steps on {CLUSTER_ID}
+      - show only steps in state {STATE}
+      - which steps are currently running on the cluster
+      - filter emr steps by status
+    vars:
+      - {name: CLUSTER_ID, default: <cluster-id>, samples: [j-2AXK7Q1ZB3TQ9, j-1K48ZPLW9HCBT], ctx: emr_cluster}
+      - {name: STATE, default: RUNNING, samples: [FAILED, PENDING, COMPLETED, CANCELLED]}
+    body: aws emr list-steps --cluster-id "$CLUSTER_ID" --step-states "$STATE"
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/emr
+    verified: help
+
+  # An intent that names a state gets a template whose default is that state.
+  - id: aws-emr.steps.list-failed
+    group: steps
+    intents:
+      - find failed emr steps
+      - which steps failed on {CLUSTER_ID}
+      - show the emr steps that failed
+    vars:
+      - {name: CLUSTER_ID, default: <cluster-id>, samples: [j-2AXK7Q1ZB3TQ9, j-1K48ZPLW9HCBT], ctx: emr_cluster}
+      - {name: STATE, default: FAILED}
+    body: aws emr list-steps --cluster-id "$CLUSTER_ID" --step-states "$STATE"
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/emr
+    verified: help
+
+  - id: aws-emr.steps.list-table
+    group: steps
+    intents:
+      - show emr steps as a table with id name and state
+      - list steps compactly for {CLUSTER_ID}
+      - step ids names and statuses in a table
+      - quick overview of steps on the cluster
+    vars:
+      - {name: CLUSTER_ID, default: <cluster-id>, samples: [j-2AXK7Q1ZB3TQ9, j-3UN6WX5RRO2AG], ctx: emr_cluster}
+    body: aws emr list-steps --cluster-id "$CLUSTER_ID" --query 'Steps[].[Id,Name,Status.State]' --output table
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/emr
+    verified: help
+
+  - id: aws-emr.steps.latest-state
+    group: steps
+    intents:
+      - what's the state of the most recent step on {CLUSTER_ID}
+      - status of the last emr step
+      - did my latest step finish
+      - newest step id and state
+    vars:
+      - {name: CLUSTER_ID, default: <cluster-id>, samples: [j-2AXK7Q1ZB3TQ9, j-1K48ZPLW9HCBT], ctx: emr_cluster}
+    body: aws emr list-steps --cluster-id "$CLUSTER_ID" --max-items 1 --query 'Steps[0].[Id,Name,Status.State]' --output text
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/emr
+    verified: help
+
+  - id: aws-emr.steps.describe
+    group: steps
+    intents:
+      - describe step {STEP_ID} on cluster {CLUSTER_ID}
+      - show details of an emr step
+      - get full info for a step
+      - emr describe-step
+    vars:
+      - {name: CLUSTER_ID, default: <cluster-id>, samples: [j-2AXK7Q1ZB3TQ9, j-3UN6WX5RRO2AG], ctx: emr_cluster}
+      - {name: STEP_ID, default: <step-id>, samples: [s-2LFQ3XYZ8ABC1, s-1NV9KQ0TT7W2E, s-3HD8PLM4QZX6R]}
+    body: aws emr describe-step --cluster-id "$CLUSTER_ID" --step-id "$STEP_ID"
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/emr
+    verified: help
+
+  - id: aws-emr.steps.state
+    group: steps
+    intents:
+      - is step {STEP_ID} done
+      - just print the state of an emr step
+      - check status of step {STEP_ID}
+      - step state as plain text
+      - has my emr step completed yet
+    vars:
+      - {name: CLUSTER_ID, default: <cluster-id>, samples: [j-2AXK7Q1ZB3TQ9, j-1K48ZPLW9HCBT], ctx: emr_cluster}
+      - {name: STEP_ID, default: <step-id>, samples: [s-2LFQ3XYZ8ABC1, s-1NV9KQ0TT7W2E]}
+    body: aws emr describe-step --cluster-id "$CLUSTER_ID" --step-id "$STEP_ID" --query 'Step.Status.State' --output text
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/emr
+    verified: help
+
+  - id: aws-emr.steps.failure-reason
+    group: steps
+    intents:
+      - why did step {STEP_ID} fail
+      - show the failure details for an emr step
+      - get the error reason and log file of a failed step
+      - emr step failure message
+    vars:
+      - {name: CLUSTER_ID, default: <cluster-id>, samples: [j-2AXK7Q1ZB3TQ9, j-3UN6WX5RRO2AG], ctx: emr_cluster}
+      - {name: STEP_ID, default: <step-id>, samples: [s-2LFQ3XYZ8ABC1, s-3HD8PLM4QZX6R]}
+    body: aws emr describe-step --cluster-id "$CLUSTER_ID" --step-id "$STEP_ID" --query 'Step.Status.FailureDetails'
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/emr
+    verified: help
+
+  - id: aws-emr.steps.wait
+    group: steps
+    intents:
+      - wait until step {STEP_ID} completes
+      - block until the emr step finishes
+      - poll until my step is done
+      - emr wait step-complete
+      - hang here till the step succeeds
+    vars:
+      - {name: CLUSTER_ID, default: <cluster-id>, samples: [j-2AXK7Q1ZB3TQ9, j-1K48ZPLW9HCBT], ctx: emr_cluster}
+      - {name: STEP_ID, default: <step-id>, samples: [s-2LFQ3XYZ8ABC1, s-1NV9KQ0TT7W2E]}
+    body: aws emr wait step-complete --cluster-id "$CLUSTER_ID" --step-id "$STEP_ID"
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/emr
+    verified: help
+
+  - id: aws-emr.steps.cancel
+    group: steps
+    intents:
+      - cancel step {STEP_ID} on {CLUSTER_ID}
+      - kill a running emr step
+      - stop that emr step
+      - emr cancel-steps
+      - abort the pending step
+    vars:
+      - {name: CLUSTER_ID, default: <cluster-id>, samples: [j-2AXK7Q1ZB3TQ9, j-3UN6WX5RRO2AG], ctx: emr_cluster}
+      - {name: STEP_ID, default: <step-id>, samples: [s-2LFQ3XYZ8ABC1, s-3HD8PLM4QZX6R]}
+    body: aws emr cancel-steps --cluster-id "$CLUSTER_ID" --step-ids "$STEP_ID"
+    destructive: true
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/emr
+    verified: help
+
+  - id: aws-emr.steps.stderr
+    group: logs
+    intents:
+      - show the stderr log of step {STEP_ID}
+      - read the last lines of an emr step's error log from s3
+      - get step logs for a failed emr step
+      - tail the step stderr from the log bucket
+      - where's the spark error for my step, show it
+    vars:
+      - {name: LOG_URI, default: s3://<bucket>/emr-logs, samples: [s3://acme-logs/emr, s3://data-platform-logs/elasticmapreduce]}
+      - {name: CLUSTER_ID, default: <cluster-id>, samples: [j-2AXK7Q1ZB3TQ9, j-1K48ZPLW9HCBT], ctx: emr_cluster}
+      - {name: STEP_ID, default: <step-id>, samples: [s-2LFQ3XYZ8ABC1, s-1NV9KQ0TT7W2E]}
+    body: aws s3 cp "$LOG_URI/$CLUSTER_ID/steps/$STEP_ID/stderr.gz" - | gunzip | tail -n 100
+    destructive: false
+    source: https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/cp.html
+    verified: help
+    notes: "Step logs land under <log-uri>/<cluster-id>/steps/<step-id>/ a few minutes after the step ends."
+
+  - id: aws-emr.steps.list-logs
+    group: logs
+    intents:
+      - list the log files for step {STEP_ID}
+      - what logs exist for this emr step in s3
+      - browse the step log folder
+      - ls the emr step logs
+    vars:
+      - {name: LOG_URI, default: s3://<bucket>/emr-logs, samples: [s3://acme-logs/emr, s3://data-platform-logs/elasticmapreduce]}
+      - {name: CLUSTER_ID, default: <cluster-id>, samples: [j-2AXK7Q1ZB3TQ9, j-3UN6WX5RRO2AG], ctx: emr_cluster}
+      - {name: STEP_ID, default: <step-id>, samples: [s-2LFQ3XYZ8ABC1, s-3HD8PLM4QZX6R]}
+    body: aws s3 ls "$LOG_URI/$CLUSTER_ID/steps/$STEP_ID/"
+    destructive: false
+    source: https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/ls.html
+    verified: help
+
+  - id: aws-emr.cluster.log-uri
+    group: logs
+    intents:
+      - where does cluster {CLUSTER_ID} write its logs
+      - get the log uri of an emr cluster
+      - find the s3 log location for the cluster
+      - emr log bucket for this cluster
+    vars:
+      - {name: CLUSTER_ID, default: <cluster-id>, samples: [j-2AXK7Q1ZB3TQ9, j-1K48ZPLW9HCBT], ctx: emr_cluster}
+    body: aws emr describe-cluster --cluster-id "$CLUSTER_ID" --query 'Cluster.LogUri' --output text
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/emr/describecluster.py
+    verified: source
+
+  # ---------------- clusters ----------------
+  - id: aws-emr.cluster.list-active
+    group: clusters
+    intents:
+      - list active emr clusters
+      - which emr clusters are running right now
+      - show my live clusters with id name and state
+      - emr list-clusters --active
+      - what clusters are up
+    vars: []
+    body: aws emr list-clusters --active --query 'Clusters[].[Id,Name,Status.State]' --output table
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/emr/listclusters.py
+    verified: source
+
+  - id: aws-emr.cluster.list-active-profile
+    group: clusters
+    intents:
+      - list active emr clusters in {REGION} for profile {PROFILE}
+      - show running clusters in another region
+      - emr clusters up in {REGION}
+      - what emr clusters does the {PROFILE} account have running
+    vars:
+      - {name: PROFILE, default: default, samples: [data-prod, analytics-dev, etl], ctx: aws_profile}
+      - {name: REGION, default: us-east-1, samples: [us-west-2, eu-west-1, eu-central-1], ctx: aws_region}
+    body: aws emr list-clusters --active --profile "$PROFILE" --region "$REGION"
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/emr/listclusters.py
+    verified: source
+
+  - id: aws-emr.cluster.list-terminated
+    group: clusters
+    intents:
+      - list emr clusters terminated since {SINCE}
+      - show clusters that shut down recently
+      - which clusters were terminated after {SINCE}
+      - old emr clusters list
+    vars:
+      - {name: SINCE, default: 2025-01-01T00:00:00, samples: [2025-06-01T00:00:00, 2024-11-15T00:00:00]}
+    body: aws emr list-clusters --terminated --created-after "$SINCE" --query 'Clusters[].[Id,Name,Status.State]' --output table
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/emr/listclusters.py
+    verified: source
+
+  - id: aws-emr.cluster.list-failed
+    group: clusters
+    intents:
+      - list emr clusters that failed
+      - show clusters terminated with errors
+      - which clusters crashed
+      - emr failed clusters
+    vars: []
+    body: aws emr list-clusters --failed
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/emr/listclusters.py
+    verified: source
+
+  - id: aws-emr.cluster.describe
+    group: clusters
+    intents:
+      - describe emr cluster {CLUSTER_ID}
+      - show full details of the cluster
+      - get cluster config and status
+      - emr describe-cluster
+    vars:
+      - {name: CLUSTER_ID, default: <cluster-id>, samples: [j-2AXK7Q1ZB3TQ9, j-1K48ZPLW9HCBT, j-3UN6WX5RRO2AG], ctx: emr_cluster}
+    body: aws emr describe-cluster --cluster-id "$CLUSTER_ID"
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/emr/describecluster.py
+    verified: source
+
+  - id: aws-emr.cluster.state
+    group: clusters
+    intents:
+      - what state is cluster {CLUSTER_ID} in
+      - is my emr cluster waiting or running
+      - print the emr cluster status
+      - cluster state only
+      - check if the cluster is ready
+    vars:
+      - {name: CLUSTER_ID, default: <cluster-id>, samples: [j-2AXK7Q1ZB3TQ9, j-1K48ZPLW9HCBT], ctx: emr_cluster}
+    body: aws emr describe-cluster --cluster-id "$CLUSTER_ID" --query 'Cluster.Status.State' --output text
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/emr/describecluster.py
+    verified: source
+
+  - id: aws-emr.cluster.master-dns
+    group: clusters
+    intents:
+      - get the master node dns of {CLUSTER_ID}
+      - what's the primary node hostname of my emr cluster
+      - master public dns for the cluster
+      - emr master address
+    vars:
+      - {name: CLUSTER_ID, default: <cluster-id>, samples: [j-2AXK7Q1ZB3TQ9, j-3UN6WX5RRO2AG], ctx: emr_cluster}
+    body: aws emr describe-cluster --cluster-id "$CLUSTER_ID" --query 'Cluster.MasterPublicDnsName' --output text
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/emr/describecluster.py
+    verified: source
+
+  - id: aws-emr.cluster.instance-groups
+    group: clusters
+    intents:
+      - show instance groups of cluster {CLUSTER_ID}
+      - how many core and task nodes does the cluster have
+      - list emr instance group ids and counts
+      - node group sizes for my cluster
+    vars:
+      - {name: CLUSTER_ID, default: <cluster-id>, samples: [j-2AXK7Q1ZB3TQ9, j-1K48ZPLW9HCBT], ctx: emr_cluster}
+    body: aws emr describe-cluster --cluster-id "$CLUSTER_ID" --query 'Cluster.InstanceGroups[].[Id,InstanceGroupType,InstanceType,RequestedInstanceCount,RunningInstanceCount]' --output table
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/emr/describecluster.py
+    verified: source
+    notes: "list-instance-groups is removed from the CLI command table; describe-cluster merges InstanceGroups in."
+
+  - id: aws-emr.cluster.master-ip
+    group: clusters
+    intents:
+      - private ip of the master node on {CLUSTER_ID}
+      - list the emr primary instance ip
+      - get master node private address
+      - emr list-instances for master
+    vars:
+      - {name: CLUSTER_ID, default: <cluster-id>, samples: [j-2AXK7Q1ZB3TQ9, j-3UN6WX5RRO2AG], ctx: emr_cluster}
+    body: aws emr list-instances --cluster-id "$CLUSTER_ID" --instance-group-types MASTER --query 'Instances[].PrivateIpAddress' --output text
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/emr
+    verified: help
+
+  - id: aws-emr.cluster.create
+    group: clusters
+    intents:
+      - create an emr cluster {NAME} with spark on release {RELEASE}
+      - spin up a new emr cluster with {COUNT} {INSTANCE_TYPE} nodes
+      - launch a spark cluster on emr
+      - emr create-cluster with default roles
+      - start a fresh emr cluster
+    vars:
+      - {name: NAME, default: my-cluster, samples: [adhoc-spark, nightly-etl, backfill-2025]}
+      - {name: RELEASE, default: emr-7.5.0, samples: [emr-7.3.0, emr-6.15.0, emr-7.1.0]}
+      - {name: INSTANCE_TYPE, default: m5.xlarge, samples: [r5.2xlarge, m6g.xlarge, c5.4xlarge]}
+      - {name: COUNT, default: "3", samples: ["2", "5", "10"]}
+    body: aws emr create-cluster --name "$NAME" --release-label "$RELEASE" --applications Name=Spark Name=Hadoop --instance-type "$INSTANCE_TYPE" --instance-count "$COUNT" --use-default-roles
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/emr/createcluster.py
+    verified: source
+
+  - id: aws-emr.cluster.create-logs-idle
+    group: clusters
+    intents:
+      - create an emr cluster that logs to {BUCKET} and shuts down after {IDLE} seconds idle
+      - launch emr with a log uri and idle auto termination
+      - create a cluster that terminates itself when idle
+      - emr cluster with logging and auto-termination policy
+    vars:
+      - {name: NAME, default: my-cluster, samples: [adhoc-spark, dev-sandbox]}
+      - {name: RELEASE, default: emr-7.5.0, samples: [emr-7.3.0, emr-6.15.0]}
+      - {name: BUCKET, default: <bucket>, samples: [acme-logs, data-platform-logs], ctx: s3_bucket}
+      - {name: IDLE, default: "3600", samples: ["1800", "7200"]}
+    body: aws emr create-cluster --name "$NAME" --release-label "$RELEASE" --applications Name=Spark --instance-type m5.xlarge --instance-count 3 --use-default-roles --log-uri "s3://$BUCKET/emr-logs/" --auto-termination-policy IdleTimeout="$IDLE"
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/emr/createcluster.py
+    verified: source
+
+  - id: aws-emr.cluster.create-transient
+    group: clusters
+    intents:
+      - create a transient emr cluster that runs {SCRIPT} and then terminates
+      - spin up emr, run one spark step, auto terminate
+      - one-shot cluster for a spark job
+      - create cluster with a step and --auto-terminate
+      - launch an ephemeral spark cluster for my script
+    vars:
+      - {name: NAME, default: my-cluster, samples: [nightly-etl, backfill-job]}
+      - {name: SCRIPT, default: s3://<bucket>/jobs/etl.py, samples: [s3://acme-data/jobs/daily_etl.py, s3://analytics-code/spark/backfill.py]}
+    body: aws emr create-cluster --name "$NAME" --release-label emr-7.5.0 --applications Name=Spark --instance-type m5.xlarge --instance-count 3 --use-default-roles --steps "Type=Spark,Name=main,ActionOnFailure=TERMINATE_CLUSTER,Args=[--deploy-mode,cluster,$SCRIPT]" --auto-terminate
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/emr/createcluster.py
+    verified: source
+
+  - id: aws-emr.cluster.default-roles
+    group: setup
+    intents:
+      - create the default emr roles
+      - set up EMR_DefaultRole and the ec2 instance profile
+      - emr create-default-roles
+      - first time emr setup, make the iam roles
+    vars: []
+    body: aws emr create-default-roles
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/emr/emr.py
+    verified: source
+
+  - id: aws-emr.cluster.wait-running
+    group: clusters
+    intents:
+      - wait until cluster {CLUSTER_ID} is running
+      - block until the emr cluster is up
+      - wait for the new cluster to be ready
+      - emr wait cluster-running
+    vars:
+      - {name: CLUSTER_ID, default: <cluster-id>, samples: [j-2AXK7Q1ZB3TQ9, j-1K48ZPLW9HCBT], ctx: emr_cluster}
+    body: aws emr wait cluster-running --cluster-id "$CLUSTER_ID"
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/emr
+    verified: help
+
+  - id: aws-emr.cluster.resize
+    group: clusters
+    intents:
+      - resize instance group {GROUP_ID} to {COUNT} nodes
+      - scale the core nodes of my emr cluster
+      - change the node count of an instance group
+      - add more task nodes to the cluster
+      - emr modify-instance-groups
+    vars:
+      - {name: CLUSTER_ID, default: <cluster-id>, samples: [j-2AXK7Q1ZB3TQ9, j-3UN6WX5RRO2AG], ctx: emr_cluster}
+      - {name: GROUP_ID, default: <instance-group-id>, samples: [ig-1XYZ8ABCD2EF3, ig-3QWE7RTY0UIO1]}
+      - {name: COUNT, default: "5", samples: ["2", "8", "20"]}
+    body: aws emr modify-instance-groups --cluster-id "$CLUSTER_ID" --instance-groups InstanceGroupId="$GROUP_ID",InstanceCount="$COUNT"
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/emr
+    verified: help
+
+  - id: aws-emr.cluster.protect
+    group: clusters
+    intents:
+      - turn on termination protection for {CLUSTER_ID}
+      - protect the emr cluster from being terminated
+      - enable termination protection
+      - lock the cluster so nobody kills it
+    vars:
+      - {name: CLUSTER_ID, default: <cluster-id>, samples: [j-2AXK7Q1ZB3TQ9, j-1K48ZPLW9HCBT], ctx: emr_cluster}
+    body: aws emr modify-cluster-attributes --cluster-id "$CLUSTER_ID" --termination-protected
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/emr/modifyclusterattributes.py
+    verified: source
+    notes: "set-termination-protection is removed from the CLI; modify-cluster-attributes is the CLI way."
+
+  - id: aws-emr.cluster.unprotect
+    group: clusters
+    intents:
+      - turn off termination protection on {CLUSTER_ID}
+      - disable termination protection so I can shut it down
+      - remove termination protection from the cluster
+      - unprotect emr cluster
+    vars:
+      - {name: CLUSTER_ID, default: <cluster-id>, samples: [j-2AXK7Q1ZB3TQ9, j-3UN6WX5RRO2AG], ctx: emr_cluster}
+    body: aws emr modify-cluster-attributes --cluster-id "$CLUSTER_ID" --no-termination-protected
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/emr/modifyclusterattributes.py
+    verified: source
+
+  - id: aws-emr.cluster.terminate
+    group: clusters
+    intents:
+      - terminate emr cluster {CLUSTER_ID}
+      - shut down the cluster
+      - kill my emr cluster
+      - emr terminate-clusters
+      - tear down the cluster, I'm done with it
+    vars:
+      - {name: CLUSTER_ID, default: <cluster-id>, samples: [j-2AXK7Q1ZB3TQ9, j-1K48ZPLW9HCBT, j-3UN6WX5RRO2AG], ctx: emr_cluster}
+    body: aws emr terminate-clusters --cluster-ids "$CLUSTER_ID"
+    destructive: true
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/emr/terminateclusters.py
+    verified: source
+
+  - id: aws-emr.cluster.ssh
+    group: clusters
+    intents:
+      - ssh into the master node of {CLUSTER_ID}
+      - connect to the emr primary node with my key {KEY_FILE}
+      - open a shell on the emr master
+      - emr ssh
+    vars:
+      - {name: CLUSTER_ID, default: <cluster-id>, samples: [j-2AXK7Q1ZB3TQ9, j-1K48ZPLW9HCBT], ctx: emr_cluster}
+      - {name: KEY_FILE, default: ~/.ssh/emr-key.pem, samples: [~/.ssh/data-team.pem, ~/keys/emr-dev.pem], ctx: local_file}
+    body: aws emr ssh --cluster-id "$CLUSTER_ID" --key-pair-file "$KEY_FILE"
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/emr/ssh.py
+    verified: source
+
+  # ---------------- EMR Serverless ----------------
+  - id: aws-emr.serverless.start-job-run
+    group: serverless
+    intents:
+      - submit a spark job to emr serverless application {APP_ID}
+      - run {SCRIPT} on emr serverless
+      - start an emr serverless job run
+      - emr-serverless start-job-run with sparkSubmit entry point
+      - kick off a serverless spark job
+    vars:
+      - {name: APP_ID, default: <application-id>, samples: [00fkq2r8abcd1234, 00fl7m9zxyw45678]}
+      - {name: ROLE_ARN, default: <execution-role-arn>, samples: ["arn:aws:iam::123456789012:role/EMRServerlessJobRole", "arn:aws:iam::123456789012:role/emr-serverless-etl"]}
+      - {name: SCRIPT, default: s3://<bucket>/jobs/etl.py, samples: [s3://acme-data/jobs/daily_etl.py, s3://analytics-code/spark/sessionize.py]}
+    body: aws emr-serverless start-job-run --application-id "$APP_ID" --execution-role-arn "$ROLE_ARN" --job-driver "{\"sparkSubmit\":{\"entryPoint\":\"$SCRIPT\"}}"
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/emr-serverless
+    verified: help
+
+  - id: aws-emr.serverless.start-job-run-params
+    group: serverless
+    intents:
+      - start an emr serverless job named {JOB_NAME} with 4 executor cores
+      - submit serverless spark with sparkSubmitParameters
+      - run a named emr serverless job with spark conf
+      - emr serverless job with custom spark settings
+    vars:
+      - {name: APP_ID, default: <application-id>, samples: [00fkq2r8abcd1234, 00fl7m9zxyw45678]}
+      - {name: ROLE_ARN, default: <execution-role-arn>, samples: ["arn:aws:iam::123456789012:role/EMRServerlessJobRole"]}
+      - {name: SCRIPT, default: s3://<bucket>/jobs/etl.py, samples: [s3://acme-data/jobs/daily_etl.py, s3://etl-artifacts/pyspark/load_orders.py]}
+      - {name: JOB_NAME, default: etl-run, samples: [daily-orders, backfill-jan]}
+    body: aws emr-serverless start-job-run --application-id "$APP_ID" --execution-role-arn "$ROLE_ARN" --name "$JOB_NAME" --job-driver "{\"sparkSubmit\":{\"entryPoint\":\"$SCRIPT\",\"sparkSubmitParameters\":\"--conf spark.executor.cores=4\"}}"
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/emr-serverless
+    verified: help
+
+  - id: aws-emr.serverless.get-job-run
+    group: serverless
+    intents:
+      - get emr serverless job run {RUN_ID}
+      - show details of a serverless job run
+      - describe the emr serverless run
+      - emr-serverless get-job-run
+    vars:
+      - {name: APP_ID, default: <application-id>, samples: [00fkq2r8abcd1234, 00fl7m9zxyw45678]}
+      - {name: RUN_ID, default: <job-run-id>, samples: [00fkq3a1b2c3d4e5, 00fl8n0p9q8r7s6t]}
+    body: aws emr-serverless get-job-run --application-id "$APP_ID" --job-run-id "$RUN_ID"
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/emr-serverless
+    verified: help
+
+  - id: aws-emr.serverless.job-state
+    group: serverless
+    intents:
+      - is emr serverless run {RUN_ID} finished
+      - state of my serverless spark job
+      - print just the job run state
+      - check serverless job status
+    vars:
+      - {name: APP_ID, default: <application-id>, samples: [00fkq2r8abcd1234, 00fl7m9zxyw45678]}
+      - {name: RUN_ID, default: <job-run-id>, samples: [00fkq3a1b2c3d4e5, 00fl8n0p9q8r7s6t]}
+    body: aws emr-serverless get-job-run --application-id "$APP_ID" --job-run-id "$RUN_ID" --query 'jobRun.[state,stateDetails]' --output text
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/emr-serverless
+    verified: help
+
+  - id: aws-emr.serverless.list-job-runs
+    group: serverless
+    intents:
+      - list job runs for emr serverless app {APP_ID}
+      - show recent serverless job runs
+      - what jobs ran on this serverless application
+      - emr-serverless list-job-runs
+    vars:
+      - {name: APP_ID, default: <application-id>, samples: [00fkq2r8abcd1234, 00fl7m9zxyw45678]}
+    body: aws emr-serverless list-job-runs --application-id "$APP_ID" --query 'jobRuns[].[id,name,state,createdAt]' --output table
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/emr-serverless
+    verified: help
+
+  - id: aws-emr.serverless.list-job-runs-state
+    group: serverless
+    intents:
+      - list {STATE} job runs on emr serverless
+      - show failed emr serverless jobs
+      - filter emr serverless runs by state
+    vars:
+      - {name: APP_ID, default: <application-id>, samples: [00fkq2r8abcd1234, 00fl7m9zxyw45678]}
+      - {name: STATE, default: FAILED, samples: [RUNNING, SUCCESS, PENDING, CANCELLED]}
+    body: aws emr-serverless list-job-runs --application-id "$APP_ID" --states "$STATE"
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/emr-serverless
+    verified: help
+
+  - id: aws-emr.serverless.list-job-runs-running
+    group: serverless
+    intents:
+      - which serverless runs are still running
+      - show emr serverless jobs that are running now
+      - list running job runs on serverless app {APP_ID}
+    vars:
+      - {name: APP_ID, default: <application-id>, samples: [00fkq2r8abcd1234, 00fl7m9zxyw45678]}
+      - {name: STATE, default: RUNNING}
+    body: aws emr-serverless list-job-runs --application-id "$APP_ID" --states "$STATE"
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/emr-serverless
+    verified: help
+
+  - id: aws-emr.serverless.dashboard
+    group: serverless
+    intents:
+      - get the spark ui link for serverless run {RUN_ID}
+      - open the dashboard of an emr serverless job
+      - spark history url for my serverless job
+      - emr serverless job dashboard url
+    vars:
+      - {name: APP_ID, default: <application-id>, samples: [00fkq2r8abcd1234, 00fl7m9zxyw45678]}
+      - {name: RUN_ID, default: <job-run-id>, samples: [00fkq3a1b2c3d4e5, 00fl8n0p9q8r7s6t]}
+    body: aws emr-serverless get-dashboard-for-job-run --application-id "$APP_ID" --job-run-id "$RUN_ID" --query url --output text
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/emr-serverless
+    verified: help
+
+  - id: aws-emr.serverless.cancel-job-run
+    group: serverless
+    intents:
+      - cancel emr serverless job run {RUN_ID}
+      - kill the serverless spark job
+      - stop a running emr serverless job
+      - emr-serverless cancel-job-run
+    vars:
+      - {name: APP_ID, default: <application-id>, samples: [00fkq2r8abcd1234, 00fl7m9zxyw45678]}
+      - {name: RUN_ID, default: <job-run-id>, samples: [00fkq3a1b2c3d4e5, 00fl8n0p9q8r7s6t]}
+    body: aws emr-serverless cancel-job-run --application-id "$APP_ID" --job-run-id "$RUN_ID"
+    destructive: true
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/emr-serverless
+    verified: help
+
+  - id: aws-emr.serverless.list-applications
+    group: serverless
+    intents:
+      - list emr serverless applications
+      - show my serverless apps with id and state
+      - which emr serverless applications exist
+      - emr-serverless list-applications
+    vars: []
+    body: aws emr-serverless list-applications --query 'applications[].[id,name,state,releaseLabel]' --output table
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/emr-serverless
+    verified: help
+
+  - id: aws-emr.serverless.start-application
+    group: serverless
+    intents:
+      - start emr serverless application {APP_ID}
+      - warm up the serverless app
+      - bring the emr serverless application up
+      - emr-serverless start-application
+    vars:
+      - {name: APP_ID, default: <application-id>, samples: [00fkq2r8abcd1234, 00fl7m9zxyw45678]}
+    body: aws emr-serverless start-application --application-id "$APP_ID"
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/emr-serverless
+    verified: help
+
+  - id: aws-emr.serverless.stop-application
+    group: serverless
+    intents:
+      - stop emr serverless application {APP_ID}
+      - shut the serverless app down to save money
+      - stop the emr serverless application
+      - emr-serverless stop-application
+    vars:
+      - {name: APP_ID, default: <application-id>, samples: [00fkq2r8abcd1234, 00fl7m9zxyw45678]}
+    body: aws emr-serverless stop-application --application-id "$APP_ID"
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/emr-serverless
+    verified: help

@@ -1,0 +1,10 @@
+{
+ "https://github.com/rclone/rclone/blob/master/docs/content/flags.md": {
+  "sha256": "db2c3e93c6708cfe55d36821fa44fd8f0a71e47a1de7a5cd0f4d70088021ef1f",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/rclone/rclone/blob/master/docs/content/install.md": {
+  "sha256": "59a1ce1a549aeacd1d389ce2e242c91a17cd928e1bd3687df5019cf4b423eccb",
+  "fetched": "2026-11-26"
+ }
+}

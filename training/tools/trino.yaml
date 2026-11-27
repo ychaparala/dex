@@ -1,0 +1,204 @@
+tool: trino
+binaries:
+- trino
+category: databases
+priority: standard
+target_pairs: 80
+version_note: Trino CLI 4xx
+install:
+- macos: ["brew install trino"]
+  source: ["https://github.com/Homebrew/homebrew-core/blob/HEAD/Formula/t/trino.rb"]
+sources:
+- url: https://github.com/trinodb/trino/blob/master/client/trino-cli/src/main/java/io/trino/cli/ClientOptions.java
+  license: Apache-2.0 (repo)
+- url: https://github.com/Homebrew/homebrew-core/blob/HEAD/Formula/t/trino.rb
+  license: BSD-2-Clause (Homebrew repo)
+destructive_patterns:
+- (?i)\b(drop|truncate)\s+(table|schema|view)\b
+- (?i)\bdelete\s+from\b
+templates:
+- id: trino.install
+  group: setup
+  intents:
+  - install the trino cli with brew
+  - brew install trino
+  - get the trino command line
+  - install trino client on mac
+  vars: []
+  body: brew install trino
+  destructive: false
+  source: https://github.com/Homebrew/homebrew-core/blob/HEAD/Formula/t/trino.rb
+  verified: source
+- id: trino.version
+  group: setup
+  intents:
+  - what trino cli version
+  - trino --version
+  - check the trino client is installed
+  - print trino cli version
+  vars: []
+  body: trino --version
+  destructive: false
+  source: https://github.com/trinodb/trino/blob/master/client/trino-cli/src/main/java/io/trino/cli/ClientOptions.java
+  verified: source
+- id: trino.connect
+  group: connect
+  intents:
+  - connect to trino at {SERVER} using catalog {CATALOG}
+  - open a trino shell
+  - trino cli interactive session
+  - start trino with a catalog and schema
+  vars:
+  - name: SERVER
+    default: https://trino.example.com
+    samples:
+    - https://trino.example.com:8443
+    - http://localhost:8080
+  - name: CATALOG
+    default: hive
+    samples:
+    - iceberg
+    - postgresql
+    - delta
+  - name: SCHEMA
+    default: default
+    samples:
+    - analytics
+    - raw
+  body: trino --server "$SERVER" --catalog "$CATALOG" --schema "$SCHEMA"
+  destructive: false
+  source: https://github.com/trinodb/trino/blob/master/client/trino-cli/src/main/java/io/trino/cli/ClientOptions.java
+  verified: source
+- id: trino.execute
+  group: query
+  intents:
+  - run {QUERY} on trino
+  - execute one trino query and exit
+  - trino --execute
+  - query trino from a script
+  vars:
+  - name: SERVER
+    default: https://trino.example.com
+    samples:
+    - https://trino.example.com:8443
+    - http://localhost:8080
+  - name: QUERY
+    default: select count(*) from hive.default.events
+    samples:
+    - show catalogs
+    - show schemas from iceberg
+  body: trino --server "$SERVER" --execute "$QUERY"
+  destructive: false
+  source: https://github.com/trinodb/trino/blob/master/client/trino-cli/src/main/java/io/trino/cli/ClientOptions.java
+  verified: source
+- id: trino.execute.csv
+  group: query
+  intents:
+  - export {QUERY} from trino to {OUT_FILE} as csv with header
+  - trino query to csv
+  - save trino results to a file
+  - csv output from trino
+  vars:
+  - name: SERVER
+    default: https://trino.example.com
+    samples:
+    - https://trino.example.com:8443
+    - http://localhost:8080
+  - name: QUERY
+    default: select * from iceberg.analytics.orders limit 1000
+    samples:
+    - select * from hive.raw.events where dt = '2025-06-01'
+  - name: OUT_FILE
+    default: out.csv
+    samples:
+    - orders.csv
+  body: trino --server "$SERVER" --execute "$QUERY" --output-format CSV_HEADER > "$OUT_FILE"
+  destructive: false
+  source: https://github.com/trinodb/trino/blob/master/client/trino-cli/src/main/java/io/trino/cli/ClientOptions.java
+  verified: source
+- id: trino.file
+  group: query
+  intents:
+  - run sql file {FILE} on trino
+  - execute a script with the trino cli
+  - trino -f
+  - apply queries from a file
+  vars:
+  - name: SERVER
+    default: https://trino.example.com
+    samples:
+    - https://trino.example.com:8443
+    - http://localhost:8080
+  - name: FILE
+    default: query.sql
+    samples:
+    - reports/daily.sql
+    ctx: local_file
+  body: trino --server "$SERVER" -f "$FILE"
+  destructive: false
+  source: https://github.com/trinodb/trino/blob/master/client/trino-cli/src/main/java/io/trino/cli/ClientOptions.java
+  verified: source
+- id: trino.auth.password
+  group: connect
+  intents:
+  - connect to trino as {TRINO_USER} with a password
+  - trino login with password prompt or TRINO_PASSWORD
+  - authenticate to trino with ldap password
+  - password auth for the trino cli
+  vars:
+  - name: SERVER
+    default: https://trino.example.com
+    samples:
+    - https://trino.example.com:8443
+    - http://localhost:8080
+  - name: TRINO_USER
+    default: <user>
+    samples:
+    - analyst
+    - etl_svc
+  body: trino --server "$SERVER" --user "$TRINO_USER" --password
+  destructive: false
+  source: https://github.com/trinodb/trino/blob/master/client/trino-cli/src/main/java/io/trino/cli/ClientOptions.java
+  verified: source
+- id: trino.catalogs
+  group: query
+  intents:
+  - list trino catalogs
+  - what catalogs does trino have
+  - show catalogs
+  - available connectors in trino
+  vars:
+  - name: SERVER
+    default: https://trino.example.com
+    samples:
+    - https://trino.example.com:8443
+    - http://localhost:8080
+  body: trino --server "$SERVER" --execute "SHOW CATALOGS"
+  destructive: false
+  source: https://github.com/trinodb/trino/blob/master/client/trino-cli/src/main/java/io/trino/cli/ClientOptions.java
+  verified: source
+- id: trino.tables.tsv
+  group: query
+  intents:
+  - list tables in {CATALOG}.{SCHEMA}
+  - show tables in a trino schema without formatting
+  - trino tables as plain tsv
+  - table names only from trino
+  vars:
+  - name: SERVER
+    default: https://trino.example.com
+    samples:
+    - https://trino.example.com:8443
+    - http://localhost:8080
+  - name: CATALOG
+    default: hive
+    samples:
+    - iceberg
+  - name: SCHEMA
+    default: default
+    samples:
+    - analytics
+  body: trino --server "$SERVER" --output-format TSV --execute "SHOW TABLES FROM $CATALOG.$SCHEMA"
+  destructive: false
+  source: https://github.com/trinodb/trino/blob/master/client/trino-cli/src/main/java/io/trino/cli/ClientOptions.java
+  verified: source

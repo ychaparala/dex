@@ -1,0 +1,14 @@
+{
+ "https://github.com/apache/spark/blob/master/launcher/src/main/java/org/apache/spark/launcher/SparkSubmitOptionParser.java": {
+  "sha256": "bc3b8f4b92492bf020d862612b79bd30b09d04bd2b1c40089137435f11e6aef1",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/apache/spark/blob/master/sql/hive-thriftserver/src/main/scala/org/apache/spark/sql/hive/thriftserver/SparkSQLCLIDriver.scala": {
+  "sha256": "83f7b2c1a0e425b2aa0a5473b3df8d6ab3d80beb32b7547e677499adb7bbf2ca",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/apache/iceberg/blob/main/docs/docs/spark-getting-started.md": {
+  "sha256": "1d31f494a02417171f15cf51ec39d21d0cc48d7b6d3427e7fc1ca588b256c0cc",
+  "fetched": "2026-11-26"
+ }
+}

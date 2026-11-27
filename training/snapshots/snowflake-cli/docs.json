@@ -1,0 +1,18 @@
+{
+ "https://github.com/snowflakedb/snowflake-cli/blob/main/tests/__snapshots__/test_help_messages.ambr": {
+  "sha256": "3a759ca3e6b043213d4f6701a19b610a6492de47bd8a02e17b39d0547b78f146",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/snowflakedb/snowflake-cli/blob/main/README.md": {
+  "sha256": "0f26346c3f587d3c33161209f75b4d56ae3f5631924e470daf171ff3c5dd67a9",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/snowflakedb/snowflake-cli/blob/main/src/snowflake/cli/api/commands/flags.py": {
+  "sha256": "70cdc4e53566fededc1e3e651950b4f86cb320177a44d2f421619103ca31e595",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/snowflakedb/snowflake-cli/blob/main/src/snowflake/cli/api/config_ng/sources.py": {
+  "sha256": "679d3216b2977ac28f75eb2fe21d5b6036a21b8f8481e14b777a362a962ecca8",
+  "fetched": "2026-11-26"
+ }
+}

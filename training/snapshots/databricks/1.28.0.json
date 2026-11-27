@@ -1,0 +1,385 @@
+{
+"databricks": [
+"--debug",
+"--help",
+"--output",
+"--profile",
+"--target",
+"--version"
+],
+"databricks account": [
+"--debug",
+"--help",
+"--output",
+"--profile",
+"--target"
+],
+"databricks aitools": [
+"--debug",
+"--help",
+"--output",
+"--profile",
+"--target"
+],
+"databricks aitools auto-install": [
+"--debug",
+"--help",
+"--output",
+"--profile",
+"--target"
+],
+"databricks aitools auto-install disable": [
+"--debug",
+"--help",
+"--output",
+"--profile",
+"--target"
+],
+"databricks aitools auto-install enable": [
+"--debug",
+"--help",
+"--output",
+"--profile",
+"--target"
+],
+"databricks aitools install": [
+"--agents",
+"--debug",
+"--experimental",
+"--help",
+"--output",
+"--path",
+"--profile",
+"--scope",
+"--skills",
+"--skills-only",
+"--target"
+],
+"databricks aitools list": [
+"--debug",
+"--help",
+"--output",
+"--profile",
+"--scope",
+"--target"
+],
+"databricks aitools uninstall": [
+"--agents",
+"--debug",
+"--help",
+"--keep-marketplace",
+"--output",
+"--profile",
+"--scope",
+"--skills",
+"--target"
+],
+"databricks aitools update": [
+"--check",
+"--debug",
+"--force",
+"--help",
+"--no-new",
+"--no-prune",
+"--output",
+"--profile",
+"--scope",
+"--skills",
+"--target"
+],
+"databricks aitools version": [
+"--debug",
+"--help",
+"--output",
+"--profile",
+"--target"
+],
+"databricks api": [
+"--debug",
+"--help",
+"--output",
+"--profile",
+"--target"
+],
+"databricks api delete": [
+"--account",
+"--debug",
+"--help",
+"--json",
+"--output",
+"--profile",
+"--target",
+"--workspace-id"
+],
+"databricks api get": [
+"--account",
+"--debug",
+"--help",
+"--json",
+"--output",
+"--profile",
+"--target",
+"--workspace-id"
+],
+"databricks api head": [
+"--account",
+"--debug",
+"--help",
+"--json",
+"--output",
+"--profile",
+"--target",
+"--workspace-id"
+],
+"databricks api patch": [
+"--account",
+"--debug",
+"--help",
+"--json",
+"--output",
+"--profile",
+"--target",
+"--workspace-id"
+],
+"databricks api post": [
+"--account",
+"--debug",
+"--help",
+"--json",
+"--output",
+"--profile",
+"--target",
+"--workspace-id"
+],
+"databricks api put": [
+"--account",
+"--debug",
+"--help",
+"--json",
+"--output",
+"--profile",
+"--target",
+"--workspace-id"
+],
+"databricks auth": [
+"--account-id",
+"--debug",
+"--help",
+"--host",
+"--output",
+"--profile",
+"--target",
+"--workspace-id"
+],
+"databricks auth describe": [
+"--account-id",
+"--debug",
+"--help",
+"--host",
+"--output",
+"--profile",
+"--sensitive",
+"--target",
+"--workspace-id"
+],
+"databricks auth docker": [
+"--account-id",
+"--debug",
+"--help",
+"--host",
+"--output",
+"--profile",
+"--target",
+"--workspace-id"
+],
+"databricks auth docker configure": [
+"--account-id",
+"--debug",
+"--help",
+"--host",
+"--output",
+"--profile",
+"--region",
+"--target",
+"--workspace-id"
+],
+"databricks auth docker host": [
+"--account-id",
+"--debug",
+"--help",
+"--host",
+"--output",
+"--profile",
+"--target",
+"--workspace-id"
+],
+"databricks auth docker token": [
+"--account-id",
+"--debug",
+"--help",
+"--host",
+"--no-force-refresh",
+"--output",
+"--profile",
+"--target",
+"--timeout",
+"--workspace-id"
+],
+"databricks auth login": [
+"--account-id",
+"--client-id",
+"--configure-cluster",
+"--configure-serverless",
+"--debug",
+"--help",
+"--host",
+"--output",
+"--profile",
+"--resource",
+"--scopes",
+"--skip-workspace",
+"--target",
+"--timeout",
+"--workspace-id"
+],
+"databricks auth logout": [
+"--account-id",
+"--auto-approve",
+"--debug",
+"--delete",
+"--help",
+"--host",
+"--output",
+"--profile",
+"--target",
+"--workspace-id"
+],
+"databricks auth profiles": [
+"--account-id",
+"--debug",
+"--help",
+"--host",
+"--output",
+"--profile",
+"--skip-validate",
+"--target",
+"--workspace-id"
+],
+"databricks auth switch": [
+"--account-id",
+"--debug",
+"--help",
+"--host",
+"--output",
+"--profile",
+"--target",
+"--workspace-id"
+],
+"databricks auth token": [
+"--account-id",
+"--debug",
+"--force-refresh",
+"--help",
+"--host",
+"--output",
+"--profile",
+"--target",
+"--timeout",
+"--workspace-id"
+],
+"databricks cache": [
+"--debug",
+"--help",
+"--output",
+"--profile",
+"--target"
+],
+"databricks cache clear": [
+"--debug",
+"--help",
+"--output",
+"--profile",
+"--target"
+],
+"databricks configure": [
+"--configure-cluster",
+"--debug",
+"--help",
+"--host",
+"--output",
+"--profile",
+"--target"
+],
+"databricks labs": [
+"--debug",
+"--help",
+"--output",
+"--profile",
+"--target"
+],
+"databricks labs clear-cache": [
+"--debug",
+"--help",
+"--output",
+"--profile",
+"--target"
+],
+"databricks labs install": [
+"--debug",
+"--help",
+"--offline",
+"--output",
+"--profile",
+"--target"
+],
+"databricks labs installed": [
+"--debug",
+"--help",
+"--output",
+"--profile",
+"--target"
+],
+"databricks labs list": [
+"--debug",
+"--help",
+"--output",
+"--profile",
+"--target"
+],
+"databricks labs show": [
+"--debug",
+"--help",
+"--output",
+"--profile",
+"--target"
+],
+"databricks labs uninstall": [
+"--debug",
+"--help",
+"--output",
+"--profile",
+"--target"
+],
+"databricks labs upgrade": [
+"--debug",
+"--help",
+"--output",
+"--profile",
+"--target"
+],
+"databricks quickstart": [
+"--debug",
+"--help",
+"--output",
+"--profile",
+"--target"
+],
+"databricks version": [
+"--check",
+"--debug",
+"--help",
+"--output",
+"--profile",
+"--target"
+]
+}

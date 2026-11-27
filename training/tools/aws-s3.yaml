@@ -1,0 +1,423 @@
+tool: aws-s3
+binaries: [aws]
+category: files
+priority: core
+target_pairs: 250
+version_note: "AWS CLI v2 (aws s3 high-level commands and aws s3api)"
+sources:
+  - url: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/s3/subcommands.py
+    license: "Apache-2.0 (aws/aws-cli repo)"
+  - url: https://github.com/boto/botocore/tree/develop/botocore/data/s3
+    license: "Apache-2.0 (boto/botocore repo)"
+  - url: https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/index.html
+    license: "vendor docs; facts only"
+destructive_patterns:
+  - '\baws s3 rm\b'
+  - '\baws s3 rb\b'
+  - '\baws s3 sync\b.*--delete\b'
+  - '\baws s3api delete-'
+templates:
+  - id: aws-s3.ls.buckets
+    group: browse
+    intents:
+      - list my s3 buckets
+      - what buckets do I have
+      - show all buckets in the account
+      - aws s3 ls
+    vars: []
+    body: aws s3 ls
+    destructive: false
+    source: https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/ls.html
+    verified: help
+
+  - id: aws-s3.ls.prefix
+    group: browse
+    intents:
+      - list files under s3://{BUCKET}/{PREFIX}
+      - what's in this s3 folder
+      - ls the s3 prefix
+      - show the objects in {BUCKET} under {PREFIX}
+      - browse an s3 path
+    vars:
+      - {name: BUCKET, default: <bucket>, samples: [acme-data, analytics-lake, raw-events-prod], ctx: s3_bucket}
+      - {name: PREFIX, default: data/, samples: [raw/orders/, curated/sales/2025/, landing/]}
+    body: aws s3 ls "s3://$BUCKET/$PREFIX"
+    destructive: false
+    source: https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/ls.html
+    verified: help
+
+  - id: aws-s3.ls.recursive
+    group: browse
+    intents:
+      - list everything recursively under s3://{BUCKET}/{PREFIX} with readable sizes
+      - recursive s3 listing with total size and object count
+      - show all files under a prefix human readable with a summary
+      - ls -R an s3 folder
+      - list all objects and summarize
+    vars:
+      - {name: BUCKET, default: <bucket>, samples: [acme-data, analytics-lake], ctx: s3_bucket}
+      - {name: PREFIX, default: data/, samples: [raw/orders/, exports/2025-06/]}
+    body: aws s3 ls "s3://$BUCKET/$PREFIX" --recursive --human-readable --summarize
+    destructive: false
+    source: https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/ls.html
+    verified: help
+
+  - id: aws-s3.ls.size
+    group: browse
+    intents:
+      - how big is s3://{BUCKET}/{PREFIX}
+      - total size of an s3 prefix
+      - get the size of a bucket folder
+      - how much data is under this path
+      - s3 du
+    vars:
+      - {name: BUCKET, default: <bucket>, samples: [acme-data, analytics-lake, raw-events-prod], ctx: s3_bucket}
+      - {name: PREFIX, default: data/, samples: [raw/orders/, curated/, logs/2025/]}
+    body: aws s3 ls "s3://$BUCKET/$PREFIX" --recursive --human-readable --summarize | tail -n 2
+    destructive: false
+    source: https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/ls.html
+    verified: help
+
+  - id: aws-s3.ls.recent
+    group: browse
+    intents:
+      - show the {N} most recently modified files under s3://{BUCKET}/{PREFIX}
+      - newest files in this s3 prefix
+      - what landed last in the bucket folder
+      - latest objects by date in s3
+    vars:
+      - {name: BUCKET, default: <bucket>, samples: [acme-data, raw-events-prod], ctx: s3_bucket}
+      - {name: PREFIX, default: data/, samples: [landing/, raw/clickstream/]}
+      - {name: N, default: "10", samples: ["5", "20"]}
+    body: aws s3 ls "s3://$BUCKET/$PREFIX" --recursive | sort | tail -n "$N"
+    destructive: false
+    source: https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/ls.html
+    verified: help
+
+  - id: aws-s3.ls.count
+    group: browse
+    intents:
+      - count the objects under s3://{BUCKET}/{PREFIX}
+      - how many files are in this s3 prefix
+      - number of objects in the folder
+      - count s3 files
+    vars:
+      - {name: BUCKET, default: <bucket>, samples: [acme-data, analytics-lake], ctx: s3_bucket}
+      - {name: PREFIX, default: data/, samples: [raw/orders/2025/, staging/]}
+    body: aws s3 ls "s3://$BUCKET/$PREFIX" --recursive | wc -l
+    destructive: false
+    source: https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/ls.html
+    verified: help
+
+  - id: aws-s3.cp.upload
+    group: copy
+    intents:
+      - upload {FILE} to s3://{BUCKET}/{PREFIX}
+      - copy a local file to s3
+      - put this file in the bucket
+      - push a file up to s3
+      - aws s3 cp file to bucket
+    vars:
+      - {name: FILE, default: data.csv, samples: [orders.parquet, export_2025.csv, model.tar.gz], ctx: local_file}
+      - {name: BUCKET, default: <bucket>, samples: [acme-data, analytics-lake], ctx: s3_bucket}
+      - {name: PREFIX, default: uploads/, samples: [landing/manual/, tmp/]}
+    body: aws s3 cp "$FILE" "s3://$BUCKET/$PREFIX"
+    destructive: false
+    source: https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/cp.html
+    verified: help
+
+  - id: aws-s3.cp.download
+    group: copy
+    intents:
+      - download s3://{BUCKET}/{KEY} to the current directory
+      - copy a file from s3 to local
+      - grab this object from the bucket
+      - pull a file down from s3
+    vars:
+      - {name: BUCKET, default: <bucket>, samples: [acme-data, analytics-lake], ctx: s3_bucket}
+      - {name: KEY, default: path/to/file.csv, samples: [exports/orders_2025-06.csv, models/latest/model.pkl]}
+    body: aws s3 cp "s3://$BUCKET/$KEY" .
+    destructive: false
+    source: https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/cp.html
+    verified: help
+
+  - id: aws-s3.cp.upload-dir
+    group: copy
+    intents:
+      - upload the folder {DIR} to s3 recursively
+      - copy a whole directory to s3://{BUCKET}/{PREFIX}
+      - recursive upload of a local dir
+      - cp -r to s3
+    vars:
+      - {name: DIR, default: ./output, samples: [./dist, ./data/parquet, ./reports]}
+      - {name: BUCKET, default: <bucket>, samples: [acme-data, analytics-lake], ctx: s3_bucket}
+      - {name: PREFIX, default: output/, samples: [jobs/build-42/, curated/sales/]}
+    body: aws s3 cp "$DIR" "s3://$BUCKET/$PREFIX" --recursive
+    destructive: false
+    source: https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/cp.html
+    verified: help
+
+  - id: aws-s3.cp.cat
+    group: copy
+    intents:
+      - print the first lines of s3://{BUCKET}/{KEY}
+      - cat an s3 file without downloading it
+      - peek at a csv in s3
+      - stream an s3 object to stdout and show the head
+    vars:
+      - {name: BUCKET, default: <bucket>, samples: [acme-data, raw-events-prod], ctx: s3_bucket}
+      - {name: KEY, default: path/to/file.csv, samples: [exports/orders.csv, landing/users/part-0000.json]}
+    body: aws s3 cp "s3://$BUCKET/$KEY" - | head -n 20
+    destructive: false
+    source: https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/cp.html
+    verified: help
+
+  - id: aws-s3.sync.upload
+    group: sync
+    intents:
+      - sync {DIR} up to s3://{BUCKET}/{PREFIX}
+      - mirror a local folder to s3
+      - upload only changed files to s3
+      - aws s3 sync local to bucket
+    vars:
+      - {name: DIR, default: ./output, samples: [./dist, ./data, ./warehouse/exports]}
+      - {name: BUCKET, default: <bucket>, samples: [acme-data, analytics-lake], ctx: s3_bucket}
+      - {name: PREFIX, default: output/, samples: [backup/, site/]}
+    body: aws s3 sync "$DIR" "s3://$BUCKET/$PREFIX"
+    destructive: false
+    source: https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/sync.html
+    verified: help
+
+  - id: aws-s3.sync.download-filter
+    group: sync
+    intents:
+      - download only the {PATTERN} files from s3://{BUCKET}/{PREFIX}
+      - sync from s3 but just the parquet files
+      - pull matching files from s3 with include and exclude
+      - copy a filtered set of files down from the bucket
+    vars:
+      - {name: BUCKET, default: <bucket>, samples: [acme-data, analytics-lake], ctx: s3_bucket}
+      - {name: PREFIX, default: data/, samples: [curated/orders/, raw/2025/06/]}
+      - {name: PATTERN, default: "*.parquet", samples: ["*.csv", "*.json", "*.gz"]}
+    body: aws s3 sync "s3://$BUCKET/$PREFIX" . --exclude "*" --include "$PATTERN"
+    destructive: false
+    source: https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/sync.html
+    verified: help
+
+  - id: aws-s3.sync.exclude
+    group: sync
+    intents:
+      - sync {DIR} to s3 but skip {PATTERN}
+      - upload a folder excluding some files
+      - sync to s3 and ignore temp files
+      - mirror to the bucket without certain files
+    vars:
+      - {name: DIR, default: ./output, samples: [./project, ./data]}
+      - {name: BUCKET, default: <bucket>, samples: [acme-data, analytics-lake], ctx: s3_bucket}
+      - {name: PREFIX, default: output/, samples: [code/, backup/]}
+      - {name: PATTERN, default: "*.tmp", samples: ["*.log", ".git/*", "*.pyc"]}
+    body: aws s3 sync "$DIR" "s3://$BUCKET/$PREFIX" --exclude "$PATTERN"
+    destructive: false
+    source: https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/sync.html
+    verified: help
+
+  - id: aws-s3.sync.delete
+    group: sync
+    intents:
+      - make s3://{BUCKET}/{PREFIX} an exact mirror of {DIR}, removing extra files
+      - sync and delete files in s3 that are gone locally
+      - aws s3 sync with --delete
+      - exact mirror upload, prune remote leftovers
+    vars:
+      - {name: DIR, default: ./output, samples: [./dist, ./site]}
+      - {name: BUCKET, default: <bucket>, samples: [acme-data, analytics-lake], ctx: s3_bucket}
+      - {name: PREFIX, default: output/, samples: [site/, artifacts/]}
+    body: aws s3 sync "$DIR" "s3://$BUCKET/$PREFIX" --delete
+    destructive: true
+    source: https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/sync.html
+    verified: help
+
+  - id: aws-s3.sync.dryrun
+    group: sync
+    intents:
+      - dry run a sync of {DIR} to s3 to see what would change
+      - preview what aws s3 sync would upload
+      - show what sync would do without doing it
+      - test the s3 sync first
+    vars:
+      - {name: DIR, default: ./output, samples: [./dist, ./data]}
+      - {name: BUCKET, default: <bucket>, samples: [acme-data, analytics-lake], ctx: s3_bucket}
+      - {name: PREFIX, default: output/, samples: [backup/, curated/]}
+    body: aws s3 sync "$DIR" "s3://$BUCKET/$PREFIX" --dryrun
+    destructive: false
+    source: https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/sync.html
+    verified: help
+
+  - id: aws-s3.mv.object
+    group: copy
+    intents:
+      - move s3://{BUCKET}/{SRC} to {DEST}
+      - rename an object in s3
+      - move a file to another key in the bucket
+      - aws s3 mv
+    vars:
+      - {name: BUCKET, default: <bucket>, samples: [acme-data, analytics-lake], ctx: s3_bucket}
+      - {name: SRC, default: incoming/file.csv, samples: [landing/orders.csv, tmp/report.parquet]}
+      - {name: DEST, default: processed/file.csv, samples: [archive/orders.csv, final/report.parquet]}
+    body: aws s3 mv "s3://$BUCKET/$SRC" "s3://$BUCKET/$DEST"
+    destructive: false
+    source: https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/mv.html
+    verified: help
+
+  - id: aws-s3.rm.object
+    group: delete
+    intents:
+      - delete s3://{BUCKET}/{KEY}
+      - remove one object from s3
+      - rm a file in the bucket
+      - get rid of this s3 file
+    vars:
+      - {name: BUCKET, default: <bucket>, samples: [acme-data, analytics-lake], ctx: s3_bucket}
+      - {name: KEY, default: path/to/file.csv, samples: [tmp/old_export.csv, landing/bad_file.json]}
+    body: aws s3 rm "s3://$BUCKET/$KEY"
+    destructive: true
+    source: https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/rm.html
+    verified: help
+
+  - id: aws-s3.rm.recursive
+    group: delete
+    intents:
+      - delete everything under s3://{BUCKET}/{PREFIX}
+      - recursively remove an s3 prefix
+      - wipe a folder in s3
+      - rm -r on s3
+      - clear out the staging prefix
+    vars:
+      - {name: BUCKET, default: <bucket>, samples: [acme-data, analytics-lake], ctx: s3_bucket}
+      - {name: PREFIX, default: tmp/, samples: [staging/run-42/, scratch/]}
+    body: aws s3 rm "s3://$BUCKET/$PREFIX" --recursive
+    destructive: true
+    source: https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/rm.html
+    verified: help
+
+  - id: aws-s3.mb
+    group: buckets
+    intents:
+      - create bucket {BUCKET} in {REGION}
+      - make a new s3 bucket
+      - aws s3 mb
+      - set up a fresh bucket
+    vars:
+      - {name: BUCKET, default: <bucket>, samples: [acme-data-sandbox, team-scratch-2025], ctx: s3_bucket}
+      - {name: REGION, default: us-east-1, samples: [us-west-2, eu-west-1], ctx: aws_region}
+    body: aws s3 mb "s3://$BUCKET" --region "$REGION"
+    destructive: false
+    source: https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/mb.html
+    verified: help
+
+  - id: aws-s3.rb.force
+    group: buckets
+    intents:
+      - delete bucket {BUCKET} and everything in it
+      - remove an s3 bucket even if it's not empty
+      - aws s3 rb --force
+      - nuke the sandbox bucket
+    vars:
+      - {name: BUCKET, default: <bucket>, samples: [acme-data-sandbox, old-test-bucket], ctx: s3_bucket}
+    body: aws s3 rb "s3://$BUCKET" --force
+    destructive: true
+    source: https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/rb.html
+    verified: help
+
+  - id: aws-s3.presign
+    group: share
+    intents:
+      - make a presigned url for s3://{BUCKET}/{KEY} valid for {EXPIRES_IN} seconds
+      - share an s3 file with a temporary link
+      - generate a download link for an object
+      - aws s3 presign
+    vars:
+      - {name: BUCKET, default: <bucket>, samples: [acme-data, analytics-lake], ctx: s3_bucket}
+      - {name: KEY, default: path/to/file.csv, samples: [exports/q2_report.csv, shared/sample.parquet]}
+      - {name: EXPIRES_IN, default: "3600", samples: ["600", "86400"]}
+    body: aws s3 presign "s3://$BUCKET/$KEY" --expires-in "$EXPIRES_IN"
+    destructive: false
+    source: https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/presign.html
+    verified: help
+
+  - id: aws-s3.api.head-object
+    group: metadata
+    intents:
+      - show metadata for s3 object {KEY} in {BUCKET}
+      - does this s3 key exist
+      - get size and last modified of an object
+      - s3api head-object
+    vars:
+      - {name: BUCKET, default: <bucket>, samples: [acme-data, analytics-lake], ctx: s3_bucket}
+      - {name: KEY, default: path/to/file.csv, samples: [exports/orders.csv, _SUCCESS, curated/sales/part-0000.parquet]}
+    body: aws s3api head-object --bucket "$BUCKET" --key "$KEY"
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/s3
+    verified: help
+
+  - id: aws-s3.api.list-keys-sizes
+    group: metadata
+    intents:
+      - list keys and sizes under {PREFIX} in {BUCKET} as a table
+      - s3api list-objects-v2 with key and size
+      - show object keys with byte sizes
+      - table of objects in an s3 prefix
+    vars:
+      - {name: BUCKET, default: <bucket>, samples: [acme-data, analytics-lake], ctx: s3_bucket}
+      - {name: PREFIX, default: data/, samples: [raw/orders/, curated/]}
+    body: aws s3api list-objects-v2 --bucket "$BUCKET" --prefix "$PREFIX" --query 'Contents[].[Key,Size,LastModified]' --output table
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/s3
+    verified: help
+
+  - id: aws-s3.api.latest-key
+    group: metadata
+    intents:
+      - what's the newest object key under {PREFIX}
+      - find the latest file in an s3 prefix
+      - most recently modified key in the bucket path
+      - get the last uploaded file name in s3
+    vars:
+      - {name: BUCKET, default: <bucket>, samples: [acme-data, raw-events-prod], ctx: s3_bucket}
+      - {name: PREFIX, default: data/, samples: [landing/orders/, exports/]}
+    body: aws s3api list-objects-v2 --bucket "$BUCKET" --prefix "$PREFIX" --query 'sort_by(Contents, &LastModified)[-1].Key' --output text
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/s3
+    verified: help
+
+  - id: aws-s3.api.get-object
+    group: copy
+    intents:
+      - fetch object {KEY} from {BUCKET} into {OUTFILE} with s3api
+      - s3api get-object to a local file
+      - download an object using the low level api
+      - get-object and save it
+    vars:
+      - {name: BUCKET, default: <bucket>, samples: [acme-data, analytics-lake], ctx: s3_bucket}
+      - {name: KEY, default: path/to/file.csv, samples: [config/settings.json, exports/orders.csv]}
+      - {name: OUTFILE, default: out.csv, samples: [settings.json, orders.csv], ctx: local_file}
+    body: aws s3api get-object --bucket "$BUCKET" --key "$KEY" "$OUTFILE"
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/s3
+    verified: help
+
+  - id: aws-s3.api.put-object
+    group: copy
+    intents:
+      - put {FILE} into {BUCKET} at key {KEY} with s3api
+      - s3api put-object a local file
+      - write an object with the low level api
+      - upload with put-object
+    vars:
+      - {name: BUCKET, default: <bucket>, samples: [acme-data, analytics-lake], ctx: s3_bucket}
+      - {name: KEY, default: path/to/file.csv, samples: [markers/_SUCCESS, config/settings.json]}
+      - {name: FILE, default: data.csv, samples: [_SUCCESS, settings.json], ctx: local_file}
+    body: aws s3api put-object --bucket "$BUCKET" --key "$KEY" --body "$FILE"
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/s3
+    verified: help

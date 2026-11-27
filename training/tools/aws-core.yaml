@@ -1,0 +1,516 @@
+tool: aws-core
+binaries: [aws]
+category: cloud
+priority: core
+target_pairs: 250
+version_note: "AWS CLI v2 (setup, auth, sts, lambda, logs, secretsmanager, iam, ec2)"
+install:
+- macos: ["brew install awscli"]
+  docs: "https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html"
+  source: ["https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html", "https://github.com/Homebrew/homebrew-core/blob/HEAD/Formula/a/awscli.rb"]
+sources:
+  - url: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
+    license: "vendor docs; facts only"
+  - url: https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html
+    license: "vendor docs; facts only"
+  - url: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/configure/configure.py
+    license: "Apache-2.0 (aws/aws-cli repo)"
+  - url: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/configure/listprofiles.py
+    license: "Apache-2.0 (aws/aws-cli repo)"
+  - url: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/configure/exportcreds.py
+    license: "Apache-2.0 (aws/aws-cli repo)"
+  - url: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/sso/login.py
+    license: "Apache-2.0 (aws/aws-cli repo)"
+  - url: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/logs/tail.py
+    license: "Apache-2.0 (aws/aws-cli repo)"
+  - url: https://github.com/aws/aws-cli/blob/v2/awscli/data/cli.json
+    license: "Apache-2.0 (aws/aws-cli repo)"
+  - url: https://github.com/boto/botocore/tree/develop/botocore/data
+    license: "Apache-2.0 (boto/botocore repo)"
+destructive_patterns:
+  - '\baws lambda delete-function\b'
+  - '\baws secretsmanager delete-secret\b'
+  - '\baws ec2 terminate-instances\b'
+  - '\baws logs delete-'
+templates:
+  # ---------------- setup ----------------
+  - id: aws-core.setup.install-macos
+    group: setup
+    intents:
+      - install the aws cli on my mac
+      - set up aws cli v2 on macos
+      - download and install aws cli pkg on mac
+      - get the aws command line tool for macos
+    vars: []
+    body: curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg" && sudo installer -pkg AWSCLIV2.pkg -target /
+    destructive: false
+    source: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
+    verified: docs
+
+  - id: aws-core.setup.install-linux
+    group: setup
+    intents:
+      - install aws cli v2 on linux {ARCH}
+      - set up the aws cli on an ubuntu box
+      - install aws cli on an arm linux server
+      - download the official aws cli zip and install it
+      - get aws cli onto this linux machine
+    vars:
+      - {name: ARCH, default: x86_64, samples: [aarch64, x86_64]}
+    body: curl "https://awscli.amazonaws.com/awscli-exe-linux-$ARCH.zip" -o "awscliv2.zip" && unzip awscliv2.zip && sudo ./aws/install
+    destructive: false
+    source: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
+    verified: docs
+
+  - id: aws-core.setup.version
+    group: setup
+    intents:
+      - which version of the aws cli is installed
+      - check aws cli version
+      - is it aws cli v1 or v2
+      - aws --version
+    vars: []
+    body: aws --version
+    destructive: false
+    source: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
+    verified: docs
+
+  - id: aws-core.config.configure
+    group: auth
+    intents:
+      - configure aws credentials for profile {PROFILE}
+      - set up access keys for a new aws profile
+      - run aws configure for a named profile
+      - add a profile with key, secret and region
+    vars:
+      - {name: PROFILE, default: default, samples: [data-prod, analytics-dev, personal], ctx: aws_profile}
+    body: aws configure --profile "$PROFILE"
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/configure/configure.py
+    verified: source
+
+  - id: aws-core.config.sso
+    group: auth
+    intents:
+      - set up an sso profile for the aws cli
+      - configure aws identity center login
+      - aws configure sso
+      - create a profile that uses sso
+    vars: []
+    body: aws configure sso
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/configure/configure.py
+    verified: source
+    notes: "AWS CLI v2 only."
+
+  - id: aws-core.auth.sso-login
+    group: auth
+    intents:
+      - log in with sso for profile {PROFILE}
+      - my aws session expired, sign in again with sso
+      - aws sso login
+      - refresh sso credentials for {PROFILE}
+      - authenticate to aws via identity center
+    vars:
+      - {name: PROFILE, default: default, samples: [data-prod, analytics-dev, sandbox], ctx: aws_profile}
+    body: aws sso login --profile "$PROFILE"
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/sso/login.py
+    verified: source
+    notes: "AWS CLI v2 only."
+
+  - id: aws-core.auth.sso-login-device
+    group: auth
+    intents:
+      - sso login on a remote box without a browser
+      - log in to aws sso using a device code
+      - sso login from an ssh session for {PROFILE}
+      - headless aws sso login
+    vars:
+      - {name: PROFILE, default: default, samples: [data-prod, analytics-dev], ctx: aws_profile}
+    body: aws sso login --profile "$PROFILE" --use-device-code
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/sso/login.py
+    verified: source
+    notes: "AWS CLI v2 only."
+
+  - id: aws-core.config.list-profiles
+    group: auth
+    intents:
+      - list my aws profiles
+      - what aws profiles are configured
+      - show profile names from the aws config
+      - aws configure list-profiles
+    vars: []
+    body: aws configure list-profiles
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/configure/listprofiles.py
+    verified: source
+    notes: "AWS CLI v2 only."
+
+  - id: aws-core.config.list
+    group: auth
+    intents:
+      - show the current aws cli config for profile {PROFILE}
+      - where are my aws credentials coming from
+      - which region and keys is the cli using
+      - aws configure list
+    vars:
+      - {name: PROFILE, default: default, samples: [data-prod, analytics-dev], ctx: aws_profile}
+    body: aws configure list --profile "$PROFILE"
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/configure/list.py
+    verified: source
+
+  - id: aws-core.config.set-region
+    group: auth
+    intents:
+      - set the default region to {REGION} for profile {PROFILE}
+      - change the aws region in my config
+      - make {REGION} the region for this profile
+      - aws configure set region
+    vars:
+      - {name: REGION, default: us-east-1, samples: [us-west-2, eu-west-1, ap-south-1], ctx: aws_region}
+      - {name: PROFILE, default: default, samples: [data-prod, analytics-dev], ctx: aws_profile}
+    body: aws configure set region "$REGION" --profile "$PROFILE"
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/configure/set.py
+    verified: source
+
+  - id: aws-core.config.get-region
+    group: auth
+    intents:
+      - what region is profile {PROFILE} set to
+      - print the configured aws region
+      - aws configure get region
+      - show my default region
+    vars:
+      - {name: PROFILE, default: default, samples: [data-prod, analytics-dev], ctx: aws_profile}
+    body: aws configure get region --profile "$PROFILE"
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/configure/get.py
+    verified: source
+
+  - id: aws-core.env.profile-region
+    group: auth
+    intents:
+      - use profile {PROFILE} and region {REGION} for this shell
+      - set AWS_PROFILE and AWS_REGION env vars
+      - switch my terminal to the {PROFILE} aws profile
+      - export aws profile and region
+    vars:
+      - {name: PROFILE, default: default, samples: [data-prod, analytics-dev, sandbox], ctx: aws_profile}
+      - {name: REGION, default: us-east-1, samples: [us-west-2, eu-west-1], ctx: aws_region}
+    body: export AWS_PROFILE="$PROFILE" AWS_REGION="$REGION"
+    destructive: false
+    source: https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html
+    verified: docs
+
+  - id: aws-core.env.export-creds
+    group: auth
+    intents:
+      - export the credentials of profile {PROFILE} as env vars
+      - load my sso profile creds into the environment
+      - turn an aws profile into AWS_ACCESS_KEY_ID exports
+      - aws configure export-credentials into this shell
+    vars:
+      - {name: PROFILE, default: default, samples: [data-prod, analytics-dev], ctx: aws_profile}
+    body: eval "$(aws configure export-credentials --profile "$PROFILE" --format env)"
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/configure/exportcreds.py
+    verified: source
+    notes: "AWS CLI v2 only."
+
+  # ---------------- sts ----------------
+  - id: aws-core.sts.whoami
+    group: sts
+    intents:
+      - who am i in aws
+      - check which aws account and role I'm using
+      - verify my aws credentials work
+      - sts get-caller-identity
+      - am I logged in to aws
+    vars: []
+    body: aws sts get-caller-identity
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/sts
+    verified: help
+
+  - id: aws-core.sts.whoami-profile
+    group: sts
+    intents:
+      - check the identity for profile {PROFILE}
+      - which account does the {PROFILE} profile point at
+      - test that profile {PROFILE} has valid credentials
+      - get-caller-identity with a profile
+    vars:
+      - {name: PROFILE, default: default, samples: [data-prod, analytics-dev, sandbox], ctx: aws_profile}
+    body: aws sts get-caller-identity --profile "$PROFILE"
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/sts
+    verified: help
+
+  - id: aws-core.sts.account-id
+    group: sts
+    intents:
+      - print my aws account id
+      - just the account number please
+      - get the current account id as text
+      - what's the aws account id
+    vars: []
+    body: aws sts get-caller-identity --query Account --output text
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/sts
+    verified: help
+
+  - id: aws-core.sts.assume-role
+    group: sts
+    intents:
+      - assume role {ROLE_ARN} and export the temporary credentials
+      - switch into another iam role in this shell
+      - get temp creds for a role and set them as env vars
+      - sts assume-role and export keys with jq
+    vars:
+      - {name: ROLE_ARN, default: <role-arn>, samples: ["arn:aws:iam::123456789012:role/DataEngineer", "arn:aws:iam::123456789012:role/etl-deploy"]}
+      - {name: SESSION, default: cli-session, samples: [backfill, debug-session]}
+    body: eval "$(aws sts assume-role --role-arn "$ROLE_ARN" --role-session-name "$SESSION" | jq -r '.Credentials | "export AWS_ACCESS_KEY_ID=\(.AccessKeyId) AWS_SECRET_ACCESS_KEY=\(.SecretAccessKey) AWS_SESSION_TOKEN=\(.SessionToken)"')"
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/sts
+    verified: help
+
+  # ---------------- lambda ----------------
+  - id: aws-core.lambda.invoke
+    group: lambda
+    intents:
+      - invoke lambda {FUNCTION} with payload {PAYLOAD}
+      - call my lambda function and show the response
+      - test a lambda with a json event
+      - aws lambda invoke
+      - trigger the lambda once and print the output
+    vars:
+      - {name: FUNCTION, default: <function-name>, samples: [ingest-handler, partition-repair, notify-slack]}
+      - {name: PAYLOAD, default: '{}', samples: ['{"run_date":"2025-06-30"}', '{"bucket":"acme-data","key":"landing/a.csv"}']}
+    body: aws lambda invoke --function-name "$FUNCTION" --payload "$PAYLOAD" --cli-binary-format raw-in-base64-out response.json && cat response.json
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/data/cli.json
+    verified: source
+    notes: "--cli-binary-format raw-in-base64-out is needed on AWS CLI v2 for a raw JSON payload."
+
+  - id: aws-core.lambda.list
+    group: lambda
+    intents:
+      - list lambda functions
+      - show my lambdas and their runtimes
+      - what lambda functions are deployed
+      - aws lambda list-functions as a table
+    vars: []
+    body: aws lambda list-functions --query 'Functions[].[FunctionName,Runtime,LastModified]' --output table
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/lambda
+    verified: help
+
+  - id: aws-core.lambda.get
+    group: lambda
+    intents:
+      - show config of lambda {FUNCTION}
+      - get details of a lambda function
+      - what memory and timeout does the lambda have
+      - aws lambda get-function
+    vars:
+      - {name: FUNCTION, default: <function-name>, samples: [ingest-handler, partition-repair]}
+    body: aws lambda get-function --function-name "$FUNCTION" --query Configuration
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/lambda
+    verified: help
+
+  - id: aws-core.lambda.update-code
+    group: lambda
+    intents:
+      - deploy {ZIP} to lambda {FUNCTION}
+      - update lambda code from a zip file
+      - push new code to my lambda function
+      - aws lambda update-function-code with a zip
+    vars:
+      - {name: FUNCTION, default: <function-name>, samples: [ingest-handler, notify-slack]}
+      - {name: ZIP, default: function.zip, samples: [build/lambda.zip, dist/handler.zip], ctx: local_file}
+    body: aws lambda update-function-code --function-name "$FUNCTION" --zip-file "fileb://$ZIP"
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/lambda
+    verified: help
+
+  - id: aws-core.lambda.tail
+    group: lambda
+    intents:
+      - tail the logs of lambda {FUNCTION}
+      - follow my lambda's cloudwatch logs live
+      - stream lambda logs in the terminal
+      - watch lambda output as it runs
+    vars:
+      - {name: FUNCTION, default: <function-name>, samples: [ingest-handler, partition-repair, notify-slack]}
+    body: aws logs tail "/aws/lambda/$FUNCTION" --follow
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/logs/tail.py
+    verified: source
+    notes: "aws logs tail is AWS CLI v2 only."
+
+  # ---------------- CloudWatch Logs ----------------
+  - id: aws-core.logs.tail-since
+    group: logs
+    intents:
+      - follow log group {LOG_GROUP} starting {SINCE} ago
+      - tail cloudwatch logs from the last hour and keep following
+      - stream a log group live
+      - aws logs tail --follow --since
+    vars:
+      - {name: LOG_GROUP, default: <log-group>, samples: [/aws/lambda/ingest-handler, /aws-glue/jobs/error, /ecs/etl-worker]}
+      - {name: SINCE, default: 10m, samples: [1h, 30m, 2d]}
+    body: aws logs tail "$LOG_GROUP" --follow --since "$SINCE"
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/logs/tail.py
+    verified: source
+    notes: "aws logs tail is AWS CLI v2 only."
+
+  - id: aws-core.logs.tail-filter
+    group: logs
+    intents:
+      - show {PATTERN} lines from log group {LOG_GROUP} in the last hour
+      - tail cloudwatch logs but only errors
+      - grep a log group for a pattern recently
+      - aws logs tail with a filter pattern
+    vars:
+      - {name: LOG_GROUP, default: <log-group>, samples: [/aws/lambda/ingest-handler, /aws-glue/jobs/error]}
+      - {name: PATTERN, default: ERROR, samples: [Exception, Timeout, WARN]}
+    body: aws logs tail "$LOG_GROUP" --since 1h --filter-pattern "$PATTERN"
+    destructive: false
+    source: https://github.com/aws/aws-cli/blob/v2/awscli/customizations/logs/tail.py
+    verified: source
+    notes: "aws logs tail is AWS CLI v2 only."
+
+  - id: aws-core.logs.filter-events
+    group: logs
+    intents:
+      - search log group {LOG_GROUP} for {PATTERN}
+      - find matching cloudwatch log events
+      - filter-log-events and print just the messages
+      - look for errors across all streams in a log group
+    vars:
+      - {name: LOG_GROUP, default: <log-group>, samples: [/aws/lambda/ingest-handler, /ecs/etl-worker]}
+      - {name: PATTERN, default: ERROR, samples: [Exception, OutOfMemory]}
+    body: aws logs filter-log-events --log-group-name "$LOG_GROUP" --filter-pattern "$PATTERN" --max-items 50 --query 'events[].message' --output text
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/logs
+    verified: help
+
+  - id: aws-core.logs.describe-groups
+    group: logs
+    intents:
+      - list cloudwatch log groups starting with {PREFIX}
+      - what log groups exist for my lambdas
+      - find log group names by prefix
+      - describe-log-groups names only
+    vars:
+      - {name: PREFIX, default: /aws/lambda/, samples: [/aws-glue/, /ecs/, /aws/emr-serverless]}
+    body: aws logs describe-log-groups --log-group-name-prefix "$PREFIX" --query 'logGroups[].logGroupName' --output text
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/logs
+    verified: help
+
+  - id: aws-core.logs.latest-streams
+    group: logs
+    intents:
+      - latest log streams in {LOG_GROUP}
+      - which log stream got events most recently
+      - newest streams of a log group
+      - describe log streams ordered by last event
+    vars:
+      - {name: LOG_GROUP, default: <log-group>, samples: [/aws/lambda/ingest-handler, /ecs/etl-worker]}
+    body: aws logs describe-log-streams --log-group-name "$LOG_GROUP" --order-by LastEventTime --descending --max-items 5 --query 'logStreams[].logStreamName' --output text
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/logs
+    verified: help
+
+  - id: aws-core.logs.get-events
+    group: logs
+    intents:
+      - read the last {LIMIT} events from stream {STREAM} in {LOG_GROUP}
+      - get log events from one cloudwatch stream
+      - print messages of a specific log stream
+      - aws logs get-log-events
+    vars:
+      - {name: LOG_GROUP, default: <log-group>, samples: [/aws/lambda/ingest-handler, /ecs/etl-worker]}
+      - {name: STREAM, default: <log-stream>, samples: [etl/worker/9f8e7d6c, ecs/etl-worker/1a2b3c4d5e6f]}
+      - {name: LIMIT, default: "50", samples: ["20", "200"]}
+    body: aws logs get-log-events --log-group-name "$LOG_GROUP" --log-stream-name "$STREAM" --limit "$LIMIT" --query 'events[].message' --output text
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/logs
+    verified: help
+
+  # ---------------- secrets / iam / ec2 ----------------
+  - id: aws-core.secrets.get
+    group: secrets
+    intents:
+      - get secret {SECRET_ID} from secrets manager
+      - read the db credentials secret
+      - print a secret's json value pretty
+      - secretsmanager get-secret-value as json
+    vars:
+      - {name: SECRET_ID, default: <secret-id>, samples: [prod/redshift/etl, dev/postgres/app, airflow/connections/snowflake]}
+    body: aws secretsmanager get-secret-value --secret-id "$SECRET_ID" --query SecretString --output text | jq .
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/secretsmanager
+    verified: help
+
+  - id: aws-core.secrets.get-field
+    group: secrets
+    intents:
+      - get the {FIELD} field from secret {SECRET_ID}
+      - pull just the password out of a secret
+      - read one key from a secrets manager json secret
+      - extract a value from a secret with jq
+    vars:
+      - {name: SECRET_ID, default: <secret-id>, samples: [prod/redshift/etl, dev/postgres/app]}
+      - {name: FIELD, default: password, samples: [username, host, port]}
+    body: aws secretsmanager get-secret-value --secret-id "$SECRET_ID" --query SecretString --output text | jq -r ".$FIELD"
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/secretsmanager
+    verified: help
+
+  - id: aws-core.iam.list-roles
+    group: iam
+    intents:
+      - list iam roles
+      - show role names in the account
+      - what iam roles exist
+      - aws iam list-roles names only
+    vars: []
+    body: aws iam list-roles --query 'Roles[].RoleName' --output text
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/iam
+    verified: help
+
+  - id: aws-core.ec2.running
+    group: ec2
+    intents:
+      - list running ec2 instances
+      - show instance ids types and ips of running machines
+      - which ec2 boxes are up
+      - ec2 describe-instances running as a table
+    vars: []
+    body: aws ec2 describe-instances --filters Name=instance-state-name,Values=running --query 'Reservations[].Instances[].[InstanceId,InstanceType,PrivateIpAddress]' --output table
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/ec2
+    verified: help
+
+  - id: aws-core.ec2.by-name
+    group: ec2
+    intents:
+      - find ec2 instances named {NAME}
+      - get the instance id and ip for a tagged host
+      - look up ec2 by name tag
+      - describe instances filtered by Name tag
+    vars:
+      - {name: NAME, default: <instance-name>, samples: [airflow-worker, bastion, kafka-connect-1]}
+    body: aws ec2 describe-instances --filters "Name=tag:Name,Values=$NAME" --query 'Reservations[].Instances[].[InstanceId,State.Name,PrivateIpAddress]' --output text
+    destructive: false
+    source: https://github.com/boto/botocore/tree/develop/botocore/data/ec2
+    verified: help

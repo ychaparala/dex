@@ -1,0 +1,14 @@
+{
+ "https://github.com/kubernetes/website/blob/main/content/en/docs/reference/kubectl/quick-reference.md": {
+  "sha256": "26be2bc44e26accc738c1bc689a3f372d1582de9d61a01b545ed1abfaef16056",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/kubernetes/website/blob/main/content/en/docs/tasks/tools/install-kubectl-linux.md": {
+  "sha256": "490987f0d952636c7340b2e6eb494650105d393cebbe59239f48134bd63bcc2c",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/kubeflow/spark-operator/blob/master/README.md": {
+  "sha256": "eb46e89b8cfedf16d3311d3a2efb5942683b9fe05a6c1bd3fcdd0a1ce2c7583b",
+  "fetched": "2026-11-26"
+ }
+}

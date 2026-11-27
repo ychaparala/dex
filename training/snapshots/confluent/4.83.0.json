@@ -1,0 +1,1986 @@
+{
+"confluent": [
+"--help",
+"--unsafe-trace",
+"--verbose",
+"--version"
+],
+"confluent cloud-signup": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent configuration": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent configuration describe": [
+"--help",
+"--output",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent configuration list": [
+"--help",
+"--output",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent configuration update": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent connect": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent connect plugin": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent connect plugin install": [
+"--confluent-platform",
+"--dry-run",
+"--force",
+"--help",
+"--plugin-directory",
+"--unsafe-trace",
+"--verbose",
+"--worker-configurations"
+],
+"confluent context": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent context delete": [
+"--force",
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent context describe": [
+"--api-key",
+"--help",
+"--output",
+"--unsafe-trace",
+"--username",
+"--verbose"
+],
+"confluent context list": [
+"--help",
+"--output",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent context update": [
+"--help",
+"--kafka-cluster",
+"--name",
+"--output",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent context use": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent flink": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent flink application": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent flink application create": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--environment",
+"--help",
+"--output",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink application delete": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--environment",
+"--force",
+"--help",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink application describe": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--environment",
+"--help",
+"--output",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink application event": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent flink application instance": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent flink application list": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--environment",
+"--help",
+"--output",
+"--page-size",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink application update": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--environment",
+"--help",
+"--output",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink application web-ui-forward": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--environment",
+"--help",
+"--port",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink artifact": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent flink artifact create": [
+"--artifact-file",
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--environment",
+"--help",
+"--label",
+"--output",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink artifact delete": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--environment",
+"--force",
+"--help",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink artifact describe": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--environment",
+"--help",
+"--output",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink artifact list": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--environment",
+"--help",
+"--output",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink artifact update": [
+"--certificate-authority-path",
+"--clear-labels",
+"--client-cert-path",
+"--client-key-path",
+"--environment",
+"--help",
+"--label",
+"--output",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink artifact version": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent flink catalog": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent flink catalog create": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--help",
+"--output",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink catalog database": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent flink catalog delete": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--force",
+"--help",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink catalog describe": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--help",
+"--output",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink catalog list": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--help",
+"--output",
+"--page-size",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink catalog update": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--help",
+"--output",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink compute-pool": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent flink compute-pool create": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--environment",
+"--help",
+"--output",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink compute-pool delete": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--environment",
+"--force",
+"--help",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink compute-pool describe": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--environment",
+"--help",
+"--output",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink compute-pool list": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--environment",
+"--help",
+"--output",
+"--page-size",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink detached-savepoint": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent flink detached-savepoint create": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--help",
+"--output",
+"--path",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink detached-savepoint delete": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--force",
+"--help",
+"--output",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink detached-savepoint describe": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--help",
+"--output",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink detached-savepoint list": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--filter",
+"--help",
+"--output",
+"--page-size",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink environment": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent flink environment create": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--compute-pool-defaults",
+"--defaults",
+"--help",
+"--kubernetes-namespace",
+"--output",
+"--statement-defaults",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink environment delete": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--force",
+"--help",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink environment describe": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--help",
+"--output",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink environment list": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--help",
+"--output",
+"--page-size",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink environment update": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--compute-pool-defaults",
+"--defaults",
+"--help",
+"--output",
+"--statement-defaults",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink savepoint": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent flink savepoint create": [
+"--application",
+"--backoff-limit",
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--environment",
+"--format",
+"--help",
+"--output",
+"--path",
+"--statement",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink savepoint delete": [
+"--application",
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--environment",
+"--force",
+"--help",
+"--output",
+"--statement",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink savepoint describe": [
+"--application",
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--environment",
+"--help",
+"--output",
+"--statement",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink savepoint detach": [
+"--application",
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--environment",
+"--help",
+"--output",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink savepoint list": [
+"--application",
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--environment",
+"--help",
+"--output",
+"--page-size",
+"--statement",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink secret": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent flink secret create": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--help",
+"--output",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink secret delete": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--force",
+"--help",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink secret describe": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--help",
+"--output",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink secret list": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--help",
+"--output",
+"--page-size",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink secret update": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--help",
+"--output",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink secret-mapping": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent flink secret-mapping create": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--environment",
+"--help",
+"--output",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink secret-mapping delete": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--environment",
+"--force",
+"--help",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink secret-mapping describe": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--environment",
+"--help",
+"--output",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink secret-mapping list": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--environment",
+"--help",
+"--output",
+"--page-size",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink secret-mapping update": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--environment",
+"--help",
+"--output",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink shell": [
+"--catalog",
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--compute-pool",
+"--database",
+"--environment",
+"--flink-configuration",
+"--help",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink statement": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent flink statement create": [
+"--catalog",
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--compute-pool",
+"--database",
+"--environment",
+"--flink-configuration",
+"--help",
+"--output",
+"--parallelism",
+"--sql",
+"--unsafe-trace",
+"--url",
+"--verbose",
+"--wait"
+],
+"confluent flink statement delete": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--environment",
+"--force",
+"--help",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink statement describe": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--environment",
+"--help",
+"--output",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink statement exception": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent flink statement list": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--compute-pool",
+"--environment",
+"--help",
+"--output",
+"--page-size",
+"--status",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink statement rescale": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--environment",
+"--help",
+"--parallelism",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink statement resume": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--environment",
+"--help",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink statement stop": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--environment",
+"--help",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink statement web-ui-forward": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--environment",
+"--help",
+"--port",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent flink system-info": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--help",
+"--output",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent kafka": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent kafka acl": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent kafka acl create": [
+"--allow",
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--cluster-scope",
+"--consumer-group",
+"--context",
+"--deny",
+"--help",
+"--host",
+"--no-authentication",
+"--operation",
+"--output",
+"--prefix",
+"--principal",
+"--prompt",
+"--topic",
+"--transactional-id",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent kafka acl delete": [
+"--allow",
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--cluster-scope",
+"--consumer-group",
+"--context",
+"--deny",
+"--force",
+"--help",
+"--host",
+"--no-authentication",
+"--operation",
+"--output",
+"--prefix",
+"--principal",
+"--prompt",
+"--topic",
+"--transactional-id",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent kafka acl list": [
+"--allow",
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--cluster-scope",
+"--consumer-group",
+"--context",
+"--deny",
+"--help",
+"--host",
+"--no-authentication",
+"--operation",
+"--output",
+"--prefix",
+"--principal",
+"--prompt",
+"--topic",
+"--transactional-id",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent kafka broker": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent kafka broker configuration": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent kafka broker delete": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--force",
+"--help",
+"--no-authentication",
+"--prompt",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent kafka broker describe": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--help",
+"--no-authentication",
+"--output",
+"--prompt",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent kafka broker list": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--help",
+"--no-authentication",
+"--output",
+"--prompt",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent kafka broker task": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent kafka cluster": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent kafka cluster configuration": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent kafka consumer": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent kafka consumer group": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent kafka consumer list": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--context",
+"--group",
+"--help",
+"--no-authentication",
+"--output",
+"--prompt",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent kafka license": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent kafka license list": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--help",
+"--no-authentication",
+"--output",
+"--prompt",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent kafka license update": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--dry-run",
+"--help",
+"--license",
+"--no-authentication",
+"--output",
+"--prompt",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent kafka link": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent kafka link configuration": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent kafka link create": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--config",
+"--context",
+"--destination-api-key",
+"--destination-api-secret",
+"--destination-bootstrap-server",
+"--destination-cluster",
+"--dry-run",
+"--help",
+"--local-api-key",
+"--local-api-secret",
+"--no-authentication",
+"--no-validate",
+"--prompt",
+"--remote-api-key",
+"--remote-api-secret",
+"--remote-bootstrap-server",
+"--remote-cluster",
+"--source-api-key",
+"--source-api-secret",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent kafka link delete": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--context",
+"--force",
+"--help",
+"--no-authentication",
+"--prompt",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent kafka link describe": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--context",
+"--help",
+"--no-authentication",
+"--output",
+"--prompt",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent kafka link list": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--context",
+"--help",
+"--include-topics",
+"--no-authentication",
+"--output",
+"--prompt",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent kafka link task": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent kafka partition": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent kafka partition describe": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--help",
+"--no-authentication",
+"--output",
+"--prompt",
+"--topic",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent kafka partition list": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--help",
+"--no-authentication",
+"--output",
+"--prompt",
+"--topic",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent kafka partition reassignment": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent kafka replica": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent kafka replica list": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--help",
+"--no-authentication",
+"--output",
+"--partition",
+"--prompt",
+"--topic",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent kafka replica status": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent kafka share-group": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent kafka share-group consumer": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent kafka share-group describe": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--context",
+"--help",
+"--no-authentication",
+"--output",
+"--prompt",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent kafka share-group list": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--context",
+"--help",
+"--no-authentication",
+"--output",
+"--prompt",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent kafka topic": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent kafka topic configuration": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent kafka topic consume": [
+"--api-key",
+"--api-secret",
+"--bootstrap",
+"--cert-location",
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--cluster",
+"--config",
+"--config-file",
+"--context",
+"--delimiter",
+"--environment",
+"--from-beginning",
+"--full-header",
+"--group",
+"--help",
+"--key-format",
+"--key-location",
+"--key-password",
+"--offset",
+"--partition",
+"--password",
+"--print-key",
+"--print-offset",
+"--protocol",
+"--sasl-mechanism",
+"--schema-registry-api-key",
+"--schema-registry-api-secret",
+"--schema-registry-context",
+"--schema-registry-endpoint",
+"--timestamp",
+"--unsafe-trace",
+"--username",
+"--value-format",
+"--verbose"
+],
+"confluent kafka topic create": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--config",
+"--help",
+"--if-not-exists",
+"--no-authentication",
+"--partitions",
+"--prompt",
+"--replication-factor",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent kafka topic delete": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--force",
+"--help",
+"--no-authentication",
+"--prompt",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent kafka topic describe": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--help",
+"--no-authentication",
+"--output",
+"--prompt",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent kafka topic list": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--help",
+"--no-authentication",
+"--output",
+"--prompt",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent kafka topic produce": [
+"--api-key",
+"--api-secret",
+"--bootstrap",
+"--cert-location",
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--cluster",
+"--config",
+"--config-file",
+"--context",
+"--delimiter",
+"--environment",
+"--headers",
+"--help",
+"--key-format",
+"--key-location",
+"--key-password",
+"--key-references",
+"--key-schema",
+"--parse-key",
+"--password",
+"--protocol",
+"--references",
+"--sasl-mechanism",
+"--schema",
+"--schema-id-header",
+"--schema-registry-api-key",
+"--schema-registry-api-secret",
+"--schema-registry-endpoint",
+"--unsafe-trace",
+"--username",
+"--value-format",
+"--verbose"
+],
+"confluent kafka topic update": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--config",
+"--help",
+"--no-authentication",
+"--output",
+"--prompt",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent local": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent local current": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent local destroy": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent local kafka": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent local kafka broker": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent local kafka cluster": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent local kafka start": [
+"--brokers",
+"--help",
+"--kafka-rest-port",
+"--plaintext-ports",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent local kafka stop": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent local kafka topic": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent local services": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent local services connect": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent local services kafka": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent local services kafka-rest": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent local services ksql-server": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent local services list": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent local services schema-registry": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent local services start": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent local services status": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent local services stop": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent local services top": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent local version": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent login": [
+"--certificate-authority-path",
+"--certificate-only",
+"--client-cert-path",
+"--client-key-path",
+"--help",
+"--no-browser",
+"--organization",
+"--prompt",
+"--save",
+"--unsafe-trace",
+"--url",
+"--verbose"
+],
+"confluent logout": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent plugin": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent plugin install": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent plugin list": [
+"--help",
+"--output",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent plugin search": [
+"--help",
+"--output",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent plugin uninstall": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent prompt": [
+"--format",
+"--help",
+"--timeout",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent schema-registry": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent schema-registry configuration": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent schema-registry configuration delete": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--context",
+"--force",
+"--help",
+"--output",
+"--schema-registry-endpoint",
+"--subject",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent schema-registry configuration describe": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--context",
+"--help",
+"--output",
+"--schema-registry-endpoint",
+"--subject",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent schema-registry dek": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent schema-registry dek create": [
+"--algorithm",
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--context",
+"--encrypted-key-material",
+"--help",
+"--kek-name",
+"--output",
+"--schema-registry-endpoint",
+"--subject",
+"--unsafe-trace",
+"--verbose",
+"--version"
+],
+"confluent schema-registry dek delete": [
+"--algorithm",
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--context",
+"--force",
+"--help",
+"--kek-name",
+"--permanent",
+"--schema-registry-endpoint",
+"--subject",
+"--unsafe-trace",
+"--verbose",
+"--version"
+],
+"confluent schema-registry dek describe": [
+"--algorithm",
+"--all",
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--context",
+"--help",
+"--kek-name",
+"--output",
+"--schema-registry-endpoint",
+"--subject",
+"--unsafe-trace",
+"--verbose",
+"--version"
+],
+"confluent schema-registry dek undelete": [
+"--algorithm",
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--context",
+"--help",
+"--kek-name",
+"--schema-registry-endpoint",
+"--subject",
+"--unsafe-trace",
+"--verbose",
+"--version"
+],
+"confluent schema-registry exporter": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent schema-registry exporter configuration": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent schema-registry exporter create": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--config",
+"--context",
+"--context-name",
+"--context-type",
+"--help",
+"--output",
+"--schema-registry-endpoint",
+"--subject-format",
+"--subjects",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent schema-registry exporter delete": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--context",
+"--force",
+"--help",
+"--output",
+"--schema-registry-endpoint",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent schema-registry exporter describe": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--context",
+"--help",
+"--output",
+"--schema-registry-endpoint",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent schema-registry exporter list": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--context",
+"--help",
+"--output",
+"--schema-registry-endpoint",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent schema-registry exporter pause": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--context",
+"--help",
+"--output",
+"--schema-registry-endpoint",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent schema-registry exporter reset": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--context",
+"--help",
+"--output",
+"--schema-registry-endpoint",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent schema-registry exporter resume": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--context",
+"--help",
+"--output",
+"--schema-registry-endpoint",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent schema-registry exporter status": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent schema-registry exporter update": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--config",
+"--context",
+"--context-name",
+"--context-type",
+"--help",
+"--output",
+"--schema-registry-endpoint",
+"--subject-format",
+"--subjects",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent schema-registry kek": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent schema-registry kek create": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--context",
+"--doc",
+"--help",
+"--kms-key",
+"--kms-properties",
+"--kms-type",
+"--output",
+"--schema-registry-endpoint",
+"--shared",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent schema-registry kek delete": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--context",
+"--force",
+"--help",
+"--permanent",
+"--schema-registry-endpoint",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent schema-registry kek describe": [
+"--all",
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--context",
+"--help",
+"--output",
+"--schema-registry-endpoint",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent schema-registry kek list": [
+"--all",
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--context",
+"--help",
+"--output",
+"--schema-registry-endpoint",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent schema-registry kek undelete": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--context",
+"--force",
+"--help",
+"--schema-registry-endpoint",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent schema-registry kek update": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--context",
+"--doc",
+"--help",
+"--kms-properties",
+"--output",
+"--schema-registry-endpoint",
+"--shared",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent schema-registry schema": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent schema-registry schema compatibility": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent schema-registry schema create": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--context",
+"--help",
+"--metadata",
+"--normalize",
+"--output",
+"--references",
+"--ruleset",
+"--schema",
+"--schema-registry-endpoint",
+"--subject",
+"--type",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent schema-registry schema delete": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--context",
+"--force",
+"--help",
+"--permanent",
+"--schema-registry-endpoint",
+"--subject",
+"--unsafe-trace",
+"--verbose",
+"--version"
+],
+"confluent schema-registry schema describe": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--context",
+"--format",
+"--help",
+"--schema-registry-endpoint",
+"--show-references",
+"--subject",
+"--unsafe-trace",
+"--verbose",
+"--version"
+],
+"confluent schema-registry schema list": [
+"--all",
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--context",
+"--help",
+"--output",
+"--schema-registry-endpoint",
+"--subject-prefix",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent schema-registry subject": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent schema-registry subject describe": [
+"--all",
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--context",
+"--help",
+"--output",
+"--schema-registry-endpoint",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent schema-registry subject list": [
+"--all",
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--context",
+"--help",
+"--output",
+"--prefix",
+"--schema-registry-endpoint",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent schema-registry subject update": [
+"--certificate-authority-path",
+"--client-cert-path",
+"--client-key-path",
+"--compatibility",
+"--compatibility-group",
+"--context",
+"--help",
+"--metadata-defaults",
+"--metadata-overrides",
+"--mode",
+"--ruleset-defaults",
+"--ruleset-overrides",
+"--schema-registry-endpoint",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent secret": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent secret file": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent secret file add": [
+"--config",
+"--config-file",
+"--help",
+"--local-secrets-file",
+"--remote-secrets-file",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent secret file decrypt": [
+"--config",
+"--config-file",
+"--help",
+"--local-secrets-file",
+"--output-file",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent secret file encrypt": [
+"--config",
+"--config-file",
+"--help",
+"--local-secrets-file",
+"--remote-secrets-file",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent secret file remove": [
+"--config",
+"--config-file",
+"--help",
+"--local-secrets-file",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent secret file rotate": [
+"--data-key",
+"--help",
+"--local-secrets-file",
+"--master-key",
+"--output",
+"--passphrase",
+"--passphrase-new",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent secret file update": [
+"--config",
+"--config-file",
+"--help",
+"--local-secrets-file",
+"--remote-secrets-file",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent secret master-key": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent secret master-key generate": [
+"--help",
+"--local-secrets-file",
+"--output",
+"--passphrase",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent shell": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+],
+"confluent update": [
+"--help",
+"--major",
+"--no-verify",
+"--unsafe-trace",
+"--verbose",
+"--yes"
+],
+"confluent version": [
+"--help",
+"--unsafe-trace",
+"--verbose"
+]
+}

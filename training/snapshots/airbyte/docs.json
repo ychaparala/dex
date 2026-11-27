@@ -1,0 +1,26 @@
+{
+ "https://github.com/airbytehq/abctl/blob/main/internal/cmd/local/install.go": {
+  "sha256": "5572224f4122e3d5d79dcde5f7b89533f7d7be59d23c7e05c60e55510e46d4d0",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/airbytehq/abctl/blob/main/internal/cmd/local/credentials.go": {
+  "sha256": "d46d5924620fdb120b2d70360394475e560771e8ac08c9d9b5d6171d426befb3",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/airbytehq/abctl/blob/main/internal/cmd/local/uninstall.go": {
+  "sha256": "d886e012de90a5346f378b06210ea5f7038ba21b77abe0abc8a1832c85bd5175",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/airbytehq/abctl/blob/main/internal/cmd/cmd.go": {
+  "sha256": "3721184fb728d3bc9353b71ddc83a7a6d660e4f31f48aaa3f866ebdea308e944",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/airbytehq/abctl/blob/main/README.md": {
+  "sha256": "77ac25fdc437196d5bafe6179adcc7d447c0488800dda197aadb0ed67bf2bbee",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/airbytehq/airbyte/blob/master/docs/platform/deploying-airbyte/abctl/index.md": {
+  "sha256": "ab3a1bf6a14940f4281ccdad20a39b18d49be6a7220489fe65f5d2307277a8fa",
+  "fetched": "2026-11-26"
+ }
+}

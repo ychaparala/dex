@@ -1,0 +1,30 @@
+{
+ "https://github.com/argoproj/argo-workflows/blob/main/cmd/argo/commands/submit.go": {
+  "sha256": "28d56c1ba6fc939c062f88a71743e03312ce8ac704eb7c999509a3fcbf009ca7",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/argoproj/argo-workflows/blob/main/workflow/util/util.go": {
+  "sha256": "ecf658d46b5d19f010d9383095d5cce9eebee7fdf0d4877212c6592ba5a06f73",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/argoproj/argo-workflows/blob/main/cmd/argo/commands/list.go": {
+  "sha256": "89e75192335c5a3002d4cfe8039e2c70d29651dc0b66e626309d76fdd0b7834e",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/argoproj/argo-workflows/blob/main/cmd/argo/commands/logs.go": {
+  "sha256": "7ea786f29cd4960ef86419ad28a34651e05df7c8f4db40d5d016de347c440131",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/argoproj/argo-workflows/blob/main/cmd/argo/commands/delete.go": {
+  "sha256": "40f4c238aee3b10b5e6f10e89fbb7b53c1564ebd7d0cc3c79a7987ef81a22032",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/argoproj/argo-workflows/blob/main/cmd/argo/commands/cron/list.go": {
+  "sha256": "28f7e801383fee637b8a761dc89eb5a706d37121d39092ca6065d8237fc5dae9",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/argoproj/argo-workflows/blob/main/cmd/argo/commands/template/list.go": {
+  "sha256": "09acf9eeaae481b8d3893961b5c1c1ae564348fc6239ed963722f60af8087612",
+  "fetched": "2026-11-26"
+ }
+}

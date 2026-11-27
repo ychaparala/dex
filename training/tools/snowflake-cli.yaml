@@ -1,0 +1,610 @@
+tool: snowflake-cli
+binaries:
+- snow
+category: warehouses
+priority: core
+target_pairs: 250
+version_note: Snowflake CLI 3.x (snow)
+version_cmd: snow --version
+version_label: snow
+versions:
+- {version: "3.7.1", install: "pip:snowflake-cli==3.7.1"}
+install:
+- macos: ["brew install snowflake-cli"]
+  any: ["uv tool install snowflake-cli"]
+  source: ["https://github.com/snowflakedb/snowflake-cli/blob/main/README.md"]
+sources:
+- url: https://github.com/snowflakedb/snowflake-cli/blob/main/tests/__snapshots__/test_help_messages.ambr
+  license: Apache-2.0 (repo)
+- url: https://github.com/snowflakedb/snowflake-cli/blob/main/README.md
+  license: Apache-2.0 (repo)
+- url: https://github.com/snowflakedb/snowflake-cli/blob/main/src/snowflake/cli/api/commands/flags.py
+  license: Apache-2.0 (repo)
+- url: https://github.com/snowflakedb/snowflake-cli/blob/main/src/snowflake/cli/api/config_ng/sources.py
+  license: Apache-2.0 (repo)
+destructive_patterns:
+- \bsnow\s+(object|stage|streamlit|snowpark|git)\s+(drop|remove)\b
+- (?i)\b(drop|truncate)\s+(table|schema|database|stage|view|warehouse)\b
+- (?i)\bdelete\s+from\b
+- \bconnection\s+remove\b
+- --overwrite\b
+templates:
+- id: snowflake-cli.install.script
+  group: setup
+  intents:
+  - install snowflake cli with the official script
+  - curl install snow cli
+  - set up the snow command on linux
+  - get the snowflake cli installer
+  vars: []
+  body: curl -LsS https://sfc-repo.snowflakecomputing.com/snowflake-cli/install.sh | sh
+  destructive: false
+  source: https://github.com/snowflakedb/snowflake-cli/blob/main/README.md
+  verified: docs
+- id: snowflake-cli.install.brew
+  group: setup
+  intents:
+  - brew install snowflake cli
+  - install snow on my mac
+  - get the snowflake cli from homebrew
+  - homebrew snowflake-cli
+  vars: []
+  body: brew install snowflake-cli
+  destructive: false
+  source: https://github.com/snowflakedb/snowflake-cli/blob/main/README.md
+  verified: docs
+- id: snowflake-cli.install.uv
+  group: setup
+  intents:
+  - install snowflake-cli with uv
+  - install snow cli as a python tool
+  - uv tool install snowflake cli
+  - pip-style install of snowflake cli in an isolated env
+  vars: []
+  body: uv tool install snowflake-cli
+  destructive: false
+  source: https://github.com/snowflakedb/snowflake-cli/blob/main/README.md
+  verified: docs
+- id: snowflake-cli.version
+  group: setup
+  intents:
+  - what version of snow cli is installed
+  - snow --version
+  - check snowflake cli version
+  - is the snow cli installed
+  vars: []
+  body: snow --version
+  destructive: false
+  source: https://github.com/snowflakedb/snowflake-cli/blob/main/README.md
+  verified: docs
+- id: snowflake-cli.connection.add
+  group: connections
+  intents:
+  - add a snowflake connection named {NAME}
+  - create a new snow connection interactively
+  - configure snowflake cli connection {NAME} for account {ACCOUNT}
+  - set up a connection in config.toml
+  vars:
+  - name: NAME
+    default: dev
+    samples:
+    - prod
+    - analytics
+    - sandbox
+  - name: ACCOUNT
+    default: <org-account>
+    samples:
+    - myorg-myaccount
+    - acme-prod
+    - xy12345.us-east-1
+  - name: SF_USER
+    default: <user>
+    samples:
+    - etl_user
+    - jdoe
+    - svc_loader
+  body: snow connection add --connection-name "$NAME" --account "$ACCOUNT" --user "$SF_USER" --authenticator externalbrowser
+  destructive: false
+  source: https://github.com/snowflakedb/snowflake-cli/blob/main/tests/__snapshots__/test_help_messages.ambr
+  verified: source
+- id: snowflake-cli.connection.list
+  group: connections
+  intents:
+  - list snowflake cli connections
+  - what snow connections do i have
+  - show configured snowflake connections
+  - snow connection list
+  vars: []
+  body: snow connection list
+  destructive: false
+  source: https://github.com/snowflakedb/snowflake-cli/blob/main/tests/__snapshots__/test_help_messages.ambr
+  verified: source
+- id: snowflake-cli.connection.test
+  group: connections
+  intents:
+  - test the snowflake connection {CONN}
+  - check i can connect to snowflake
+  - verify connection {CONN} works
+  - snow connection test
+  vars:
+  - name: CONN
+    default: default
+    samples:
+    - dev
+    - prod
+    - analytics
+    ctx: snowflake_connection
+  body: snow connection test -c "$CONN"
+  destructive: false
+  source: https://github.com/snowflakedb/snowflake-cli/blob/main/tests/__snapshots__/test_help_messages.ambr
+  verified: source
+- id: snowflake-cli.connection.default
+  group: connections
+  intents:
+  - make {CONN} the default snowflake connection
+  - set default snow connection
+  - switch my default connection to {CONN}
+  - change which snowflake connection is used by default
+  vars:
+  - name: CONN
+    default: default
+    samples:
+    - dev
+    - prod
+    - analytics
+    ctx: snowflake_connection
+  body: snow connection set-default "$CONN"
+  destructive: false
+  source: https://github.com/snowflakedb/snowflake-cli/blob/main/tests/__snapshots__/test_help_messages.ambr
+  verified: source
+- id: snowflake-cli.sql.query
+  group: sql
+  intents:
+  - 'run a query on snowflake: {QUERY}'
+  - execute sql with snow cli
+  - snow sql -q on connection {CONN}
+  - query snowflake from the terminal
+  vars:
+  - name: QUERY
+    default: select current_version()
+    samples:
+    - select count(*) from analytics.public.orders
+    - show warehouses
+    - select current_role()
+  - name: CONN
+    default: default
+    samples:
+    - dev
+    - prod
+    - analytics
+    ctx: snowflake_connection
+  body: snow sql -q "$QUERY" -c "$CONN"
+  destructive: false
+  source: https://github.com/snowflakedb/snowflake-cli/blob/main/tests/__snapshots__/test_help_messages.ambr
+  verified: source
+- id: snowflake-cli.sql.file
+  group: sql
+  intents:
+  - run the sql script {FILE} on snowflake
+  - execute a .sql file with snow
+  - snow sql -f {FILE}
+  - apply a migration script to snowflake
+  vars:
+  - name: FILE
+    default: query.sql
+    samples:
+    - migrations/001_create_tables.sql
+    - reports/daily.sql
+    ctx: local_file
+  - name: CONN
+    default: default
+    samples:
+    - dev
+    - prod
+    - analytics
+    ctx: snowflake_connection
+  body: snow sql -f "$FILE" -c "$CONN"
+  destructive: false
+  source: https://github.com/snowflakedb/snowflake-cli/blob/main/tests/__snapshots__/test_help_messages.ambr
+  verified: source
+- id: snowflake-cli.sql.json
+  group: sql
+  intents:
+  - get query results as json and pipe to jq
+  - snow sql json output
+  - run {QUERY} and return json
+  - machine readable snowflake query output
+  vars:
+  - name: QUERY
+    default: select * from analytics.public.orders limit 10
+    samples:
+    - show databases
+    - select current_user() as u
+  - name: CONN
+    default: default
+    samples:
+    - dev
+    - prod
+    - analytics
+    ctx: snowflake_connection
+  body: snow sql -q "$QUERY" -c "$CONN" --format json | jq .
+  destructive: false
+  source: https://github.com/snowflakedb/snowflake-cli/blob/main/tests/__snapshots__/test_help_messages.ambr
+  verified: source
+- id: snowflake-cli.sql.csv
+  group: sql
+  intents:
+  - export query results to {OUT_FILE} as csv
+  - save a snowflake query to a csv file
+  - snow sql csv output
+  - dump {QUERY} into a csv
+  vars:
+  - name: QUERY
+    default: select * from analytics.public.orders
+    samples:
+    - select * from raw.events limit 1000
+  - name: CONN
+    default: default
+    samples:
+    - dev
+    - prod
+    - analytics
+    ctx: snowflake_connection
+  - name: OUT_FILE
+    default: out.csv
+    samples:
+    - orders.csv
+    - events_sample.csv
+  body: snow sql -q "$QUERY" -c "$CONN" --format csv > "$OUT_FILE"
+  destructive: false
+  source: https://github.com/snowflakedb/snowflake-cli/blob/main/src/snowflake/cli/api/output/formats.py
+  verified: source
+- id: snowflake-cli.sql.stdin
+  group: sql
+  intents:
+  - pipe sql from {FILE} into snow on stdin
+  - read the query from standard input
+  - cat a sql file into snow sql
+  - run sql passed through a pipe
+  vars:
+  - name: FILE
+    default: query.sql
+    samples:
+    - report.sql
+    - checks.sql
+    ctx: local_file
+  - name: CONN
+    default: default
+    samples:
+    - dev
+    - prod
+    - analytics
+    ctx: snowflake_connection
+  body: cat "$FILE" | snow sql -i -c "$CONN"
+  destructive: false
+  source: https://github.com/snowflakedb/snowflake-cli/blob/main/tests/__snapshots__/test_help_messages.ambr
+  verified: source
+- id: snowflake-cli.sql.temp_conn
+  group: sql
+  intents:
+  - run a query using SNOWFLAKE_ACCOUNT SNOWFLAKE_USER SNOWFLAKE_PASSWORD env vars
+  - connect without a saved connection
+  - snow sql with a temporary connection
+  - query snowflake using only environment variables
+  vars: []
+  body: snow sql -x -q "select current_user()"
+  destructive: false
+  source: https://github.com/snowflakedb/snowflake-cli/blob/main/src/snowflake/cli/api/config_ng/sources.py
+  verified: source
+- id: snowflake-cli.stage.upload
+  group: stages
+  intents:
+  - upload {LOCAL_FILE} to stage {STAGE}
+  - put a local file on a snowflake stage
+  - copy a csv into a stage
+  - snow stage copy local to stage
+  vars:
+  - name: LOCAL_FILE
+    default: data.csv
+    samples:
+    - orders.csv
+    - events.parquet
+    ctx: local_file
+  - name: STAGE
+    default: '@my_stage'
+    samples:
+    - '@raw_stage/landing/'
+    - '@analytics.public.loads'
+    - '@~/uploads/'
+  - name: CONN
+    default: default
+    samples:
+    - dev
+    - prod
+    - analytics
+    ctx: snowflake_connection
+  body: snow stage copy "$LOCAL_FILE" "$STAGE" -c "$CONN"
+  destructive: false
+  source: https://github.com/snowflakedb/snowflake-cli/blob/main/tests/__snapshots__/test_help_messages.ambr
+  verified: source
+- id: snowflake-cli.stage.upload.dir
+  group: stages
+  intents:
+  - upload the folder {LOCAL_DIR} to {STAGE} recursively
+  - copy a whole directory to a stage
+  - push all files in a folder to snowflake
+  - recursive stage upload
+  vars:
+  - name: LOCAL_DIR
+    default: ./data
+    samples:
+    - ./exports
+    - ./batch_2025_06
+  - name: STAGE
+    default: '@my_stage'
+    samples:
+    - '@raw_stage/landing/'
+    - '@analytics.public.loads'
+    - '@~/uploads/'
+  - name: CONN
+    default: default
+    samples:
+    - dev
+    - prod
+    - analytics
+    ctx: snowflake_connection
+  body: snow stage copy "$LOCAL_DIR" "$STAGE" --recursive -c "$CONN"
+  destructive: false
+  source: https://github.com/snowflakedb/snowflake-cli/blob/main/tests/__snapshots__/test_help_messages.ambr
+  verified: source
+- id: snowflake-cli.stage.download
+  group: stages
+  intents:
+  - download files from {STAGE} to {LOCAL_DIR}
+  - copy a stage to my machine
+  - pull staged files locally
+  - snow stage copy from stage
+  vars:
+  - name: STAGE
+    default: '@my_stage'
+    samples:
+    - '@raw_stage/landing/'
+    - '@analytics.public.loads'
+    - '@~/uploads/'
+  - name: LOCAL_DIR
+    default: ./downloads
+    samples:
+    - ./out
+    - /tmp/stage_dump
+  - name: CONN
+    default: default
+    samples:
+    - dev
+    - prod
+    - analytics
+    ctx: snowflake_connection
+  body: snow stage copy "$STAGE" "$LOCAL_DIR" -c "$CONN"
+  destructive: false
+  source: https://github.com/snowflakedb/snowflake-cli/blob/main/tests/__snapshots__/test_help_messages.ambr
+  verified: source
+- id: snowflake-cli.stage.list
+  group: stages
+  intents:
+  - list files on stage {STAGE}
+  - what's in this snowflake stage
+  - show staged files
+  - snow stage list-files
+  vars:
+  - name: STAGE
+    default: '@my_stage'
+    samples:
+    - '@raw_stage/landing/'
+    - '@analytics.public.loads'
+    - '@~/uploads/'
+  - name: CONN
+    default: default
+    samples:
+    - dev
+    - prod
+    - analytics
+    ctx: snowflake_connection
+  body: snow stage list-files "$STAGE" -c "$CONN"
+  destructive: false
+  source: https://github.com/snowflakedb/snowflake-cli/blob/main/tests/__snapshots__/test_help_messages.ambr
+  verified: source
+- id: snowflake-cli.object.list
+  group: objects
+  intents:
+  - list tables in database {DATABASE}
+  - show tables with snow object list
+  - what tables are in {DATABASE}
+  - snow list tables
+  vars:
+  - name: DATABASE
+    default: analytics
+    samples:
+    - raw
+    - prod_db
+    - staging
+  - name: CONN
+    default: default
+    samples:
+    - dev
+    - prod
+    - analytics
+    ctx: snowflake_connection
+  body: snow object list table --in database "$DATABASE" -c "$CONN"
+  destructive: false
+  source: https://github.com/snowflakedb/snowflake-cli/blob/main/tests/__snapshots__/test_help_messages.ambr
+  verified: source
+- id: snowflake-cli.object.list.wh
+  group: objects
+  intents:
+  - list warehouses
+  - show snowflake warehouses
+  - what warehouses can i use
+  - snow object list warehouse on {CONN}
+  vars:
+  - name: CONN
+    default: default
+    samples:
+    - dev
+    - prod
+    - analytics
+    ctx: snowflake_connection
+  body: snow object list warehouse -c "$CONN"
+  destructive: false
+  source: https://github.com/snowflakedb/snowflake-cli/blob/main/tests/__snapshots__/test_help_messages.ambr
+  verified: source
+- id: snowflake-cli.object.describe
+  group: objects
+  intents:
+  - describe table {TABLE}
+  - show columns of a snowflake table
+  - what's the schema of {TABLE}
+  - snow object describe table
+  vars:
+  - name: TABLE
+    default: analytics.public.orders
+    samples:
+    - raw.events.clicks
+    - prod_db.core.customers
+  - name: CONN
+    default: default
+    samples:
+    - dev
+    - prod
+    - analytics
+    ctx: snowflake_connection
+  body: snow object describe table "$TABLE" -c "$CONN"
+  destructive: false
+  source: https://github.com/snowflakedb/snowflake-cli/blob/main/tests/__snapshots__/test_help_messages.ambr
+  verified: source
+- id: snowflake-cli.streamlit.deploy
+  group: apps
+  intents:
+  - deploy the streamlit app in this project
+  - push my streamlit app to snowflake, replacing it
+  - snow streamlit deploy
+  - redeploy streamlit app
+  vars:
+  - name: CONN
+    default: default
+    samples:
+    - dev
+    - prod
+    - analytics
+    ctx: snowflake_connection
+  body: snow streamlit deploy --replace -c "$CONN"
+  destructive: false
+  source: https://github.com/snowflakedb/snowflake-cli/blob/main/tests/__snapshots__/test_help_messages.ambr
+  verified: source
+- id: snowflake-cli.snowpark.build
+  group: apps
+  intents:
+  - build the snowpark project
+  - package snowpark code
+  - snow snowpark build
+  - create the snowpark artifact zip
+  vars: []
+  body: snow snowpark build
+  destructive: false
+  source: https://github.com/snowflakedb/snowflake-cli/blob/main/tests/__snapshots__/test_help_messages.ambr
+  verified: source
+- id: snowflake-cli.snowpark.deploy
+  group: apps
+  intents:
+  - deploy snowpark functions and procedures
+  - push snowpark project to snowflake, replacing existing
+  - snow snowpark deploy
+  - redeploy my udfs
+  vars:
+  - name: CONN
+    default: default
+    samples:
+    - dev
+    - prod
+    - analytics
+    ctx: snowflake_connection
+  body: snow snowpark deploy --replace -c "$CONN"
+  destructive: false
+  source: https://github.com/snowflakedb/snowflake-cli/blob/main/tests/__snapshots__/test_help_messages.ambr
+  verified: source
+- id: snowflake-cli.git.fetch
+  group: git
+  intents:
+  - fetch latest commits for git repository {REPO}
+  - refresh the snowflake git repo object
+  - snow git fetch
+  - pull new changes into the snowflake git repository
+  vars:
+  - name: REPO
+    default: <repo>
+    samples:
+    - dbt_project_repo
+    - analytics.public.etl_repo
+  - name: CONN
+    default: default
+    samples:
+    - dev
+    - prod
+    - analytics
+    ctx: snowflake_connection
+  body: snow git fetch "$REPO" -c "$CONN"
+  destructive: false
+  source: https://github.com/snowflakedb/snowflake-cli/blob/main/tests/__snapshots__/test_help_messages.ambr
+  verified: source
+- id: snowflake-cli.git.list_files
+  group: git
+  intents:
+  - list files on the main branch of git repo {REPO}
+  - show files in a snowflake git repository
+  - snow git list-files
+  - browse the repo stage
+  vars:
+  - name: REPO
+    default: <repo>
+    samples:
+    - dbt_project_repo
+    - etl_repo
+  - name: CONN
+    default: default
+    samples:
+    - dev
+    - prod
+    - analytics
+    ctx: snowflake_connection
+  body: snow git list-files "@$REPO/branches/main/" -c "$CONN"
+  destructive: false
+  source: https://github.com/snowflakedb/snowflake-cli/blob/main/tests/__snapshots__/test_help_messages.ambr
+  verified: source
+- id: snowflake-cli.stage.remove
+  group: stages
+  intents:
+  - delete {FILE_NAME} from stage {STAGE}
+  - remove a staged file
+  - snow stage remove
+  - clean a file off the snowflake stage
+  vars:
+  - name: STAGE
+    default: '@my_stage'
+    samples:
+    - '@raw_stage/landing/'
+    - '@analytics.public.loads'
+    - '@~/uploads/'
+  - name: FILE_NAME
+    default: data.csv.gz
+    samples:
+    - orders.csv.gz
+    - old/events.parquet
+  - name: CONN
+    default: default
+    samples:
+    - dev
+    - prod
+    - analytics
+    ctx: snowflake_connection
+  body: snow stage remove "$STAGE" "$FILE_NAME" -c "$CONN"
+  destructive: true
+  source: https://github.com/snowflakedb/snowflake-cli/blob/main/tests/__snapshots__/test_help_messages.ambr
+  verified: source

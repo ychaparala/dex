@@ -1,0 +1,267 @@
+tool: csvkit
+binaries: [csvlook, csvcut, csvstat, csvsql, in2csv, csvgrep, csvjson, csvsort, csvstack, csvformat]
+category: files
+priority: standard
+target_pairs: 100
+version_note: "csvkit 2.x"
+install:
+- any: ["uv tool install csvkit", "pipx install csvkit"]
+  source: ["https://github.com/wireservice/csvkit/blob/master/docs/tutorial/1_getting_started.rst", "https://docs.astral.sh/uv/guides/tools/", "https://pipx.pypa.io/stable/"]
+sources:
+  - url: https://github.com/wireservice/csvkit/tree/master/docs/scripts
+    license: "MIT (wireservice/csvkit repo COPYING)"
+  - url: https://github.com/wireservice/csvkit/blob/master/docs/common_arguments.rst
+    license: "MIT (wireservice/csvkit repo COPYING)"
+  - url: https://github.com/wireservice/csvkit/blob/master/docs/tutorial/1_getting_started.rst
+    license: "MIT (wireservice/csvkit repo COPYING)"
+templates:
+  - id: csvkit.setup.install
+    group: setup
+    intents:
+      - install csvkit
+      - pip install the csv command line tools
+      - get csvlook and csvsql
+      - set up csvkit with pip
+    body: pip install csvkit
+    destructive: false
+    source: https://github.com/wireservice/csvkit/blob/master/docs/tutorial/1_getting_started.rst
+    verified: docs
+
+  - id: csvkit.look
+    group: view
+    intents:
+      - show {FILE} as a readable table
+      - pretty print the first rows of a csv in the terminal
+      - csvlook a file
+      - view a csv with aligned columns
+      - preview csv nicely
+    vars:
+      - {name: FILE, default: data.csv, samples: [orders.csv, customers.csv, export_2026.csv], ctx: local_file}
+    body: head -n 20 "$FILE" | csvlook | less -S
+    destructive: false
+    source: https://github.com/wireservice/csvkit/blob/master/docs/scripts/csvlook.rst
+    verified: docs
+
+  - id: csvkit.cut_names
+    group: inspect
+    intents:
+      - list the column names of {FILE}
+      - what columns does this csv have
+      - show csv headers with their index numbers
+      - csvcut -n
+    vars:
+      - {name: FILE, default: data.csv, samples: [orders.csv, events.csv], ctx: local_file}
+    body: csvcut -n "$FILE"
+    destructive: false
+    source: https://github.com/wireservice/csvkit/blob/master/docs/scripts/csvcut.rst
+    verified: docs
+
+  - id: csvkit.cut_columns
+    group: transform
+    intents:
+      - keep only columns {COLUMN_LIST} from {FILE}
+      - select a few columns out of a csv
+      - drop all other csv columns
+      - csvcut -c specific columns
+    vars:
+      - {name: COLUMN_LIST, default: "id,name", samples: ["id,email", "order_id,amount,created_at", "1,3,5"]}
+      - {name: FILE, default: data.csv, samples: [orders.csv, users.csv], ctx: local_file}
+    body: csvcut -c "$COLUMN_LIST" "$FILE"
+    destructive: false
+    source: https://github.com/wireservice/csvkit/blob/master/docs/scripts/csvcut.rst
+    verified: docs
+
+  - id: csvkit.stat
+    group: inspect
+    intents:
+      - summary statistics for every column of {FILE}
+      - profile a csv file
+      - csvstat a dataset
+      - show min, max, nulls and unique counts per column
+    vars:
+      - {name: FILE, default: data.csv, samples: [orders.csv, sensor_readings.csv], ctx: local_file}
+    body: csvstat "$FILE"
+    destructive: false
+    source: https://github.com/wireservice/csvkit/blob/master/docs/scripts/csvstat.rst
+    verified: docs
+
+  - id: csvkit.stat_count
+    group: inspect
+    intents:
+      - how many rows are in {FILE}
+      - count csv records excluding the header
+      - number of data rows in a csv
+      - csvstat --count
+    vars:
+      - {name: FILE, default: data.csv, samples: [orders.csv, events.csv], ctx: local_file}
+    body: csvstat --count "$FILE"
+    destructive: false
+    source: https://github.com/wireservice/csvkit/blob/master/docs/scripts/csvstat.rst
+    verified: docs
+
+  - id: csvkit.sql_query
+    group: query
+    intents:
+      - run sql against {FILE}, counting rows per {COLUMN}
+      - group a csv by a column with sql
+      - query a csv file like a table
+      - csvsql --query group by
+    vars:
+      - {name: COLUMN, default: status, samples: [status, country, product_id]}
+      - {name: FILE, default: data.csv, samples: [orders.csv, events.csv], ctx: local_file}
+    body: csvsql --tables t --query "select $COLUMN, count(*) as n from t group by $COLUMN order by n desc" "$FILE" | csvlook
+    destructive: false
+    source: https://github.com/wireservice/csvkit/blob/master/docs/scripts/csvsql.rst
+    verified: docs
+
+  - id: csvkit.sql_create
+    group: query
+    intents:
+      - generate a create table statement for {FILE}
+      - infer a sql schema from a csv
+      - what ddl would this csv need in postgres
+      - csvsql print create table
+    vars:
+      - {name: DIALECT, default: postgresql, samples: [postgresql, mysql, sqlite]}
+      - {name: FILE, default: data.csv, samples: [orders.csv, customers.csv], ctx: local_file}
+    body: csvsql -i "$DIALECT" "$FILE"
+    destructive: false
+    source: https://github.com/wireservice/csvkit/blob/master/docs/scripts/csvsql.rst
+    verified: docs
+
+  - id: csvkit.sql_insert_db
+    group: query
+    intents:
+      - load {FILE} into a database table called {TABLE}
+      - create a table and insert a csv into postgres
+      - csvsql --db --insert
+      - import a csv into the database at $DATABASE_URL
+    vars:
+      - {name: TABLE, default: <table>, samples: [orders_raw, stg_customers]}
+      - {name: FILE, default: data.csv, samples: [orders.csv, customers.csv], ctx: local_file}
+    body: csvsql --db "$DATABASE_URL" --tables "$TABLE" --insert "$FILE"
+    destructive: false
+    source: https://github.com/wireservice/csvkit/blob/master/docs/scripts/csvsql.rst
+    verified: docs
+
+  - id: csvkit.in2csv_excel
+    group: convert
+    intents:
+      - convert excel sheet {SHEET} of {FILE} to csv
+      - turn an xlsx into a csv
+      - in2csv a spreadsheet tab
+      - export one sheet of a workbook as csv
+    vars:
+      - {name: FILE, default: data.xlsx, samples: [report.xlsx, budget_2026.xlsx], ctx: local_file}
+      - {name: SHEET, default: Sheet1, samples: [Sheet1, Orders, Q1]}
+      - {name: OUT_FILE, default: data.csv, samples: [report.csv, orders.csv]}
+    body: in2csv --sheet "$SHEET" "$FILE" > "$OUT_FILE"
+    destructive: false
+    source: https://github.com/wireservice/csvkit/blob/master/docs/scripts/in2csv.rst
+    verified: docs
+
+  - id: csvkit.in2csv_ndjson
+    group: convert
+    intents:
+      - convert newline-delimited json {FILE} to csv
+      - ndjson to csv
+      - flatten jsonl records into a csv
+      - in2csv -f ndjson
+    vars:
+      - {name: FILE, default: events.ndjson, samples: [events.ndjson, logs.jsonl], ctx: local_file}
+      - {name: OUT_FILE, default: events.csv, samples: [events.csv, logs.csv]}
+    body: in2csv -f ndjson "$FILE" > "$OUT_FILE"
+    destructive: false
+    source: https://github.com/wireservice/csvkit/blob/master/docs/scripts/in2csv.rst
+    verified: docs
+
+  - id: csvkit.grep
+    group: filter
+    intents:
+      - rows of {FILE} where {COLUMN} is {VALUE}
+      - filter a csv by a column value
+      - csvgrep exact match
+      - keep only the matching csv rows
+    vars:
+      - {name: COLUMN, default: status, samples: [status, country, state]}
+      - {name: VALUE, default: failed, samples: [failed, US, shipped]}
+      - {name: FILE, default: data.csv, samples: [orders.csv, runs.csv], ctx: local_file}
+    body: csvgrep -c "$COLUMN" -m "$VALUE" "$FILE"
+    destructive: false
+    source: https://github.com/wireservice/csvkit/blob/master/docs/scripts/csvgrep.rst
+    verified: docs
+
+  - id: csvkit.grep_regex
+    group: filter
+    intents:
+      - find rows in {FILE} where {COLUMN} matches the regex {REGEX}
+      - csvgrep with a regular expression
+      - filter csv rows by pattern
+      - rows whose email ends with a domain
+    vars:
+      - {name: COLUMN, default: email, samples: [email, sku, name]}
+      - {name: REGEX, default: "@example\\.com$", samples: ["^ERR", "@example\\.com$", "^2026-03"]}
+      - {name: FILE, default: data.csv, samples: [users.csv, orders.csv], ctx: local_file}
+    body: csvgrep -c "$COLUMN" -r "$REGEX" "$FILE"
+    destructive: false
+    source: https://github.com/wireservice/csvkit/blob/master/docs/scripts/csvgrep.rst
+    verified: docs
+
+  - id: csvkit.sort
+    group: transform
+    intents:
+      - sort {FILE} by {COLUMN} descending
+      - order csv rows by a column, biggest first
+      - csvsort reverse
+      - top rows by amount
+    vars:
+      - {name: COLUMN, default: amount, samples: [amount, created_at, revenue]}
+      - {name: FILE, default: data.csv, samples: [orders.csv, sales.csv], ctx: local_file}
+    body: csvsort -c "$COLUMN" -r "$FILE" | head -n 20 | csvlook
+    destructive: false
+    source: https://github.com/wireservice/csvkit/blob/master/docs/scripts/csvsort.rst
+    verified: docs
+
+  - id: csvkit.json
+    group: convert
+    intents:
+      - convert {FILE} to json
+      - csv to a json array of objects
+      - csvjson with indentation
+      - turn a csv into pretty json
+    vars:
+      - {name: FILE, default: data.csv, samples: [orders.csv, customers.csv], ctx: local_file}
+    body: csvjson -i 2 "$FILE"
+    destructive: false
+    source: https://github.com/wireservice/csvkit/blob/master/docs/scripts/csvjson.rst
+    verified: docs
+
+  - id: csvkit.stack
+    group: transform
+    intents:
+      - combine all csv files matching {GLOB} into {OUT_FILE}
+      - stack daily csv exports into one file
+      - concatenate csvs with the same header
+      - csvstack many files
+    vars:
+      - {name: GLOB, default: "*.csv", samples: ["exports/*.csv", "orders_2026-*.csv"]}
+      - {name: OUT_FILE, default: combined.csv, samples: [all_orders.csv, combined.csv]}
+    body: csvstack $GLOB > "$OUT_FILE"
+    destructive: false
+    source: https://github.com/wireservice/csvkit/blob/master/docs/scripts/csvstack.rst
+    verified: docs
+
+  - id: csvkit.tsv_to_csv
+    group: convert
+    intents:
+      - convert the tab separated file {FILE} to csv
+      - tsv to csv
+      - read a tab-delimited file and write commas
+      - csvformat a tsv
+    vars:
+      - {name: FILE, default: data.tsv, samples: [export.tsv, report.tsv], ctx: local_file}
+      - {name: OUT_FILE, default: data.csv, samples: [export.csv, report.csv]}
+    body: csvformat -t "$FILE" > "$OUT_FILE"
+    destructive: false
+    source: https://github.com/wireservice/csvkit/blob/master/docs/scripts/csvformat.rst
+    verified: docs

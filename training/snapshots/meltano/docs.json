@@ -1,0 +1,34 @@
+{
+ "https://github.com/meltano/meltano/blob/main/src/meltano/cli/run.py": {
+  "sha256": "6cae3146a1d949506a76ed3b5696a58fddaa5d2bc240171a8cab04f8e48d8df4",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/meltano/meltano/blob/main/src/meltano/cli/add.py": {
+  "sha256": "63debde4d1cbdd35ad3eeb2df0da2016391031e978bc8b5830377570adf1b38a",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/meltano/meltano/blob/main/src/meltano/cli/config.py": {
+  "sha256": "d5e51c4b98a1478faee92acb8dd86096276c27a942f5b2d96ada8c548de651e8",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/meltano/meltano/blob/main/src/meltano/cli/select_entities.py": {
+  "sha256": "c0ae147413c5d6d94667f74945b2063e7dbc78d89418d5e13014634d3718b133",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/meltano/meltano/blob/main/src/meltano/cli/invoke.py": {
+  "sha256": "dd3b1abdd6a3aa6a373a54c2ea0ae9ebec207b930893ddc752b2c37f8cab71b0",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/meltano/meltano/blob/main/src/meltano/cli/state.py": {
+  "sha256": "fccf418d8a9855abfc26a7f2562d23e7405680c6c02374abdde0dfc05f04c987",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/meltano/meltano/blob/main/src/meltano/cli/cli.py": {
+  "sha256": "6d86fb23bd157e26d1112612a660c20ca26cf71fd841146dfb78031be6afd0a5",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/meltano/meltano/blob/main/docs/docs/guide/installation-guide.mdx": {
+  "sha256": "6cab2939a0d59b5a3f92da19bbbf20a9a5427a06dd71e24774abb1132508ec03",
+  "fetched": "2026-11-26"
+ }
+}

@@ -1,0 +1,406 @@
+tool: argo
+binaries:
+- argo
+category: orchestration
+priority: standard
+target_pairs: 100
+version_note: Argo Workflows CLI v4.x (main branch; v4.1.7 latest tag); most commands unchanged from v3
+version_cmd: argo version --short
+version_label: argo
+versions:
+- {version: "4.1.7", install: "go:github.com/argoproj/argo-workflows@v4.1.7 (./cmd/argo)"}
+- {version: "3.7.18", install: "go:github.com/argoproj/argo-workflows@v3.7.18 (./cmd/argo)"}
+install:
+- macos: ["brew install argo"]
+  source: ["https://github.com/Homebrew/homebrew-core/blob/HEAD/Formula/a/argo.rb"]
+sources:
+- url: https://github.com/argoproj/argo-workflows/blob/main/cmd/argo/commands/submit.go
+  license: Apache-2.0 (repo)
+- url: https://github.com/argoproj/argo-workflows/blob/main/workflow/util/util.go
+  license: Apache-2.0 (repo)
+- url: https://github.com/argoproj/argo-workflows/blob/main/cmd/argo/commands/list.go
+  license: Apache-2.0 (repo)
+- url: https://github.com/argoproj/argo-workflows/blob/main/cmd/argo/commands/logs.go
+  license: Apache-2.0 (repo)
+- url: https://github.com/argoproj/argo-workflows/blob/main/cmd/argo/commands/delete.go
+  license: Apache-2.0 (repo)
+- url: https://github.com/argoproj/argo-workflows/blob/main/cmd/argo/commands/cron/list.go
+  license: Apache-2.0 (repo)
+- url: https://github.com/argoproj/argo-workflows/blob/main/cmd/argo/commands/template/list.go
+  license: Apache-2.0 (repo)
+- url: https://github.com/argoproj/argo-workflows/releases
+  license: Apache-2.0 (repo); release asset names only
+destructive_patterns:
+- \bargo\s+(delete|terminate)\b
+- \bargo\s+(cron|template|archive)\s+delete\b
+templates:
+- id: argo.install.binary
+  group: setup
+  intents:
+  - install the argo workflows cli version {VERSION} on linux
+  - download the argo cli binary
+  - set up the argo command line tool
+  - install argo cli from github releases
+  vars:
+  - {name: VERSION, default: v4.1.7, samples: [v4.1.6, v3.7.4]}
+  body: curl -sLO "https://github.com/argoproj/argo-workflows/releases/download/$VERSION/argo-linux-amd64.gz" && gunzip argo-linux-amd64.gz && chmod +x argo-linux-amd64 && sudo mv argo-linux-amd64 /usr/local/bin/argo
+  destructive: false
+  source: https://github.com/argoproj/argo-workflows/releases
+  verified: docs
+- id: argo.version
+  group: setup
+  intents:
+  - argo version
+  - which argo workflows cli version is installed
+  - check argo cli version
+  - show argo version info
+  vars: []
+  body: argo version
+  destructive: false
+  source: https://github.com/argoproj/argo-workflows/blob/main/cmd/argo/commands/version.go
+  verified: source
+- id: argo.submit
+  group: submit
+  intents:
+  - submit workflow {FILE}
+  - run an argo workflow from a yaml file
+  - argo submit
+  - start a workflow from this manifest
+  vars:
+  - {name: NAMESPACE, default: argo, samples: [data-pipelines, workflows, default], ctx: k8s_namespace}
+  - {name: FILE, default: workflow.yaml, samples: [etl-workflow.yaml, wf/hello-world.yaml], ctx: local_file}
+  body: argo submit -n "$NAMESPACE" "$FILE"
+  destructive: false
+  source: https://github.com/argoproj/argo-workflows/blob/main/cmd/argo/commands/submit.go
+  verified: source
+- id: argo.submit.watch
+  group: submit
+  intents:
+  - submit {FILE} and watch it
+  - run a workflow and follow progress until done
+  - argo submit with watch
+  - submit and wait while showing status
+  vars:
+  - {name: NAMESPACE, default: argo, samples: [data-pipelines, workflows, default], ctx: k8s_namespace}
+  - {name: FILE, default: workflow.yaml, samples: [etl-workflow.yaml, wf/hello-world.yaml], ctx: local_file}
+  body: argo submit -n "$NAMESPACE" "$FILE" --watch
+  destructive: false
+  source: https://github.com/argoproj/argo-workflows/blob/main/cmd/argo/commands/submit.go
+  verified: source
+- id: argo.submit.param
+  group: submit
+  intents:
+  - submit {FILE} with parameter {PARAM}
+  - pass an input parameter when submitting a workflow
+  - argo submit -p
+  - run a workflow overriding a parameter
+  vars:
+  - {name: NAMESPACE, default: argo, samples: [data-pipelines, workflows, default], ctx: k8s_namespace}
+  - {name: FILE, default: workflow.yaml, samples: [etl-workflow.yaml, wf/hello-world.yaml], ctx: local_file}
+  - {name: PARAM, default: date=2025-06-01, samples: [message=hello, table=orders]}
+  body: argo submit -n "$NAMESPACE" "$FILE" -p "$PARAM"
+  destructive: false
+  source: https://github.com/argoproj/argo-workflows/blob/main/workflow/util/util.go
+  verified: source
+- id: argo.submit.from_template
+  group: submit
+  intents:
+  - run workflow template {TEMPLATE}
+  - submit a workflow from a workflowtemplate
+  - start a run from an existing template
+  - argo submit --from workflowtemplate
+  vars:
+  - {name: NAMESPACE, default: argo, samples: [data-pipelines, workflows, default], ctx: k8s_namespace}
+  - {name: TEMPLATE, default: etl-template, samples: [daily-ingest, dbt-run]}
+  body: argo submit -n "$NAMESPACE" --from "workflowtemplate/$TEMPLATE"
+  destructive: false
+  source: https://github.com/argoproj/argo-workflows/blob/main/cmd/argo/commands/submit.go
+  verified: source
+- id: argo.submit.from_cron
+  group: submit
+  intents:
+  - trigger cron workflow {CRON} now
+  - run a cron workflow immediately
+  - manually kick off a cronworkflow
+  - submit from cronwf
+  vars:
+  - {name: NAMESPACE, default: argo, samples: [data-pipelines, workflows, default], ctx: k8s_namespace}
+  - {name: CRON, default: nightly-etl, samples: [hourly-sync, weekly-report]}
+  body: argo submit -n "$NAMESPACE" --from "cronwf/$CRON"
+  destructive: false
+  source: https://github.com/argoproj/argo-workflows/blob/main/cmd/argo/commands/submit.go
+  verified: source
+- id: argo.list
+  group: status
+  intents:
+  - list workflows in {NAMESPACE}
+  - argo list
+  - show argo workflows
+  - what workflows ran recently
+  vars:
+  - {name: NAMESPACE, default: argo, samples: [data-pipelines, workflows, default], ctx: k8s_namespace}
+  body: argo list -n "$NAMESPACE"
+  destructive: false
+  source: https://github.com/argoproj/argo-workflows/blob/main/cmd/argo/commands/list.go
+  verified: source
+- id: argo.list.running
+  group: status
+  intents:
+  - list running workflows
+  - which argo workflows are running right now
+  - show in-progress workflows in all namespaces
+  - argo list running
+  vars: []
+  body: argo list -A --running
+  destructive: false
+  source: https://github.com/argoproj/argo-workflows/blob/main/cmd/argo/commands/list.go
+  verified: source
+- id: argo.list.failed
+  group: status
+  intents:
+  - list failed workflows in {NAMESPACE}
+  - show workflows that failed
+  - which argo workflows errored
+  - find failed workflows
+  vars:
+  - {name: NAMESPACE, default: argo, samples: [data-pipelines, workflows, default], ctx: k8s_namespace}
+  body: argo list -n "$NAMESPACE" --status Failed
+  destructive: false
+  source: https://github.com/argoproj/argo-workflows/blob/main/cmd/argo/commands/list.go
+  verified: source
+- id: argo.get
+  group: status
+  intents:
+  - get workflow {WORKFLOW}
+  - show the status of the latest workflow
+  - describe an argo workflow
+  - argo get
+  vars:
+  - {name: NAMESPACE, default: argo, samples: [data-pipelines, workflows, default], ctx: k8s_namespace}
+  - {name: WORKFLOW, default: '@latest', samples: [etl-daily-7x2kq, hello-world-abc12, backfill-orders-9fz3m]}
+  body: argo get -n "$NAMESPACE" "$WORKFLOW"
+  destructive: false
+  source: https://github.com/argoproj/argo-workflows/blob/main/cmd/argo/commands/get.go
+  verified: source
+- id: argo.logs
+  group: logs
+  intents:
+  - show logs of {WORKFLOW}
+  - argo logs for the latest workflow
+  - print workflow logs
+  - get logs from all pods of a workflow
+  vars:
+  - {name: NAMESPACE, default: argo, samples: [data-pipelines, workflows, default], ctx: k8s_namespace}
+  - {name: WORKFLOW, default: '@latest', samples: [etl-daily-7x2kq, hello-world-abc12, backfill-orders-9fz3m]}
+  body: argo logs -n "$NAMESPACE" "$WORKFLOW"
+  destructive: false
+  source: https://github.com/argoproj/argo-workflows/blob/main/cmd/argo/commands/logs.go
+  verified: source
+- id: argo.logs.follow
+  group: logs
+  intents:
+  - follow logs of {WORKFLOW}
+  - stream argo workflow logs
+  - tail workflow logs live
+  - argo logs -f
+  vars:
+  - {name: NAMESPACE, default: argo, samples: [data-pipelines, workflows, default], ctx: k8s_namespace}
+  - {name: WORKFLOW, default: '@latest', samples: [etl-daily-7x2kq, hello-world-abc12, backfill-orders-9fz3m]}
+  body: argo logs -n "$NAMESPACE" "$WORKFLOW" --follow
+  destructive: false
+  source: https://github.com/argoproj/argo-workflows/blob/main/cmd/argo/commands/logs.go
+  verified: source
+- id: argo.logs.grep
+  group: logs
+  intents:
+  - search the logs of {WORKFLOW} for {PATTERN}
+  - grep argo logs for errors
+  - find lines matching a pattern in workflow logs
+  - filter workflow logs
+  vars:
+  - {name: NAMESPACE, default: argo, samples: [data-pipelines, workflows, default], ctx: k8s_namespace}
+  - {name: WORKFLOW, default: '@latest', samples: [etl-daily-7x2kq, hello-world-abc12, backfill-orders-9fz3m]}
+  - {name: PATTERN, default: ERROR, samples: [Traceback, timeout]}
+  body: argo logs -n "$NAMESPACE" "$WORKFLOW" --grep "$PATTERN"
+  destructive: false
+  source: https://github.com/argoproj/argo-workflows/blob/main/cmd/argo/commands/logs.go
+  verified: source
+- id: argo.retry
+  group: manage
+  intents:
+  - retry workflow {WORKFLOW}
+  - rerun the failed steps of a workflow
+  - argo retry
+  - retry the latest failed workflow
+  vars:
+  - {name: NAMESPACE, default: argo, samples: [data-pipelines, workflows, default], ctx: k8s_namespace}
+  - {name: WORKFLOW, default: '@latest', samples: [etl-daily-7x2kq, hello-world-abc12, backfill-orders-9fz3m]}
+  body: argo retry -n "$NAMESPACE" "$WORKFLOW"
+  destructive: false
+  source: https://github.com/argoproj/argo-workflows/blob/main/cmd/argo/commands/retry.go
+  verified: source
+- id: argo.resubmit
+  group: manage
+  intents:
+  - resubmit workflow {WORKFLOW}
+  - run a workflow again from scratch
+  - argo resubmit
+  - submit a copy of an old workflow
+  vars:
+  - {name: NAMESPACE, default: argo, samples: [data-pipelines, workflows, default], ctx: k8s_namespace}
+  - {name: WORKFLOW, default: '@latest', samples: [etl-daily-7x2kq, hello-world-abc12, backfill-orders-9fz3m]}
+  body: argo resubmit -n "$NAMESPACE" "$WORKFLOW"
+  destructive: false
+  source: https://github.com/argoproj/argo-workflows/blob/main/cmd/argo/commands/resubmit.go
+  verified: source
+- id: argo.stop
+  group: manage
+  intents:
+  - stop workflow {WORKFLOW}
+  - gracefully stop a running workflow, running exit handlers
+  - argo stop
+  - halt a workflow
+  vars:
+  - {name: NAMESPACE, default: argo, samples: [data-pipelines, workflows, default], ctx: k8s_namespace}
+  - {name: WORKFLOW, default: '@latest', samples: [etl-daily-7x2kq, hello-world-abc12, backfill-orders-9fz3m]}
+  body: argo stop -n "$NAMESPACE" "$WORKFLOW"
+  destructive: false
+  source: https://github.com/argoproj/argo-workflows/blob/main/cmd/argo/commands/stop.go
+  verified: source
+- id: argo.terminate
+  group: manage
+  intents:
+  - terminate workflow {WORKFLOW} immediately
+  - kill a workflow without exit handlers
+  - argo terminate
+  - force end a running workflow
+  vars:
+  - {name: NAMESPACE, default: argo, samples: [data-pipelines, workflows, default], ctx: k8s_namespace}
+  - {name: WORKFLOW, default: '@latest', samples: [etl-daily-7x2kq, hello-world-abc12, backfill-orders-9fz3m]}
+  body: argo terminate -n "$NAMESPACE" "$WORKFLOW"
+  destructive: true
+  source: https://github.com/argoproj/argo-workflows/blob/main/cmd/argo/commands/terminate.go
+  verified: source
+- id: argo.delete
+  group: manage
+  intents:
+  - delete workflow {WORKFLOW}
+  - remove an argo workflow
+  - argo delete
+  - clean up a workflow
+  vars:
+  - {name: NAMESPACE, default: argo, samples: [data-pipelines, workflows, default], ctx: k8s_namespace}
+  - {name: WORKFLOW, default: '@latest', samples: [etl-daily-7x2kq, hello-world-abc12, backfill-orders-9fz3m]}
+  body: argo delete -n "$NAMESPACE" "$WORKFLOW"
+  destructive: true
+  source: https://github.com/argoproj/argo-workflows/blob/main/cmd/argo/commands/delete.go
+  verified: source
+- id: argo.delete.completed_older
+  group: manage
+  intents:
+  - delete completed workflows older than {AGE}
+  - clean up old finished workflows
+  - purge completed workflows past a certain age
+  - argo delete --completed --older
+  vars:
+  - {name: NAMESPACE, default: argo, samples: [data-pipelines, workflows, default], ctx: k8s_namespace}
+  - {name: AGE, default: 7d, samples: [1d, 30d, 12h]}
+  body: argo delete -n "$NAMESPACE" --completed --older "$AGE"
+  destructive: true
+  source: https://github.com/argoproj/argo-workflows/blob/main/cmd/argo/commands/delete.go
+  verified: source
+- id: argo.lint
+  group: dev
+  intents:
+  - lint workflow {FILE}
+  - validate an argo workflow manifest
+  - argo lint
+  - check workflow yaml for errors
+  vars:
+  - {name: FILE, default: workflow.yaml, samples: [etl-workflow.yaml, wf/hello-world.yaml], ctx: local_file}
+  body: argo lint "$FILE"
+  destructive: false
+  source: https://github.com/argoproj/argo-workflows/blob/main/cmd/argo/commands/lint.go
+  verified: source
+- id: argo.template.list
+  group: templates
+  intents:
+  - list workflow templates
+  - show workflowtemplates in {NAMESPACE}
+  - argo template list
+  - what workflow templates exist
+  vars:
+  - {name: NAMESPACE, default: argo, samples: [data-pipelines, workflows, default], ctx: k8s_namespace}
+  body: argo template list -n "$NAMESPACE"
+  destructive: false
+  source: https://github.com/argoproj/argo-workflows/blob/main/cmd/argo/commands/template/list.go
+  verified: source
+- id: argo.template.create
+  group: templates
+  intents:
+  - create workflow template from {FILE}
+  - register a workflowtemplate
+  - argo template create
+  - add a reusable workflow template
+  vars:
+  - {name: NAMESPACE, default: argo, samples: [data-pipelines, workflows, default], ctx: k8s_namespace}
+  - {name: FILE, default: workflow-template.yaml, samples: [templates/etl.yaml, dbt-template.yaml], ctx: local_file}
+  body: argo template create -n "$NAMESPACE" "$FILE"
+  destructive: false
+  source: https://github.com/argoproj/argo-workflows/blob/main/cmd/argo/commands/template/create.go
+  verified: source
+- id: argo.cron.list
+  group: cron
+  intents:
+  - list cron workflows
+  - show scheduled workflows in {NAMESPACE}
+  - argo cron list
+  - what cronworkflows are defined
+  vars:
+  - {name: NAMESPACE, default: argo, samples: [data-pipelines, workflows, default], ctx: k8s_namespace}
+  body: argo cron list -n "$NAMESPACE"
+  destructive: false
+  source: https://github.com/argoproj/argo-workflows/blob/main/cmd/argo/commands/cron/list.go
+  verified: source
+- id: argo.cron.create
+  group: cron
+  intents:
+  - create cron workflow from {FILE}
+  - schedule a workflow with a cronworkflow manifest
+  - argo cron create
+  - add a scheduled workflow
+  vars:
+  - {name: NAMESPACE, default: argo, samples: [data-pipelines, workflows, default], ctx: k8s_namespace}
+  - {name: FILE, default: cron-workflow.yaml, samples: [nightly-etl-cron.yaml, cron/hourly.yaml], ctx: local_file}
+  body: argo cron create -n "$NAMESPACE" "$FILE"
+  destructive: false
+  source: https://github.com/argoproj/argo-workflows/blob/main/cmd/argo/commands/cron/create.go
+  verified: source
+- id: argo.cron.suspend
+  group: cron
+  intents:
+  - suspend cron workflow {CRON}
+  - pause a scheduled workflow
+  - stop a cronworkflow from firing
+  - argo cron suspend
+  vars:
+  - {name: NAMESPACE, default: argo, samples: [data-pipelines, workflows, default], ctx: k8s_namespace}
+  - {name: CRON, default: nightly-etl, samples: [hourly-sync, weekly-report]}
+  body: argo cron suspend -n "$NAMESPACE" "$CRON"
+  destructive: false
+  source: https://github.com/argoproj/argo-workflows/blob/main/cmd/argo/commands/cron/suspend.go
+  verified: source
+- id: argo.cron.resume
+  group: cron
+  intents:
+  - resume cron workflow {CRON}
+  - unpause a scheduled workflow
+  - turn a cronworkflow back on
+  - argo cron resume
+  vars:
+  - {name: NAMESPACE, default: argo, samples: [data-pipelines, workflows, default], ctx: k8s_namespace}
+  - {name: CRON, default: nightly-etl, samples: [hourly-sync, weekly-report]}
+  body: argo cron resume -n "$NAMESPACE" "$CRON"
+  destructive: false
+  source: https://github.com/argoproj/argo-workflows/blob/main/cmd/argo/commands/cron/resume.go
+  verified: source

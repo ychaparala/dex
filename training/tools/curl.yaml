@@ -1,0 +1,762 @@
+tool: curl
+binaries: [curl]
+category: http
+priority: core
+target_pairs: 300
+version_note: "curl 8.x (needs >= 7.82 for --json); Airflow 3 REST /api/v2, Airflow 2 stable /api/v1, Databricks Jobs 2.2 / Clusters 2.1, Snowflake SQL API v2, Kafka REST v3, Kafka Connect REST, Spark History Server /api/v1"
+install:
+- linux: ["sudo apt-get install curl"]
+  source: ["https://packages.ubuntu.com/noble/curl"]
+sources:
+  - url: "local: curl --help all (curl 8.5.0)"
+    license: "curl license (MIT-style, curl/curl repo); facts only"
+  - url: https://github.com/apache/airflow/blob/main/airflow-core/src/airflow/api_fastapi/core_api/openapi/v2-rest-api-generated.yaml
+    license: "Apache-2.0 (apache/airflow repo)"
+  - url: https://github.com/apache/airflow/blob/main/airflow-core/docs/security/api.rst
+    license: "Apache-2.0 (apache/airflow repo)"
+  - url: https://github.com/apache/airflow/blob/v2-10-stable/airflow/api_connexion/openapi/v1.yaml
+    license: "Apache-2.0 (apache/airflow repo)"
+  - url: https://github.com/databricks/databricks-sdk-py/blob/main/databricks/sdk/service/jobs.py
+    license: "Apache-2.0 (databricks/databricks-sdk-py repo)"
+  - url: https://github.com/databricks/databricks-sdk-py/blob/main/databricks/sdk/service/compute.py
+    license: "Apache-2.0 (databricks/databricks-sdk-py repo)"
+  - url: https://docs.snowflake.com/en/developer-guide/sql-api/submitting-requests
+    license: "vendor docs, all rights reserved; facts only"
+  - url: https://docs.snowflake.com/en/developer-guide/sql-api/authenticating
+    license: "vendor docs, all rights reserved; facts only"
+  - url: https://docs.snowflake.com/en/developer-guide/sql-api/handling-responses
+    license: "vendor docs, all rights reserved; facts only"
+  - url: https://github.com/confluentinc/kafka-rest/blob/master/api/v3/openapi.yaml
+    license: "Confluent Community License (confluentinc/kafka-rest repo); facts only"
+  - url: https://github.com/confluentinc/schema-registry/tree/master/core/src/main/java/io/confluent/kafka/schemaregistry/rest/resources
+    license: "Confluent Community License (confluentinc/schema-registry repo); facts only"
+  - url: https://github.com/apache/kafka/blob/trunk/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/rest/resources/ConnectorsResource.java
+    license: "Apache-2.0 (apache/kafka repo)"
+  - url: https://github.com/apache/spark/blob/master/docs/monitoring.md
+    license: "Apache-2.0 (apache/spark repo)"
+destructive_patterns:
+  - '(?i)-X\s*DELETE\b'
+  - '(?i)--request\s+DELETE\b'
+templates:
+  # ---------------------------------------------------------------- setup
+  - id: curl.setup.version
+    group: setup
+    intents:
+      - which curl version is installed
+      - check curl version and supported protocols
+      - curl version
+      - does my curl support --json, show version
+    body: curl --version
+    destructive: false
+    source: "local: curl --help all"
+    verified: help
+
+  # ---------------------------------------------------------------- generic HTTP
+  - id: curl.http.get_json_pretty
+    group: http
+    intents:
+      - fetch {URL} and pretty print the json
+      - call this api and format the response with jq
+      - GET a json endpoint and make it readable
+      - curl a url and pipe to jq
+      - hit the endpoint and show nicely formatted json
+    vars:
+      - {name: URL, default: https://api.example.com/v1/items, samples: [https://api.example.com/v1/status, "http://localhost:8080/health", https://data.example.com/api/datasets]}
+    body: curl -sS "$URL" | jq .
+    destructive: false
+    source: "local: curl --help all"
+    verified: help
+
+  - id: curl.http.get_bearer
+    group: http
+    intents:
+      - GET {URL} with a bearer token from $API_TOKEN
+      - call an api with an authorization header
+      - send a request with Authorization Bearer token
+      - curl with auth header and accept json
+    vars:
+      - {name: URL, default: https://api.example.com/v1/items, samples: [https://api.example.com/v1/jobs, https://data.example.com/api/tables]}
+    body: 'curl -sS -H "Authorization: Bearer $API_TOKEN" -H ''Accept: application/json'' "$URL"'
+    destructive: false
+    source: "local: curl --help all"
+    verified: help
+
+  - id: curl.http.basic_auth
+    group: http
+    intents:
+      - call {URL} with basic auth as {USER_NAME}
+      - curl with a username and get prompted for the password
+      - basic authentication request
+      - send user credentials with curl -u
+    vars:
+      - {name: USER_NAME, default: admin, samples: [etl_user, svc-reporting]}
+      - {name: URL, default: https://api.example.com/v1/items, samples: ["http://localhost:8080/api/v1/health", https://registry.example.com/v2/_catalog]}
+    body: curl -sS -u "$USER_NAME" "$URL"
+    destructive: false
+    source: "local: curl --help all"
+    verified: help
+
+  - id: curl.http.post_json_file
+    group: http
+    intents:
+      - POST {FILE} as json to {URL}
+      - send a json file in the request body
+      - post a payload from a file and fail on http errors but show the body
+      - curl -d @file.json with content type json
+      - upload json body from disk to an api
+    vars:
+      - {name: FILE, default: payload.json, samples: [request.json, job_config.json, event.json], ctx: local_file}
+      - {name: URL, default: https://api.example.com/v1/items, samples: [https://api.example.com/v1/jobs, "http://localhost:8000/ingest"]}
+    body: 'curl -sS --fail-with-body -X POST "$URL" -H ''Content-Type: application/json'' -d @"$FILE"'
+    destructive: false
+    source: "local: curl --help all"
+    verified: help
+
+  - id: curl.http.post_json_inline
+    group: http
+    intents:
+      - post a small inline json body to {URL}
+      - send json with curl --json
+      - quick POST of a json object
+      - call a webhook with a json message
+    vars:
+      - {name: URL, default: https://api.example.com/v1/items, samples: [https://hooks.example.com/services/T000/B000/XXXX, "http://localhost:8000/events"]}
+    body: "curl -sS --json '{\"text\": \"pipeline finished\"}' \"$URL\""
+    destructive: false
+    source: "local: curl --help all (--json)"
+    verified: help
+
+  - id: curl.http.retry
+    group: http
+    intents:
+      - fetch {URL} and retry up to {RETRIES} times on any error
+      - curl with retries for a flaky endpoint
+      - retry the request on failure with a 2 second delay
+      - make curl keep trying when the server errors
+    vars:
+      - {name: RETRIES, default: "5", samples: ["3", "10"]}
+      - {name: URL, default: https://api.example.com/v1/items, samples: [https://api.example.com/v1/export, "http://localhost:8080/health"]}
+    body: curl -sS --fail --retry "$RETRIES" --retry-delay 2 --retry-all-errors "$URL"
+    destructive: false
+    source: "local: curl --help all"
+    verified: help
+
+  - id: curl.http.follow_redirects
+    group: http
+    intents:
+      - follow redirects when fetching {URL}
+      - curl that follows 301 and 302
+      - get the final page after redirects
+      - fetch a url with -L
+    vars:
+      - {name: URL, default: https://example.com/download/latest, samples: [https://example.com/docs, https://example.com/releases/latest]}
+    body: curl -sSL "$URL"
+    destructive: false
+    source: "local: curl --help all"
+    verified: help
+
+  - id: curl.http.download_output
+    group: http
+    intents:
+      - download {URL} and save it as {OUT_FILE}
+      - save a remote file under a name I choose
+      - curl download to a specific file name
+      - grab a file from the web into {OUT_FILE}
+    vars:
+      - {name: URL, default: https://example.com/data/file.csv, samples: [https://example.com/exports/sales_2026.csv.gz, https://data.example.com/dumps/events.parquet]}
+      - {name: OUT_FILE, default: file.csv, samples: [sales.csv.gz, events.parquet, raw/input.csv]}
+    body: curl -sSL --fail -o "$OUT_FILE" "$URL"
+    destructive: false
+    source: "local: curl --help all"
+    verified: help
+
+  - id: curl.http.download_remote_name
+    group: http
+    intents:
+      - download {URL} keeping its original file name
+      - save a file with the same name as on the server
+      - curl -O a release tarball
+      - wget-style download with curl
+    vars:
+      - {name: URL, default: https://example.com/data/file.csv, samples: [https://example.com/releases/tool-1.4.2-linux-amd64.tar.gz, https://data.example.com/dumps/events.parquet]}
+    body: curl -sSLO "$URL"
+    destructive: false
+    source: "local: curl --help all"
+    verified: help
+
+  - id: curl.http.resume_download
+    group: http
+    intents:
+      - resume a broken download of {URL}
+      - continue downloading where it stopped
+      - restart a big file download without starting over
+      - curl continue at offset automatically
+    vars:
+      - {name: URL, default: https://example.com/data/big.tar.gz, samples: [https://example.com/dumps/warehouse_backup.tar.gz, https://data.example.com/archive/2025.parquet]}
+    body: curl -sSL -C - -O "$URL"
+    destructive: false
+    source: "local: curl --help all"
+    verified: help
+
+  - id: curl.http.upload_multipart
+    group: http
+    intents:
+      - upload {FILE} as a multipart form to {URL}
+      - send a file with a form post
+      - curl -F file upload
+      - post a csv as multipart/form-data
+    vars:
+      - {name: FILE, default: data.csv, samples: [report.csv, logo.png, export.zip], ctx: local_file}
+      - {name: URL, default: https://api.example.com/v1/upload, samples: [https://api.example.com/v1/files, "http://localhost:8000/upload"]}
+    body: curl -sS -F "file=@$FILE" "$URL"
+    destructive: false
+    source: "local: curl --help all"
+    verified: help
+
+  - id: curl.http.upload_put
+    group: http
+    intents:
+      - PUT {FILE} to {URL}
+      - upload a file with http put
+      - send a file to a presigned url
+      - curl -T upload
+    vars:
+      - {name: FILE, default: data.csv, samples: [export.parquet, backup.tar.gz], ctx: local_file}
+      - {name: URL, default: <presigned-url>, samples: ["https://storage.example.com/bucket/export.parquet?sig=abc123"]}
+    body: curl -sS --fail -T "$FILE" "$URL"
+    destructive: false
+    source: "local: curl --help all"
+    verified: help
+
+  - id: curl.http.status_code
+    group: http
+    intents:
+      - only print the http status code of {URL}
+      - is this endpoint returning 200
+      - check the response code without the body
+      - what status does the health check return
+    vars:
+      - {name: URL, default: https://api.example.com/health, samples: ["http://localhost:8080/health", https://example.com/status]}
+    body: curl -s -o /dev/null -w '%{http_code}\n' "$URL"
+    destructive: false
+    source: "local: curl --help all (-w)"
+    verified: help
+
+  - id: curl.http.timing
+    group: http
+    intents:
+      - how long does a request to {URL} take
+      - measure total response time with curl
+      - time the http call
+      - show connect and total time of a request
+    vars:
+      - {name: URL, default: https://api.example.com/health, samples: ["http://localhost:8080/api/v2/version", https://example.com/]}
+    body: "curl -s -o /dev/null -w 'connect: %{time_connect}s total: %{time_total}s\\n' \"$URL\""
+    destructive: false
+    source: "local: curl --help all (-w)"
+    verified: help
+
+  - id: curl.http.headers_only
+    group: http
+    intents:
+      - show just the response headers for {URL}
+      - do a HEAD request
+      - check content-length and content-type of a file without downloading
+      - curl -I
+    vars:
+      - {name: URL, default: https://example.com/data/file.csv, samples: [https://example.com/exports/sales.csv.gz, https://api.example.com/health]}
+    body: curl -sSI "$URL"
+    destructive: false
+    source: "local: curl --help all"
+    verified: help
+
+  - id: curl.http.verbose
+    group: http
+    intents:
+      - debug the request to {URL} with verbose output
+      - show the full request and response headers
+      - why is this api call failing, show details
+      - verbose curl
+    vars:
+      - {name: URL, default: https://api.example.com/v1/items, samples: [https://api.example.com/v1/jobs, "http://localhost:8080/api/v2/dags"]}
+    body: curl -v "$URL"
+    destructive: false
+    source: "local: curl --help all"
+    verified: help
+
+  - id: curl.http.timeout
+    group: http
+    intents:
+      - fetch {URL} but give up after {MAX_SECONDS} seconds
+      - curl with a max time limit
+      - don't let the request hang forever
+      - set connect timeout and overall timeout
+    vars:
+      - {name: MAX_SECONDS, default: "30", samples: ["10", "60", "120"]}
+      - {name: URL, default: https://api.example.com/v1/items, samples: [https://api.example.com/v1/export, "http://localhost:8080/health"]}
+    body: curl -sS --connect-timeout 5 --max-time "$MAX_SECONDS" "$URL"
+    destructive: false
+    source: "local: curl --help all"
+    verified: help
+
+  - id: curl.http.query_params
+    group: http
+    intents:
+      - GET {URL} with url-encoded query parameter q={QUERY}
+      - send query string params safely encoded
+      - curl -G with --data-urlencode
+      - search an api with a query that has spaces
+    vars:
+      - {name: URL, default: https://api.example.com/v1/search, samples: [https://api.example.com/v1/tables, https://data.example.com/api/search]}
+      - {name: QUERY, default: daily sales, samples: [orders 2026, customer churn]}
+    body: curl -sS -G "$URL" --data-urlencode "q=$QUERY" | jq .
+    destructive: false
+    source: "local: curl --help all"
+    verified: help
+
+  # ---------------------------------------------------------------- Airflow 3 (/api/v2, JWT)
+  - id: curl.airflow3.get_token
+    group: airflow
+    intents:
+      - get an airflow 3 api token
+      - log in to the airflow rest api and print the jwt
+      - fetch an access token from airflow's /auth/token
+      - generate a bearer token for airflow api calls
+    vars:
+      - {name: AIRFLOW_URL, default: "http://localhost:8080", samples: ["https://airflow.example.com", "http://airflow-api-server:8080"]}
+    body: "curl -sS -X POST \"$AIRFLOW_URL/auth/token\" -H 'Content-Type: application/json' -d \"{\\\"username\\\": \\\"$AIRFLOW_USER\\\", \\\"password\\\": \\\"$AIRFLOW_PASSWORD\\\"}\" | jq -r .access_token"
+    destructive: false
+    source: https://github.com/apache/airflow/blob/main/airflow-core/docs/security/api.rst
+    verified: source
+
+  - id: curl.airflow3.list_dags
+    group: airflow
+    intents:
+      - list dags through the airflow 3 rest api
+      - which dags does airflow have, via api v2
+      - get dag ids from the airflow api with my token
+      - airflow rest api list dags
+    vars:
+      - {name: AIRFLOW_URL, default: "http://localhost:8080", samples: ["https://airflow.example.com", "http://airflow-api-server:8080"]}
+    body: 'curl -sS "$AIRFLOW_URL/api/v2/dags?limit=100" -H "Authorization: Bearer $AIRFLOW_TOKEN" | jq -r ''.dags[].dag_id'''
+    destructive: false
+    source: https://github.com/apache/airflow/blob/main/airflow-core/src/airflow/api_fastapi/core_api/openapi/v2-rest-api-generated.yaml
+    verified: source
+
+  - id: curl.airflow3.trigger
+    group: airflow
+    intents:
+      - trigger dag {DAG_ID} through the airflow 3 api
+      - start a dag run with a rest call
+      - kick off {DAG_ID} via api v2
+      - create a new dag run over http
+    vars:
+      - {name: AIRFLOW_URL, default: "http://localhost:8080", samples: ["https://airflow.example.com", "http://airflow-api-server:8080"]}
+      - {name: DAG_ID, default: <dag-id>, samples: [daily_sales_etl, ingest_events, refresh_marts], ctx: airflow_dag}
+    body: "curl -sS -X POST \"$AIRFLOW_URL/api/v2/dags/$DAG_ID/dagRuns\" -H \"Authorization: Bearer $AIRFLOW_TOKEN\" -H 'Content-Type: application/json' -d '{\"logical_date\": null}'"
+    destructive: false
+    source: https://github.com/apache/airflow/blob/main/airflow-core/src/airflow/api_fastapi/core_api/openapi/v2-rest-api-generated.yaml
+    verified: source
+
+  - id: curl.airflow3.trigger_conf
+    group: airflow
+    intents:
+      - trigger {DAG_ID} via the airflow api with conf {CONF}
+      - start a dag run and pass a json config
+      - api v2 trigger with run parameters
+      - kick off a dag with conf over rest
+    vars:
+      - {name: AIRFLOW_URL, default: "http://localhost:8080", samples: ["https://airflow.example.com"]}
+      - {name: DAG_ID, default: <dag-id>, samples: [daily_sales_etl, ingest_events], ctx: airflow_dag}
+      - {name: CONF, default: '{"run_date": "2026-01-01"}', samples: ['{"run_date": "2026-03-15"}', '{"full_refresh": true}', '{"table": "orders"}']}
+    body: "curl -sS -X POST \"$AIRFLOW_URL/api/v2/dags/$DAG_ID/dagRuns\" -H \"Authorization: Bearer $AIRFLOW_TOKEN\" -H 'Content-Type: application/json' -d \"{\\\"logical_date\\\": null, \\\"conf\\\": $CONF}\""
+    destructive: false
+    source: https://github.com/apache/airflow/blob/main/airflow-core/src/airflow/api_fastapi/core_api/openapi/v2-rest-api-generated.yaml
+    verified: source
+
+  - id: curl.airflow3.run_state
+    group: airflow
+    intents:
+      - what's the state of dag run {RUN_ID} of {DAG_ID}
+      - check if my airflow run succeeded via the api
+      - get dag run status from airflow 3 rest
+      - is the dag run still running
+    vars:
+      - {name: AIRFLOW_URL, default: "http://localhost:8080", samples: ["https://airflow.example.com"]}
+      - {name: DAG_ID, default: <dag-id>, samples: [daily_sales_etl, ingest_events], ctx: airflow_dag}
+      - {name: RUN_ID, default: <run-id>, samples: ["manual__2026-03-15T08:00:00+00:00", "scheduled__2026-03-14T00:00:00+00:00"]}
+    body: 'curl -sS "$AIRFLOW_URL/api/v2/dags/$DAG_ID/dagRuns/$RUN_ID" -H "Authorization: Bearer $AIRFLOW_TOKEN" | jq -r .state'
+    destructive: false
+    source: https://github.com/apache/airflow/blob/main/airflow-core/src/airflow/api_fastapi/core_api/openapi/v2-rest-api-generated.yaml
+    verified: source
+
+  - id: curl.airflow3.recent_runs
+    group: airflow
+    intents:
+      - show the last 10 runs of {DAG_ID} and their states
+      - list recent dag runs via the airflow api
+      - recent run ids and status for a dag, newest first
+      - airflow api v2 dag run history
+    vars:
+      - {name: AIRFLOW_URL, default: "http://localhost:8080", samples: ["https://airflow.example.com"]}
+      - {name: DAG_ID, default: <dag-id>, samples: [daily_sales_etl, refresh_marts], ctx: airflow_dag}
+    body: 'curl -sS "$AIRFLOW_URL/api/v2/dags/$DAG_ID/dagRuns?order_by=-start_date&limit=10" -H "Authorization: Bearer $AIRFLOW_TOKEN" | jq -r ''.dag_runs[] | [.dag_run_id, .state] | @tsv'''
+    destructive: false
+    source: https://github.com/apache/airflow/blob/main/airflow-core/src/airflow/api_fastapi/core_api/openapi/v2-rest-api-generated.yaml
+    verified: source
+
+  # ---------------------------------------------------------------- Airflow 2 (/api/v1, basic auth)
+  - id: curl.airflow2.list_dags
+    group: airflow
+    intents:
+      - list dags with the airflow 2 stable rest api
+      - airflow v1 api list dags using basic auth
+      - get dag ids from an airflow 2.x webserver
+      - old airflow api, which dags exist
+    vars:
+      - {name: AIRFLOW_URL, default: "http://localhost:8080", samples: ["https://airflow2.example.com", "http://airflow-webserver:8080"]}
+    body: curl -sS -u "$AIRFLOW_USER:$AIRFLOW_PASSWORD" "$AIRFLOW_URL/api/v1/dags?limit=100" | jq -r '.dags[].dag_id'
+    destructive: false
+    source: https://github.com/apache/airflow/blob/v2-10-stable/airflow/api_connexion/openapi/v1.yaml
+    verified: source
+
+  - id: curl.airflow2.trigger
+    group: airflow
+    intents:
+      - trigger {DAG_ID} through the airflow 2 rest api
+      - start a dag run on airflow 2.x with curl and basic auth
+      - api v1 trigger dag with empty conf
+      - create a dag run on the old airflow api
+    vars:
+      - {name: AIRFLOW_URL, default: "http://localhost:8080", samples: ["https://airflow2.example.com", "http://airflow-webserver:8080"]}
+      - {name: DAG_ID, default: <dag-id>, samples: [daily_sales_etl, ingest_events], ctx: airflow_dag}
+    body: "curl -sS -u \"$AIRFLOW_USER:$AIRFLOW_PASSWORD\" -X POST \"$AIRFLOW_URL/api/v1/dags/$DAG_ID/dagRuns\" -H 'Content-Type: application/json' -d '{\"conf\": {}}'"
+    destructive: false
+    source: https://github.com/apache/airflow/blob/v2-10-stable/airflow/api_connexion/openapi/v1.yaml
+    verified: source
+
+  # ---------------------------------------------------------------- Databricks REST
+  - id: curl.databricks.run_now
+    group: databricks
+    intents:
+      - trigger databricks job {JOB_ID} with the rest api
+      - run a databricks job now using curl
+      - jobs run-now over http with my token
+      - start job {JOB_ID} in the workspace via api
+    vars:
+      - {name: JOB_ID, default: <job-id>, samples: ["123456789", "987654321012"]}
+    body: "curl -sS -X POST \"$DATABRICKS_HOST/api/2.2/jobs/run-now\" -H \"Authorization: Bearer $DATABRICKS_TOKEN\" -d \"{\\\"job_id\\\": $JOB_ID}\""
+    destructive: false
+    source: https://github.com/databricks/databricks-sdk-py/blob/main/databricks/sdk/service/jobs.py
+    verified: source
+
+  - id: curl.databricks.run_now_params
+    group: databricks
+    intents:
+      - run databricks job {JOB_ID} with job parameter run_date={RUN_DATE}
+      - trigger a databricks job and pass job parameters via rest
+      - run-now with job_parameters json
+      - start a parameterized databricks job with curl
+    vars:
+      - {name: JOB_ID, default: <job-id>, samples: ["123456789", "987654321012"]}
+      - {name: RUN_DATE, default: "2026-01-01", samples: ["2026-03-15", "2025-12-31"]}
+    body: "curl -sS -X POST \"$DATABRICKS_HOST/api/2.2/jobs/run-now\" -H \"Authorization: Bearer $DATABRICKS_TOKEN\" -d \"{\\\"job_id\\\": $JOB_ID, \\\"job_parameters\\\": {\\\"run_date\\\": \\\"$RUN_DATE\\\"}}\""
+    destructive: false
+    source: https://github.com/databricks/databricks-sdk-py/blob/main/databricks/sdk/service/jobs.py
+    verified: source
+
+  - id: curl.databricks.runs_get
+    group: databricks
+    intents:
+      - check the state of databricks run {RUN_ID}
+      - did my databricks job run finish, via rest
+      - get run status from the jobs api
+      - jobs runs get with curl
+    vars:
+      - {name: RUN_ID, default: <run-id>, samples: ["556677889900", "112233445566"]}
+    body: 'curl -sS "$DATABRICKS_HOST/api/2.2/jobs/runs/get?run_id=$RUN_ID" -H "Authorization: Bearer $DATABRICKS_TOKEN" | jq ''.status'''
+    destructive: false
+    source: https://github.com/databricks/databricks-sdk-py/blob/main/databricks/sdk/service/jobs.py
+    verified: source
+
+  - id: curl.databricks.jobs_list
+    group: databricks
+    intents:
+      - list databricks jobs with their ids using the api
+      - show job ids and names in my workspace via rest
+      - what jobs exist in databricks, curl
+      - databricks jobs list endpoint
+    body: 'curl -sS "$DATABRICKS_HOST/api/2.2/jobs/list?limit=100" -H "Authorization: Bearer $DATABRICKS_TOKEN" | jq -r ''.jobs[] | [.job_id, .settings.name] | @tsv'''
+    destructive: false
+    source: https://github.com/databricks/databricks-sdk-py/blob/main/databricks/sdk/service/jobs.py
+    verified: source
+
+  - id: curl.databricks.clusters_list
+    group: databricks
+    intents:
+      - list databricks clusters and their state with curl
+      - which clusters are running in the workspace, rest api
+      - clusters list via the databricks api
+      - show cluster ids, names and states
+    body: 'curl -sS "$DATABRICKS_HOST/api/2.1/clusters/list" -H "Authorization: Bearer $DATABRICKS_TOKEN" | jq -r ''.clusters[] | [.cluster_id, .cluster_name, .state] | @tsv'''
+    destructive: false
+    source: https://github.com/databricks/databricks-sdk-py/blob/main/databricks/sdk/service/compute.py
+    verified: source
+
+  # ---------------------------------------------------------------- Snowflake SQL API
+  - id: curl.snowflake.statement_jwt
+    group: snowflake
+    intents:
+      - run "{SQL}" through the snowflake sql api with a key pair jwt
+      - submit a sql statement to snowflake over rest
+      - call snowflake /api/v2/statements with curl
+      - execute a snowflake query over http with a jwt bearer token
+    vars:
+      - {name: ACCOUNT, default: <account-identifier>, samples: [myorg-myaccount, acme-analytics]}
+      - {name: SQL, default: select current_version(), samples: [select count(*) from analytics.public.orders, select current_user()]}
+    body: "curl -sS \"https://$ACCOUNT.snowflakecomputing.com/api/v2/statements\" -H \"Authorization: Bearer $SNOWFLAKE_JWT\" -H 'X-Snowflake-Authorization-Token-Type: KEYPAIR_JWT' --json \"{\\\"statement\\\": \\\"$SQL\\\"}\""
+    destructive: false
+    source: https://docs.snowflake.com/en/developer-guide/sql-api/submitting-requests
+    verified: docs
+
+  - id: curl.snowflake.statement_oauth
+    group: snowflake
+    intents:
+      - query snowflake sql api with an oauth token
+      - send "{SQL}" to snowflake rest using oauth bearer
+      - snowflake statements api oauth curl
+      - run sql in snowflake via http and oauth
+    vars:
+      - {name: ACCOUNT, default: <account-identifier>, samples: [myorg-myaccount, acme-analytics]}
+      - {name: SQL, default: select current_version(), samples: [select count(*) from raw.events, show warehouses]}
+    body: "curl -sS \"https://$ACCOUNT.snowflakecomputing.com/api/v2/statements\" -H \"Authorization: Bearer $SNOWFLAKE_OAUTH_TOKEN\" -H 'X-Snowflake-Authorization-Token-Type: OAUTH' --json \"{\\\"statement\\\": \\\"$SQL\\\"}\" | jq .data"
+    destructive: false
+    source: https://docs.snowflake.com/en/developer-guide/sql-api/authenticating
+    verified: docs
+
+  - id: curl.snowflake.statement_status
+    group: snowflake
+    intents:
+      - check snowflake statement {HANDLE} and get its rows
+      - fetch results of an async snowflake sql api query
+      - poll a statement handle in the snowflake rest api
+      - get the result set for a statement handle
+    vars:
+      - {name: ACCOUNT, default: <account-identifier>, samples: [myorg-myaccount, acme-analytics]}
+      - {name: HANDLE, default: <statement-handle>, samples: [01b2c3d4-0000-1a2b-0000-000123456789]}
+    body: 'curl -sS "https://$ACCOUNT.snowflakecomputing.com/api/v2/statements/$HANDLE" -H "Authorization: Bearer $SNOWFLAKE_JWT" -H ''X-Snowflake-Authorization-Token-Type: KEYPAIR_JWT'' | jq .data'
+    destructive: false
+    source: https://docs.snowflake.com/en/developer-guide/sql-api/handling-responses
+    verified: docs
+
+  # ---------------------------------------------------------------- Confluent / Kafka REST v3
+  - id: curl.confluent.list_topics
+    group: kafka-rest
+    intents:
+      - list topics in confluent cloud cluster {CLUSTER_ID} via the rest api
+      - kafka rest v3 list topics with api key and secret
+      - which topics exist, using confluent's rest endpoint
+      - get topic names over http from confluent
+    vars:
+      - {name: REST_ENDPOINT, default: <rest-endpoint>, samples: ["https://pkc-xxxxx.us-east-1.aws.confluent.cloud:443"]}
+      - {name: CLUSTER_ID, default: <cluster-id>, samples: [lkc-abc123, lkc-9x8y7z]}
+    body: curl -sS -u "$CONFLUENT_API_KEY:$CONFLUENT_API_SECRET" "$REST_ENDPOINT/kafka/v3/clusters/$CLUSTER_ID/topics" | jq -r '.data[].topic_name'
+    destructive: false
+    source: https://github.com/confluentinc/kafka-rest/blob/master/api/v3/openapi.yaml
+    verified: source
+
+  - id: curl.confluent.produce
+    group: kafka-rest
+    intents:
+      - produce a json record to topic {TOPIC} with the kafka rest api
+      - send a test message to confluent cloud over http
+      - post a record to a kafka topic via rest v3
+      - write one event to {TOPIC} using curl
+    vars:
+      - {name: REST_ENDPOINT, default: <rest-endpoint>, samples: ["https://pkc-xxxxx.us-east-1.aws.confluent.cloud:443"]}
+      - {name: CLUSTER_ID, default: <cluster-id>, samples: [lkc-abc123, lkc-9x8y7z]}
+      - {name: TOPIC, default: <topic>, samples: [orders, page_views, cdc.public.customers]}
+    body: "curl -sS -u \"$CONFLUENT_API_KEY:$CONFLUENT_API_SECRET\" \"$REST_ENDPOINT/kafka/v3/clusters/$CLUSTER_ID/topics/$TOPIC/records\" --json '{\"value\": {\"type\": \"JSON\", \"data\": {\"id\": 1}}}'"
+    destructive: false
+    source: https://github.com/confluentinc/kafka-rest/blob/master/api/v3/openapi.yaml
+    verified: source
+
+  # ---------------------------------------------------------------- Schema Registry
+  - id: curl.schema_registry.subjects
+    group: schema-registry
+    intents:
+      - list schema registry subjects
+      - which schemas are registered
+      - show all subjects in the schema registry at {SR_URL}
+      - schema registry subjects via curl
+    vars:
+      - {name: SR_URL, default: "http://localhost:8081", samples: ["https://psrc-xxxxx.us-east-1.aws.confluent.cloud", "http://schema-registry:8081"]}
+    body: curl -sS "$SR_URL/subjects" | jq -r '.[]'
+    destructive: false
+    source: https://github.com/confluentinc/schema-registry/blob/master/core/src/main/java/io/confluent/kafka/schemaregistry/rest/resources/SubjectsResource.java
+    verified: source
+
+  - id: curl.schema_registry.latest
+    group: schema-registry
+    intents:
+      - get the latest schema for subject {SUBJECT}
+      - show the newest version of the {SUBJECT} schema, pretty printed
+      - what does the current avro schema look like
+      - fetch latest registered schema from schema registry
+    vars:
+      - {name: SR_URL, default: "http://localhost:8081", samples: ["http://schema-registry:8081"]}
+      - {name: SUBJECT, default: <subject>, samples: [orders-value, page_views-value, customers-key]}
+    body: curl -sS "$SR_URL/subjects/$SUBJECT/versions/latest" | jq -r .schema | jq .
+    destructive: false
+    source: https://github.com/confluentinc/schema-registry/blob/master/core/src/main/java/io/confluent/kafka/schemaregistry/rest/resources/SubjectVersionsResource.java
+    verified: source
+
+  - id: curl.schema_registry.subjects_auth
+    group: schema-registry
+    intents:
+      - list subjects in confluent cloud schema registry with api key
+      - schema registry subjects using basic auth key and secret
+      - which subjects exist in my cloud schema registry
+      - authenticated call to list schema subjects
+    vars:
+      - {name: SR_URL, default: <schema-registry-url>, samples: ["https://psrc-xxxxx.us-east-1.aws.confluent.cloud"]}
+    body: curl -sS -u "$SR_API_KEY:$SR_API_SECRET" "$SR_URL/subjects" | jq -r '.[]'
+    destructive: false
+    source: https://github.com/confluentinc/schema-registry/blob/master/core/src/main/java/io/confluent/kafka/schemaregistry/rest/resources/SubjectsResource.java
+    verified: source
+
+  # ---------------------------------------------------------------- Kafka Connect REST
+  - id: curl.connect.list
+    group: kafka-connect
+    intents:
+      - list kafka connect connectors
+      - which connectors are deployed
+      - show connector names on the connect cluster at {CONNECT_URL}
+      - kafka connect rest list
+    vars:
+      - {name: CONNECT_URL, default: "http://localhost:8083", samples: ["http://connect:8083", "http://kafka-connect.internal:8083"]}
+    body: curl -sS "$CONNECT_URL/connectors" | jq -r '.[]'
+    destructive: false
+    source: https://github.com/apache/kafka/blob/trunk/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/rest/resources/ConnectorsResource.java
+    verified: source
+
+  - id: curl.connect.status
+    group: kafka-connect
+    intents:
+      - status of connector {CONNECTOR}
+      - is my kafka connect connector running
+      - check connector and task states
+      - why is the {CONNECTOR} connector failing
+    vars:
+      - {name: CONNECT_URL, default: "http://localhost:8083", samples: ["http://connect:8083"]}
+      - {name: CONNECTOR, default: <connector-name>, samples: [postgres-orders-source, s3-sink-events, debezium-customers]}
+    body: curl -sS "$CONNECT_URL/connectors/$CONNECTOR/status" | jq .
+    destructive: false
+    source: https://github.com/apache/kafka/blob/trunk/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/rest/resources/ConnectorsResource.java
+    verified: source
+
+  - id: curl.connect.create
+    group: kafka-connect
+    intents:
+      - create a kafka connect connector from {FILE}
+      - deploy a new connector with a json config
+      - post connector definition to kafka connect
+      - register a sink connector
+    vars:
+      - {name: CONNECT_URL, default: "http://localhost:8083", samples: ["http://connect:8083"]}
+      - {name: FILE, default: connector.json, samples: [s3-sink.json, debezium-postgres.json], ctx: local_file}
+    body: 'curl -sS -X POST "$CONNECT_URL/connectors" -H ''Content-Type: application/json'' -d @"$FILE" | jq .'
+    destructive: false
+    source: https://github.com/apache/kafka/blob/trunk/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/rest/resources/ConnectorsResource.java
+    verified: source
+
+  - id: curl.connect.restart_failed
+    group: kafka-connect
+    intents:
+      - restart connector {CONNECTOR} and its failed tasks
+      - restart a broken kafka connect connector
+      - bounce only the failed tasks of a connector
+      - kafka connect restart including tasks
+    vars:
+      - {name: CONNECT_URL, default: "http://localhost:8083", samples: ["http://connect:8083"]}
+      - {name: CONNECTOR, default: <connector-name>, samples: [postgres-orders-source, s3-sink-events]}
+    body: curl -sS -X POST "$CONNECT_URL/connectors/$CONNECTOR/restart?includeTasks=true&onlyFailed=true"
+    destructive: false
+    source: https://github.com/apache/kafka/blob/trunk/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/rest/resources/ConnectorsResource.java
+    verified: source
+
+  - id: curl.connect.pause
+    group: kafka-connect
+    intents:
+      - pause connector {CONNECTOR}
+      - temporarily stop a kafka connect connector
+      - pause the sink while we fix the target
+      - kafka connect pause
+    vars:
+      - {name: CONNECT_URL, default: "http://localhost:8083", samples: ["http://connect:8083"]}
+      - {name: CONNECTOR, default: <connector-name>, samples: [s3-sink-events, jdbc-sink-orders]}
+    body: curl -sS -X PUT "$CONNECT_URL/connectors/$CONNECTOR/pause"
+    destructive: false
+    source: https://github.com/apache/kafka/blob/trunk/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/rest/resources/ConnectorsResource.java
+    verified: source
+
+  - id: curl.connect.resume
+    group: kafka-connect
+    intents:
+      - resume connector {CONNECTOR}
+      - unpause a kafka connect connector
+      - start the paused connector again
+      - kafka connect resume
+    vars:
+      - {name: CONNECT_URL, default: "http://localhost:8083", samples: ["http://connect:8083"]}
+      - {name: CONNECTOR, default: <connector-name>, samples: [s3-sink-events, jdbc-sink-orders]}
+    body: curl -sS -X PUT "$CONNECT_URL/connectors/$CONNECTOR/resume"
+    destructive: false
+    source: https://github.com/apache/kafka/blob/trunk/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/rest/resources/ConnectorsResource.java
+    verified: source
+
+  - id: curl.connect.delete
+    group: kafka-connect
+    intents:
+      - delete connector {CONNECTOR}
+      - remove a kafka connect connector for good
+      - tear down the {CONNECTOR} connector
+      - kafka connect delete connector
+    vars:
+      - {name: CONNECT_URL, default: "http://localhost:8083", samples: ["http://connect:8083"]}
+      - {name: CONNECTOR, default: <connector-name>, samples: [old-jdbc-source, test-s3-sink]}
+    body: curl -sS -X DELETE "$CONNECT_URL/connectors/$CONNECTOR"
+    destructive: true
+    source: https://github.com/apache/kafka/blob/trunk/connect/runtime/src/main/java/org/apache/kafka/connect/runtime/rest/resources/ConnectorsResource.java
+    verified: source
+
+  # ---------------------------------------------------------------- Spark History Server
+  - id: curl.spark_history.apps
+    group: spark
+    intents:
+      - list the last {LIMIT} completed spark applications from the history server
+      - show finished spark apps via the history server rest api
+      - spark history server applications list
+      - get app ids and names of recent spark jobs
+    vars:
+      - {name: SHS_URL, default: "http://localhost:18080", samples: ["http://spark-history:18080", "http://emr-master.internal:18080"]}
+      - {name: LIMIT, default: "20", samples: ["10", "50"]}
+    body: curl -sS "$SHS_URL/api/v1/applications?status=completed&limit=$LIMIT" | jq -r '.[] | [.id, .name] | @tsv'
+    destructive: false
+    source: https://github.com/apache/spark/blob/master/docs/monitoring.md
+    verified: source
+
+  - id: curl.spark_history.jobs
+    group: spark
+    intents:
+      - list jobs of spark application {APP_ID}
+      - which spark jobs failed in app {APP_ID}
+      - get job status for a spark app from the history server
+      - spark rest api jobs of an application
+    vars:
+      - {name: SHS_URL, default: "http://localhost:18080", samples: ["http://spark-history:18080"]}
+      - {name: APP_ID, default: <application-id>, samples: [application_1710000000000_0042, app-20260315081500-0003]}
+    body: curl -sS "$SHS_URL/api/v1/applications/$APP_ID/jobs" | jq -r '.[] | [.jobId, .status, .name] | @tsv'
+    destructive: false
+    source: https://github.com/apache/spark/blob/master/docs/monitoring.md
+    verified: source

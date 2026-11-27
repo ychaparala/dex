@@ -1,0 +1,14 @@
+{
+ "https://github.com/confluentinc/cli/blob/main/README.md": {
+  "sha256": "cd72bf68c854bc1b7c24ec1bc5af875415cdaac8f6ed927799619975a24dff18",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/confluentinc/cli/blob/main/install.sh": {
+  "sha256": "0c592bb4004aacdf9a8dde05a88fab3a52d11e3520d916a70398d211cfe2f4ff",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/confluentinc/cli/blob/main/internal/kafka/command_topic_consume.go": {
+  "sha256": "ecaa76f3f49ffa9e2d42558cb60eeee1bd5a53a52e670d7979b509be0a982327",
+  "fetched": "2026-11-26"
+ }
+}

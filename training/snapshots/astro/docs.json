@@ -1,0 +1,34 @@
+{
+ "https://github.com/astronomer/astro-cli/blob/main/cmd/airflow.go": {
+  "sha256": "61d0f5b7cc824137f9bb9ca822306e5303b44fb0d8abde1bef4c836e3e92fb46",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/astronomer/astro-cli/blob/main/cmd/cloud/deploy.go": {
+  "sha256": "8f248165aed594f0b7778999aad5711d01bfe70570f3aedadbff75b9f25cc5a1",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/astronomer/astro-cli/blob/main/cmd/cloud/deployment.go": {
+  "sha256": "fbb3e6650248d8fd73bd34e9a6774bf224f54c79557dda09ba8511bcd193a029",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/astronomer/astro-cli/blob/main/cmd/cloud/deployment_inspect.go": {
+  "sha256": "3757d4c6ed32e9741f14ee7bbffd32dbf48face72eff97a9b016c4784b5456a7",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/astronomer/astro-cli/blob/main/cmd/cloud/workspace.go": {
+  "sha256": "dc00f3ec67ecc84af5b7084bf0036c1976c2795ecabf3c953d0912e5ee4e34f7",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/astronomer/astro-cli/blob/main/cmd/auth.go": {
+  "sha256": "6dcb83aa1f13ec815daa7cbe0cb16c1b6b524808afdbb614c2efb107c7dd3234",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/astronomer/astro-cli/blob/main/cmd/version.go": {
+  "sha256": "7b3c6d6345a77a2979a5d765d7f99e70759e022539e056000a7c5d0d95509513",
+  "fetched": "2026-11-26"
+ },
+ "https://github.com/astronomer/astro-cli/blob/main/README.md": {
+  "sha256": "e0063d37ef3b44ee81b8b51f2b830dba77d45d7c0b93cf4664c10d64e9a5775e",
+  "fetched": "2026-11-26"
+ }
+}

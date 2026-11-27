@@ -1,0 +1,19 @@
+{
+ "templates": 47,
+ "pairs": 246,
+ "dropped_templates": {
+  "confluent.cluster.list_all": "confluent-help-parse on confluent 4.83.0: Error: unknown flag: --all"
+ },
+ "versions_pinned": [
+  "4.83.0"
+ ],
+ "versions_checked": [
+  "4.83.0"
+ ],
+ "per_version_status": {
+  "4.83.0": {
+   "ok": 246,
+   "fail": 4
+  }
+ }
+}

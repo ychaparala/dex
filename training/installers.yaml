@@ -1,0 +1,18 @@
+# Install commands for the installers that dex's install hints use. When a hint needs one that
+# is missing ("... (needs uv)"), dex adds this hint for it. uv has no pipx line: when pipx is
+# there, the hint uses pipx and never needs uv. Same format as `install:` in a tool
+# config (TOOL_SPEC.md, "Install commands"); `python nl2sh.py installs` reads it too.
+binaries: [uv, pipx, brew]
+install:
+- binaries: [uv]
+  macos: ["brew install uv"]
+  docs: "https://docs.astral.sh/uv/getting-started/installation/"
+  source: ["https://docs.astral.sh/uv/getting-started/installation/"]
+- binaries: [pipx]
+  macos: ["brew install pipx"]
+  linux: ["sudo apt-get install pipx"]
+  docs: "https://pipx.pypa.io/stable/installation/"
+  source: ["https://pipx.pypa.io/stable/installation/"]
+- binaries: [brew]
+  docs: "https://brew.sh/"
+  source: ["https://brew.sh/"]

@@ -1,0 +1,389 @@
+tool: mysql
+binaries:
+- mysql
+- mysqldump
+category: databases
+priority: standard
+target_pairs: 100
+version_note: MySQL 8.x client / mysqldump
+install:
+- linux: ["sudo apt-get install mysql-client"]
+  source: ["https://packages.ubuntu.com/noble/mysql-client"]
+sources:
+- url: https://github.com/mysql/mysql-server/blob/trunk/client/mysql.cc
+  license: GPL-2.0 (repo); facts only
+- url: https://github.com/mysql/mysql-server/blob/trunk/client/mysqldump.cc
+  license: GPL-2.0 (repo); facts only
+- url: https://github.com/Homebrew/homebrew-core/blob/HEAD/Formula/m/mysql-client.rb
+  license: BSD-2-Clause (Homebrew repo)
+destructive_patterns:
+- (?i)\b(drop|truncate)\s+(table|schema|database|view)\b
+- (?i)\bdelete\s+from\b
+- \bmysql\b[^|]*<\s*\S+\.sql
+templates:
+- id: mysql.install
+  group: setup
+  intents:
+  - install the mysql client with brew
+  - get mysql and mysqldump on mac
+  - brew install mysql-client
+  - install mysql command line tools
+  vars: []
+  body: brew install mysql-client
+  destructive: false
+  source: https://github.com/Homebrew/homebrew-core/blob/HEAD/Formula/m/mysql-client.rb
+  verified: source
+- id: mysql.connect
+  group: connect
+  intents:
+  - connect to mysql database {DB} on {MYSQL_HOST}
+  - open a mysql shell and prompt for the password
+  - mysql login as {MYSQL_USER}
+  - mysql -h -u -p
+  vars:
+  - name: MYSQL_HOST
+    default: localhost
+    samples:
+    - db.example.com
+    - 10.0.0.20
+  - name: MYSQL_USER
+    default: root
+    samples:
+    - app
+    - etl
+    - readonly
+  - name: DB
+    default: <database>
+    samples:
+    - shop
+    - analytics
+    - app_prod
+  body: mysql -h "$MYSQL_HOST" -u "$MYSQL_USER" -p "$DB"
+  destructive: false
+  source: https://github.com/mysql/mysql-server/blob/trunk/client/mysql.cc
+  verified: source
+- id: mysql.query
+  group: query
+  intents:
+  - run {QUERY} on mysql
+  - execute one mysql statement and exit
+  - mysql -e
+  - quick query against mysql
+  vars:
+  - name: MYSQL_HOST
+    default: localhost
+    samples:
+    - db.example.com
+    - 10.0.0.20
+  - name: MYSQL_USER
+    default: root
+    samples:
+    - app
+    - etl
+    - readonly
+  - name: DB
+    default: <database>
+    samples:
+    - shop
+    - analytics
+    - app_prod
+  - name: QUERY
+    default: select count(*) from orders
+    samples:
+    - show processlist
+    - select now()
+  body: mysql -h "$MYSQL_HOST" -u "$MYSQL_USER" -p "$DB" -e "$QUERY"
+  destructive: false
+  source: https://github.com/mysql/mysql-server/blob/trunk/client/mysql.cc
+  verified: source
+- id: mysql.query.tsv
+  group: query
+  intents:
+  - get {QUERY} as tab separated rows without headers
+  - mysql batch output for scripts
+  - bare mysql results to pipe into other tools
+  - mysql -B -N
+  vars:
+  - name: MYSQL_HOST
+    default: localhost
+    samples:
+    - db.example.com
+    - 10.0.0.20
+  - name: MYSQL_USER
+    default: root
+    samples:
+    - app
+    - etl
+    - readonly
+  - name: DB
+    default: <database>
+    samples:
+    - shop
+    - analytics
+    - app_prod
+  - name: QUERY
+    default: select id, email from users limit 100
+    samples:
+    - select table_name from information_schema.tables
+  body: mysql -h "$MYSQL_HOST" -u "$MYSQL_USER" -p -B -N "$DB" -e "$QUERY"
+  destructive: false
+  source: https://github.com/mysql/mysql-server/blob/trunk/client/mysql.cc
+  verified: source
+- id: mysql.file
+  group: query
+  intents:
+  - run the sql script {FILE} against {DB}
+  - execute a .sql file with mysql
+  - feed a file into mysql
+  - apply a migration to mysql
+  vars:
+  - name: MYSQL_HOST
+    default: localhost
+    samples:
+    - db.example.com
+    - 10.0.0.20
+  - name: MYSQL_USER
+    default: root
+    samples:
+    - app
+    - etl
+    - readonly
+  - name: DB
+    default: <database>
+    samples:
+    - shop
+    - analytics
+    - app_prod
+  - name: FILE
+    default: migration.sql
+    samples:
+    - schema.sql
+    - seed.sql
+    ctx: local_file
+  body: mysql -h "$MYSQL_HOST" -u "$MYSQL_USER" -p "$DB" < "$FILE"
+  destructive: true
+  source: https://github.com/mysql/mysql-server/blob/trunk/client/mysql.cc
+  verified: source
+- id: mysql.tables
+  group: meta
+  intents:
+  - list tables in {DB}
+  - show mysql tables
+  - what tables exist in this mysql database
+  - mysql show tables
+  vars:
+  - name: MYSQL_HOST
+    default: localhost
+    samples:
+    - db.example.com
+    - 10.0.0.20
+  - name: MYSQL_USER
+    default: root
+    samples:
+    - app
+    - etl
+    - readonly
+  - name: DB
+    default: <database>
+    samples:
+    - shop
+    - analytics
+    - app_prod
+  body: mysql -h "$MYSQL_HOST" -u "$MYSQL_USER" -p "$DB" -e "show tables"
+  destructive: false
+  source: https://github.com/mysql/mysql-server/blob/trunk/client/mysql.cc
+  verified: source
+- id: mysql.describe
+  group: meta
+  intents:
+  - describe table {TABLE}
+  - show columns of a mysql table
+  - mysql table structure
+  - what columns does {TABLE} have
+  vars:
+  - name: MYSQL_HOST
+    default: localhost
+    samples:
+    - db.example.com
+    - 10.0.0.20
+  - name: MYSQL_USER
+    default: root
+    samples:
+    - app
+    - etl
+    - readonly
+  - name: DB
+    default: <database>
+    samples:
+    - shop
+    - analytics
+    - app_prod
+  - name: TABLE
+    default: orders
+    samples:
+    - users
+    - payments
+  body: mysql -h "$MYSQL_HOST" -u "$MYSQL_USER" -p "$DB" -e "describe $TABLE"
+  destructive: false
+  source: https://github.com/mysql/mysql-server/blob/trunk/client/mysql.cc
+  verified: source
+- id: mysql.dump
+  group: dump
+  intents:
+  - dump database {DB} to {OUT_FILE}
+  - back up a mysql database consistently
+  - mysqldump with single transaction and routines
+  - take a mysql backup
+  vars:
+  - name: MYSQL_HOST
+    default: localhost
+    samples:
+    - db.example.com
+    - 10.0.0.20
+  - name: MYSQL_USER
+    default: root
+    samples:
+    - app
+    - etl
+    - readonly
+  - name: DB
+    default: <database>
+    samples:
+    - shop
+    - analytics
+    - app_prod
+  - name: OUT_FILE
+    default: dump.sql
+    samples:
+    - shop_2025-06-30.sql
+    - backup.sql
+  body: mysqldump -h "$MYSQL_HOST" -u "$MYSQL_USER" -p --single-transaction --routines "$DB" > "$OUT_FILE"
+  destructive: false
+  source: https://github.com/mysql/mysql-server/blob/trunk/client/mysqldump.cc
+  verified: source
+- id: mysql.dump.gzip
+  group: dump
+  intents:
+  - dump {DB} gzipped
+  - compressed mysqldump
+  - mysqldump piped to gzip
+  - small backup file of a mysql db
+  vars:
+  - name: MYSQL_HOST
+    default: localhost
+    samples:
+    - db.example.com
+    - 10.0.0.20
+  - name: MYSQL_USER
+    default: root
+    samples:
+    - app
+    - etl
+    - readonly
+  - name: DB
+    default: <database>
+    samples:
+    - shop
+    - analytics
+    - app_prod
+  body: mysqldump -h "$MYSQL_HOST" -u "$MYSQL_USER" -p --single-transaction "$DB" | gzip > "$DB.sql.gz"
+  destructive: false
+  source: https://github.com/mysql/mysql-server/blob/trunk/client/mysqldump.cc
+  verified: source
+- id: mysql.dump.table
+  group: dump
+  intents:
+  - dump only table {TABLE} from {DB}
+  - mysqldump a single table
+  - export one mysql table as sql
+  - back up one table
+  vars:
+  - name: MYSQL_HOST
+    default: localhost
+    samples:
+    - db.example.com
+    - 10.0.0.20
+  - name: MYSQL_USER
+    default: root
+    samples:
+    - app
+    - etl
+    - readonly
+  - name: DB
+    default: <database>
+    samples:
+    - shop
+    - analytics
+    - app_prod
+  - name: TABLE
+    default: orders
+    samples:
+    - users
+  body: mysqldump -h "$MYSQL_HOST" -u "$MYSQL_USER" -p --single-transaction "$DB" "$TABLE" > "$TABLE.sql"
+  destructive: false
+  source: https://github.com/mysql/mysql-server/blob/trunk/client/mysqldump.cc
+  verified: source
+- id: mysql.dump.schema
+  group: dump
+  intents:
+  - dump only the schema of {DB}
+  - mysqldump without data
+  - export mysql ddl
+  - create table statements for the whole db
+  vars:
+  - name: MYSQL_HOST
+    default: localhost
+    samples:
+    - db.example.com
+    - 10.0.0.20
+  - name: MYSQL_USER
+    default: root
+    samples:
+    - app
+    - etl
+    - readonly
+  - name: DB
+    default: <database>
+    samples:
+    - shop
+    - analytics
+    - app_prod
+  body: mysqldump -h "$MYSQL_HOST" -u "$MYSQL_USER" -p --no-data "$DB" > schema.sql
+  destructive: false
+  source: https://github.com/mysql/mysql-server/blob/trunk/client/mysqldump.cc
+  verified: source
+- id: mysql.restore.gz
+  group: dump
+  intents:
+  - restore {DUMP_FILE} into {DB}
+  - load a gzipped mysql dump
+  - import a .sql.gz backup into mysql
+  - restore mysql from compressed dump
+  vars:
+  - name: DUMP_FILE
+    default: dump.sql.gz
+    samples:
+    - shop.sql.gz
+    - backup.sql.gz
+    ctx: local_file
+  - name: MYSQL_HOST
+    default: localhost
+    samples:
+    - db.example.com
+    - 10.0.0.20
+  - name: MYSQL_USER
+    default: root
+    samples:
+    - app
+    - etl
+    - readonly
+  - name: DB
+    default: <database>
+    samples:
+    - shop
+    - analytics
+    - app_prod
+  body: gunzip -c "$DUMP_FILE" | mysql -h "$MYSQL_HOST" -u "$MYSQL_USER" -p "$DB"
+  destructive: true
+  source: https://github.com/mysql/mysql-server/blob/trunk/client/mysql.cc
+  verified: source

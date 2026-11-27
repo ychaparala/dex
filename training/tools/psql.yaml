@@ -1,0 +1,515 @@
+tool: psql
+binaries:
+- psql
+- pg_dump
+- pg_restore
+category: databases
+priority: standard
+target_pairs: 140
+version_note: PostgreSQL 14-17 client tools (checked with psql/pg_dump 16 --help)
+install:
+- linux: ["sudo apt-get install postgresql-client"]
+  source: ["https://packages.ubuntu.com/noble/postgresql-client"]
+sources:
+- url: https://www.postgresql.org/docs/current/app-psql.html
+  license: PostgreSQL License (docs); facts only
+- url: https://packages.ubuntu.com/noble/postgresql-client
+  license: Ubuntu package index; facts only
+- url: https://www.postgresql.org/docs/current/app-pgdump.html
+  license: PostgreSQL License (docs); facts only
+- url: https://www.postgresql.org/docs/current/app-pgrestore.html
+  license: PostgreSQL License (docs); facts only
+- url: https://github.com/Homebrew/homebrew-core/blob/HEAD/Formula/p/postgresql@17.rb
+  license: BSD-2-Clause (Homebrew repo)
+destructive_patterns:
+- (?i)\b(drop|truncate)\s+(table|schema|database|view)\b
+- (?i)\bdelete\s+from\b
+- \bpg_restore\b.*(--clean|-c\b)
+- \bdropdb\b
+templates:
+- id: psql.install.apt
+  group: setup
+  intents:
+  - install the postgres client on ubuntu
+  - apt install psql
+  - get psql and pg_dump on debian
+  - install postgresql-client
+  vars: []
+  body: sudo apt-get install -y postgresql-client
+  destructive: false
+  source: https://packages.ubuntu.com/noble/postgresql-client
+  verified: docs
+- id: psql.install.brew
+  group: setup
+  intents:
+  - brew install postgres client tools
+  - install psql on mac
+  - get pg_dump via homebrew
+  - homebrew postgresql 17
+  vars: []
+  body: brew install postgresql@17
+  destructive: false
+  source: https://github.com/Homebrew/homebrew-core/blob/HEAD/Formula/p/postgresql@17.rb
+  verified: source
+- id: psql.version
+  group: setup
+  intents:
+  - what version of psql do i have
+  - psql --version
+  - check the postgres client version
+  - is psql installed
+  vars: []
+  body: psql --version
+  destructive: false
+  source: https://www.postgresql.org/docs/current/app-psql.html
+  verified: help
+- id: psql.connect.uri
+  group: connect
+  intents:
+  - connect to postgres with a connection uri
+  - open psql on {PG_URI}
+  - psql using a postgresql:// url
+  - log into the database with a dsn
+  vars:
+  - name: PG_URI
+    default: postgresql://<user>@<host>:5432/<db>
+    samples:
+    - postgresql://etl@db.example.com:5432/analytics
+    - postgresql://app@localhost/app_dev
+    - postgres://readonly@10.0.0.12:5432/warehouse?sslmode=require
+  body: psql "$PG_URI"
+  destructive: false
+  source: https://www.postgresql.org/docs/current/app-psql.html
+  verified: help
+- id: psql.connect.flags
+  group: connect
+  intents:
+  - connect to {PG_DB} on {PG_HOST} as {PG_USER}
+  - psql with host user and database
+  - open a postgres shell
+  - psql -h -U -d
+  vars:
+  - name: PG_HOST
+    default: localhost
+    samples:
+    - db.example.com
+    - 10.0.0.12
+  - name: PG_USER
+    default: postgres
+    samples:
+    - etl
+    - readonly
+    - app
+  - name: PG_DB
+    default: postgres
+    samples:
+    - analytics
+    - app
+    - warehouse
+  body: psql -h "$PG_HOST" -U "$PG_USER" -d "$PG_DB"
+  destructive: false
+  source: https://www.postgresql.org/docs/current/app-psql.html
+  verified: help
+- id: psql.connect.pgpassword
+  group: connect
+  intents:
+  - connect using PGPASSWORD from the environment without prompting
+  - psql non-interactive login with PGPASSWORD
+  - test a postgres login in a script
+  - psql never prompt for password
+  vars:
+  - name: PG_HOST
+    default: localhost
+    samples:
+    - db.example.com
+    - 10.0.0.12
+  - name: PG_USER
+    default: postgres
+    samples:
+    - etl
+    - readonly
+    - app
+  - name: PG_DB
+    default: postgres
+    samples:
+    - analytics
+    - app
+    - warehouse
+  body: psql -h "$PG_HOST" -U "$PG_USER" -d "$PG_DB" -w -c "select 1"
+  destructive: false
+  source: https://www.postgresql.org/docs/current/app-psql.html
+  verified: help
+- id: psql.query
+  group: query
+  intents:
+  - run {QUERY} against postgres
+  - execute one sql statement with psql
+  - psql -c
+  - quick postgres query from the shell
+  vars:
+  - name: PG_URI
+    default: postgresql://<user>@<host>:5432/<db>
+    samples:
+    - postgresql://etl@db.example.com:5432/analytics
+    - postgresql://app@localhost/app_dev
+    - postgres://readonly@10.0.0.12:5432/warehouse?sslmode=require
+  - name: QUERY
+    default: select count(*) from public.orders
+    samples:
+    - select now()
+    - select * from pg_stat_activity limit 10
+  body: psql "$PG_URI" -c "$QUERY"
+  destructive: false
+  source: https://www.postgresql.org/docs/current/app-psql.html
+  verified: help
+- id: psql.query.bare
+  group: query
+  intents:
+  - get just the value of {QUERY} with no headers
+  - psql tuples only unaligned output
+  - bare psql output for a shell variable
+  - psql -At for scripting
+  vars:
+  - name: PG_URI
+    default: postgresql://<user>@<host>:5432/<db>
+    samples:
+    - postgresql://etl@db.example.com:5432/analytics
+    - postgresql://app@localhost/app_dev
+    - postgres://readonly@10.0.0.12:5432/warehouse?sslmode=require
+  - name: QUERY
+    default: select count(*) from public.orders
+    samples:
+    - select max(updated_at) from public.users
+  body: psql "$PG_URI" -At -c "$QUERY"
+  destructive: false
+  source: https://www.postgresql.org/docs/current/app-psql.html
+  verified: help
+- id: psql.query.csv
+  group: query
+  intents:
+  - export {QUERY} to {OUT_FILE} as csv
+  - psql csv output to a file
+  - save a postgres query as csv
+  - dump query results as csv with psql
+  vars:
+  - name: PG_URI
+    default: postgresql://<user>@<host>:5432/<db>
+    samples:
+    - postgresql://etl@db.example.com:5432/analytics
+    - postgresql://app@localhost/app_dev
+    - postgres://readonly@10.0.0.12:5432/warehouse?sslmode=require
+  - name: QUERY
+    default: select * from public.orders limit 1000
+    samples:
+    - select id, email from public.users
+  - name: OUT_FILE
+    default: out.csv
+    samples:
+    - orders.csv
+  body: psql "$PG_URI" --csv -c "$QUERY" > "$OUT_FILE"
+  destructive: false
+  source: https://www.postgresql.org/docs/current/app-psql.html
+  verified: help
+- id: psql.file
+  group: query
+  intents:
+  - run sql file {FILE} and stop on the first error
+  - apply a migration script with psql
+  - psql -f with ON_ERROR_STOP
+  - execute a .sql file against postgres
+  vars:
+  - name: PG_URI
+    default: postgresql://<user>@<host>:5432/<db>
+    samples:
+    - postgresql://etl@db.example.com:5432/analytics
+    - postgresql://app@localhost/app_dev
+    - postgres://readonly@10.0.0.12:5432/warehouse?sslmode=require
+  - name: FILE
+    default: migration.sql
+    samples:
+    - schema.sql
+    - migrations/003_add_index.sql
+    ctx: local_file
+  body: psql "$PG_URI" -v ON_ERROR_STOP=1 -f "$FILE"
+  destructive: false
+  source: https://www.postgresql.org/docs/current/app-psql.html
+  verified: help
+- id: psql.tables
+  group: meta
+  intents:
+  - list tables in postgres
+  - show all tables with psql
+  - what tables are in this database
+  - psql \dt
+  vars:
+  - name: PG_URI
+    default: postgresql://<user>@<host>:5432/<db>
+    samples:
+    - postgresql://etl@db.example.com:5432/analytics
+    - postgresql://app@localhost/app_dev
+    - postgres://readonly@10.0.0.12:5432/warehouse?sslmode=require
+  body: psql "$PG_URI" -c '\dt *.*' | less -S
+  destructive: false
+  source: https://www.postgresql.org/docs/current/app-psql.html
+  verified: help
+- id: psql.describe
+  group: meta
+  intents:
+  - describe table {TABLE}
+  - show columns and indexes of a postgres table
+  - psql \d table
+  - what does {TABLE} look like
+  vars:
+  - name: PG_URI
+    default: postgresql://<user>@<host>:5432/<db>
+    samples:
+    - postgresql://etl@db.example.com:5432/analytics
+    - postgresql://app@localhost/app_dev
+    - postgres://readonly@10.0.0.12:5432/warehouse?sslmode=require
+  - name: TABLE
+    default: public.orders
+    samples:
+    - public.users
+    - sales.invoices
+    - events
+  body: psql "$PG_URI" -c "\d+ $TABLE"
+  destructive: false
+  source: https://www.postgresql.org/docs/current/app-psql.html
+  verified: help
+- id: psql.databases
+  group: meta
+  intents:
+  - list databases on {PG_HOST}
+  - what databases are on this postgres server
+  - psql -l
+  - show all postgres databases
+  vars:
+  - name: PG_HOST
+    default: localhost
+    samples:
+    - db.example.com
+    - 10.0.0.12
+  - name: PG_USER
+    default: postgres
+    samples:
+    - etl
+    - readonly
+    - app
+  body: psql -h "$PG_HOST" -U "$PG_USER" -l
+  destructive: false
+  source: https://www.postgresql.org/docs/current/app-psql.html
+  verified: help
+- id: psql.table_sizes
+  group: meta
+  intents:
+  - show the 10 biggest tables
+  - which postgres tables use the most space
+  - table sizes in postgres
+  - largest relations by total size
+  vars:
+  - name: PG_URI
+    default: postgresql://<user>@<host>:5432/<db>
+    samples:
+    - postgresql://etl@db.example.com:5432/analytics
+    - postgresql://app@localhost/app_dev
+    - postgres://readonly@10.0.0.12:5432/warehouse?sslmode=require
+  body: psql "$PG_URI" -c "select relname, pg_size_pretty(pg_total_relation_size(relid)) from pg_statio_user_tables order by pg_total_relation_size(relid) desc limit 10"
+  destructive: false
+  source: https://www.postgresql.org/docs/current/functions-admin.html
+  verified: docs
+- id: psql.copy.out
+  group: copy
+  intents:
+  - export table {TABLE} to {OUT_FILE} with \copy
+  - client-side copy of a table to csv
+  - download a postgres table as csv with header
+  - \copy to csv
+  vars:
+  - name: PG_URI
+    default: postgresql://<user>@<host>:5432/<db>
+    samples:
+    - postgresql://etl@db.example.com:5432/analytics
+    - postgresql://app@localhost/app_dev
+    - postgres://readonly@10.0.0.12:5432/warehouse?sslmode=require
+  - name: TABLE
+    default: public.orders
+    samples:
+    - public.users
+    - sales.invoices
+    - events
+  - name: OUT_FILE
+    default: orders.csv
+    samples:
+    - users.csv
+    - invoices.csv
+  body: psql "$PG_URI" -c "\copy $TABLE to '$OUT_FILE' with (format csv, header)"
+  destructive: false
+  source: https://www.postgresql.org/docs/current/app-psql.html
+  verified: help
+- id: psql.copy.in
+  group: copy
+  intents:
+  - load {FILE} into {TABLE} with \copy
+  - import a csv with header into postgres
+  - bulk load a csv from my machine
+  - \copy from csv
+  vars:
+  - name: PG_URI
+    default: postgresql://<user>@<host>:5432/<db>
+    samples:
+    - postgresql://etl@db.example.com:5432/analytics
+    - postgresql://app@localhost/app_dev
+    - postgres://readonly@10.0.0.12:5432/warehouse?sslmode=require
+  - name: TABLE
+    default: public.orders
+    samples:
+    - public.users
+    - sales.invoices
+    - events
+  - name: FILE
+    default: orders.csv
+    samples:
+    - users.csv
+    - seed/products.csv
+    ctx: local_file
+  body: psql "$PG_URI" -c "\copy $TABLE from '$FILE' with (format csv, header)"
+  destructive: false
+  source: https://www.postgresql.org/docs/current/app-psql.html
+  verified: help
+- id: psql.dump.custom
+  group: dump
+  intents:
+  - dump the database to {OUT_FILE} in custom format
+  - back up a postgres database with pg_dump
+  - pg_dump -Fc
+  - take a compressed postgres backup
+  vars:
+  - name: PG_URI
+    default: postgresql://<user>@<host>:5432/<db>
+    samples:
+    - postgresql://etl@db.example.com:5432/analytics
+    - postgresql://app@localhost/app_dev
+    - postgres://readonly@10.0.0.12:5432/warehouse?sslmode=require
+  - name: OUT_FILE
+    default: db.dump
+    samples:
+    - analytics_2025-06-30.dump
+    - backup.dump
+  body: pg_dump -Fc -d "$PG_URI" -f "$OUT_FILE"
+  destructive: false
+  source: https://www.postgresql.org/docs/current/app-pgdump.html
+  verified: help
+- id: psql.dump.schema
+  group: dump
+  intents:
+  - dump only the schema to {OUT_FILE}
+  - export ddl without data
+  - pg_dump schema only
+  - get create statements for the whole db
+  vars:
+  - name: PG_URI
+    default: postgresql://<user>@<host>:5432/<db>
+    samples:
+    - postgresql://etl@db.example.com:5432/analytics
+    - postgresql://app@localhost/app_dev
+    - postgres://readonly@10.0.0.12:5432/warehouse?sslmode=require
+  - name: OUT_FILE
+    default: schema.sql
+    samples:
+    - ddl.sql
+  body: pg_dump --schema-only -d "$PG_URI" -f "$OUT_FILE"
+  destructive: false
+  source: https://www.postgresql.org/docs/current/app-pgdump.html
+  verified: help
+- id: psql.dump.table
+  group: dump
+  intents:
+  - dump just table {TABLE} to {OUT_FILE}
+  - back up one postgres table
+  - pg_dump a single table
+  - export one table with pg_dump
+  vars:
+  - name: TABLE
+    default: public.orders
+    samples:
+    - public.users
+    - sales.invoices
+    - events
+  - name: PG_URI
+    default: postgresql://<user>@<host>:5432/<db>
+    samples:
+    - postgresql://etl@db.example.com:5432/analytics
+    - postgresql://app@localhost/app_dev
+    - postgres://readonly@10.0.0.12:5432/warehouse?sslmode=require
+  - name: OUT_FILE
+    default: orders.dump
+    samples:
+    - users.dump
+  body: pg_dump -Fc -t "$TABLE" -d "$PG_URI" -f "$OUT_FILE"
+  destructive: false
+  source: https://www.postgresql.org/docs/current/app-pgdump.html
+  verified: help
+- id: psql.restore
+  group: dump
+  intents:
+  - restore {DUMP_FILE} into the database
+  - pg_restore a custom dump in parallel
+  - load a pg_dump backup without owners
+  - restore a postgres backup
+  vars:
+  - name: PG_URI
+    default: postgresql://<user>@<host>:5432/<db>
+    samples:
+    - postgresql://etl@db.example.com:5432/analytics
+    - postgresql://app@localhost/app_dev
+    - postgres://readonly@10.0.0.12:5432/warehouse?sslmode=require
+  - name: DUMP_FILE
+    default: db.dump
+    samples:
+    - backup.dump
+    - analytics_2025-06-30.dump
+    ctx: local_file
+  body: pg_restore -d "$PG_URI" --no-owner -j 4 "$DUMP_FILE"
+  destructive: false
+  source: https://www.postgresql.org/docs/current/app-pgrestore.html
+  verified: help
+- id: psql.restore.clean
+  group: dump
+  intents:
+  - restore {DUMP_FILE} dropping existing objects first
+  - pg_restore with clean and if-exists
+  - overwrite the database from a backup
+  - replace tables from a dump
+  vars:
+  - name: PG_URI
+    default: postgresql://<user>@<host>:5432/<db>
+    samples:
+    - postgresql://etl@db.example.com:5432/analytics
+    - postgresql://app@localhost/app_dev
+    - postgres://readonly@10.0.0.12:5432/warehouse?sslmode=require
+  - name: DUMP_FILE
+    default: db.dump
+    samples:
+    - backup.dump
+    ctx: local_file
+  body: pg_restore -d "$PG_URI" --clean --if-exists --no-owner "$DUMP_FILE"
+  destructive: true
+  source: https://www.postgresql.org/docs/current/app-pgrestore.html
+  verified: help
+- id: psql.restore.list
+  group: dump
+  intents:
+  - list what's inside {DUMP_FILE}
+  - show the table of contents of a pg_dump file
+  - pg_restore -l
+  - inspect a backup before restoring
+  vars:
+  - name: DUMP_FILE
+    default: db.dump
+    samples:
+    - backup.dump
+    ctx: local_file
+  body: pg_restore -l "$DUMP_FILE" | less
+  destructive: false
+  source: https://www.postgresql.org/docs/current/app-pgrestore.html
+  verified: help

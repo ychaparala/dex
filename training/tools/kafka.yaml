@@ -1,0 +1,1192 @@
+tool: kafka
+binaries: [kafka-topics.sh, kafka-console-consumer.sh, kafka-console-producer.sh, kafka-consumer-groups.sh, kafka-configs.sh, kafka-get-offsets.sh, kafka-log-dirs.sh, kafka-storage.sh, kafka-server-start.sh, kafka-server-stop.sh, kafka-metadata-quorum.sh, docker]
+category: streaming
+priority: core
+target_pairs: 300
+version_note: Apache Kafka 4.x tools (KRaft, --bootstrap-server only, no --zookeeper); console tools use the 4.2+ option names --command-config / --formatter-property / --reader-property
+sources:
+- url: https://kafka.apache.org/quickstart
+  license: Apache-2.0 (apache/kafka-site)
+- url: https://kafka.apache.org/documentation/#basic_ops
+  license: Apache-2.0 (apache/kafka-site)
+- url: https://kafka.apache.org/downloads
+  license: Apache-2.0 (apache/kafka-site)
+- url: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/TopicCommand.java
+  license: Apache-2.0 (repo)
+- url: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/consumer/ConsoleConsumerOptions.java
+  license: Apache-2.0 (repo)
+- url: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/consumer/DefaultMessageFormatter.java
+  license: Apache-2.0 (repo)
+- url: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/ConsoleProducer.java
+  license: Apache-2.0 (repo)
+- url: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/LineMessageReader.java
+  license: Apache-2.0 (repo)
+- url: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/consumer/group/ConsumerGroupCommandOptions.java
+  license: Apache-2.0 (repo)
+- url: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/consumer/group/ConsumerGroupCommand.java
+  license: Apache-2.0 (repo)
+- url: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/ConfigCommand.java
+  license: Apache-2.0 (repo)
+- url: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/GetOffsetShell.java
+  license: Apache-2.0 (repo)
+- url: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/LogDirsCommand.java
+  license: Apache-2.0 (repo)
+- url: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/MetadataQuorumCommand.java
+  license: Apache-2.0 (repo)
+- url: https://github.com/apache/kafka/blob/trunk/core/src/main/scala/kafka/tools/StorageTool.scala
+  license: Apache-2.0 (repo)
+destructive_patterns:
+- kafka-topics(\.sh)?\b.*--delete\b
+- kafka-consumer-groups(\.sh)?\b.*--reset-offsets\b.*--execute\b
+- kafka-consumer-groups(\.sh)?\b.*--delete(-offsets)?\b
+- kafka-storage(\.sh)?\s+format\b
+- kafka-delete-records(\.sh)?\b
+templates:
+- id: kafka.install.tarball
+  group: setup
+  intents:
+  - download and unpack apache kafka {KAFKA_VERSION}
+  - install the kafka command line tools from the apache tarball
+  - get the kafka binaries so i have kafka-topics.sh
+  - fetch the kafka release archive and extract it
+  vars:
+  - name: KAFKA_VERSION
+    default: 4.4.0
+    samples: [4.1.1, 4.2.0, 3.9.1]
+  body: curl -fLO "https://archive.apache.org/dist/kafka/$KAFKA_VERSION/kafka_2.13-$KAFKA_VERSION.tgz" && tar -xzf "kafka_2.13-$KAFKA_VERSION.tgz"
+  destructive: false
+  source: https://kafka.apache.org/downloads
+  verified: docs
+- id: kafka.version
+  group: setup
+  intents:
+  - what version are my kafka tools
+  - check the kafka cli version
+  - print kafka version from kafka-topics
+  - which kafka release is installed
+  vars: []
+  body: kafka-topics.sh --version
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/TopicCommand.java
+  verified: source
+- id: kafka.docker.run
+  group: local
+  intents:
+  - start a local kafka broker in docker
+  - run apache kafka quickly with docker on port 9092
+  - spin up a throwaway kafka for testing
+  - docker run the official apache kafka image
+  - i need a kafka broker on localhost right now
+  vars: []
+  body: docker run -d --name kafka -p 9092:9092 apache/kafka:4.4.0
+  destructive: false
+  source: https://kafka.apache.org/quickstart
+  verified: docs
+- id: kafka.storage.uuid
+  group: local
+  intents:
+  - generate a kraft cluster id
+  - make a random uuid for kafka storage format
+  - kafka-storage random-uuid
+  - create a new cluster id for a kraft cluster
+  vars: []
+  body: kafka-storage.sh random-uuid
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/core/src/main/scala/kafka/tools/StorageTool.scala
+  verified: source
+- id: kafka.storage.format
+  group: local
+  intents:
+  - format kafka storage for a new single-node kraft cluster
+  - initialize the kraft log directories with {CONFIG}
+  - format kafka log dirs in standalone mode with a fresh cluster id
+  - prepare storage before starting a kraft broker
+  vars:
+  - name: CONFIG
+    default: config/server.properties
+    samples: [config/broker.properties, config/controller.properties]
+    ctx: local_file
+  body: kafka-storage.sh format --standalone -t "$(kafka-storage.sh random-uuid)" -c "$CONFIG"
+  destructive: true
+  source: https://kafka.apache.org/quickstart
+  verified: docs
+- id: kafka.server.start
+  group: local
+  intents:
+  - start a kafka broker with {CONFIG}
+  - run the kafka server in the foreground
+  - launch kafka locally from the tarball
+  - kafka-server-start with server.properties
+  vars:
+  - name: CONFIG
+    default: config/server.properties
+    samples: [config/broker.properties, config/kraft-dev.properties]
+    ctx: local_file
+  body: kafka-server-start.sh "$CONFIG"
+  destructive: false
+  source: https://kafka.apache.org/quickstart
+  verified: docs
+- id: kafka.server.start_daemon
+  group: local
+  intents:
+  - start kafka in the background
+  - run the kafka broker as a daemon
+  - launch kafka detached with server.properties
+  - kafka server start daemon mode
+  vars: []
+  body: kafka-server-start.sh -daemon config/server.properties
+  destructive: false
+  source: https://kafka.apache.org/quickstart
+  verified: docs
+- id: kafka.server.stop
+  group: local
+  intents:
+  - stop the local kafka broker
+  - shut down kafka started from the tarball
+  - kill the running kafka server process cleanly
+  - kafka-server-stop
+  vars: []
+  body: kafka-server-stop.sh
+  destructive: false
+  source: https://kafka.apache.org/quickstart
+  verified: docs
+- id: kafka.quorum.status
+  group: cluster
+  intents:
+  - show kraft metadata quorum status on {BOOTSTRAP}
+  - who is the kraft controller leader
+  - check controller quorum health
+  - describe the metadata quorum
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  body: kafka-metadata-quorum.sh --bootstrap-server "$BOOTSTRAP" describe --status
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/MetadataQuorumCommand.java
+  verified: source
+- id: kafka.topics.list
+  group: topics
+  intents:
+  - list kafka topics on {BOOTSTRAP}
+  - show all topics
+  - what topics exist on the cluster
+  - kafka-topics list
+  - print every kafka topic name
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  body: kafka-topics.sh --bootstrap-server "$BOOTSTRAP" --list
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/TopicCommand.java
+  verified: source
+- id: kafka.topics.list_noninternal
+  group: topics
+  intents:
+  - list topics but skip internal ones like __consumer_offsets
+  - show only user topics
+  - kafka topic list without internal topics
+  - list non-internal kafka topics
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  body: kafka-topics.sh --bootstrap-server "$BOOTSTRAP" --list --exclude-internal
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/TopicCommand.java
+  verified: source
+- id: kafka.topics.list_sasl
+  group: topics
+  intents:
+  - list topics on a secured cluster using {CLIENT_CONFIG}
+  - kafka-topics list with sasl ssl client properties
+  - list topics with a command config file for auth
+  - show topics on a cluster that needs authentication
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: CLIENT_CONFIG
+    default: client.properties
+    samples: [sasl_ssl.properties, config/client-ssl.properties]
+    ctx: local_file
+  body: kafka-topics.sh --bootstrap-server "$BOOTSTRAP" --command-config "$CLIENT_CONFIG" --list
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/TopicCommand.java
+  verified: source
+- id: kafka.topics.count
+  group: topics
+  intents:
+  - how many topics are on the cluster
+  - count kafka topics
+  - number of non-internal topics
+  - total topic count
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  body: kafka-topics.sh --bootstrap-server "$BOOTSTRAP" --list --exclude-internal | wc -l
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/TopicCommand.java
+  verified: source
+- id: kafka.topics.create
+  group: topics
+  intents:
+  - create topic {TOPIC} with {PARTITIONS} partitions and replication factor {RF}
+  - make a new kafka topic
+  - kafka-topics create with partitions and replication
+  - add topic {TOPIC} to the cluster
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  - name: PARTITIONS
+    default: '6'
+    samples: ['3', '12', '24']
+  - name: RF
+    default: '3'
+    samples: ['1', '2']
+  body: kafka-topics.sh --bootstrap-server "$BOOTSTRAP" --create --topic "$TOPIC" --partitions "$PARTITIONS" --replication-factor "$RF"
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/TopicCommand.java
+  verified: source
+- id: kafka.topics.create_if_missing
+  group: topics
+  intents:
+  - create topic {TOPIC} only if it does not already exist
+  - idempotently create a kafka topic
+  - make the topic but don't fail if it's there
+  - kafka create topic if not exists
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: kafka-topics.sh --bootstrap-server "$BOOTSTRAP" --create --if-not-exists --topic "$TOPIC"
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/TopicCommand.java
+  verified: source
+- id: kafka.topics.create_compacted
+  group: topics
+  intents:
+  - create a compacted topic {TOPIC}
+  - make a log compacted kafka topic
+  - new topic with cleanup.policy=compact
+  - create a changelog style topic
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  - name: PARTITIONS
+    default: '6'
+    samples: ['3', '12', '24']
+  body: kafka-topics.sh --bootstrap-server "$BOOTSTRAP" --create --topic "$TOPIC" --partitions "$PARTITIONS" --config cleanup.policy=compact
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/TopicCommand.java
+  verified: source
+- id: kafka.topics.describe
+  group: topics
+  intents:
+  - describe topic {TOPIC}
+  - show partitions, leaders and isr for a topic
+  - kafka-topics describe
+  - how many partitions does {TOPIC} have
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: kafka-topics.sh --bootstrap-server "$BOOTSTRAP" --describe --topic "$TOPIC"
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/TopicCommand.java
+  verified: source
+- id: kafka.topics.under_replicated
+  group: topics
+  intents:
+  - find under-replicated partitions
+  - which partitions are missing replicas
+  - list partitions where isr is smaller than replicas
+  - check for under replicated partitions on {BOOTSTRAP}
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  body: kafka-topics.sh --bootstrap-server "$BOOTSTRAP" --describe --under-replicated-partitions
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/TopicCommand.java
+  verified: source
+- id: kafka.topics.overrides
+  group: topics
+  intents:
+  - list topics that have config overrides
+  - show topics with non-default configs
+  - which topics have custom settings
+  - describe only topics with overrides
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  body: kafka-topics.sh --bootstrap-server "$BOOTSTRAP" --describe --topics-with-overrides
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/TopicCommand.java
+  verified: source
+- id: kafka.topics.add_partitions
+  group: topics
+  intents:
+  - increase partitions of {TOPIC} to {PARTITIONS}
+  - add partitions to an existing kafka topic
+  - alter topic partition count
+  - scale topic {TOPIC} up to more partitions
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  - name: PARTITIONS
+    default: '6'
+    samples: ['3', '12', '24']
+  body: kafka-topics.sh --bootstrap-server "$BOOTSTRAP" --alter --topic "$TOPIC" --partitions "$PARTITIONS"
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/TopicCommand.java
+  verified: source
+- id: kafka.topics.delete
+  group: topics
+  intents:
+  - delete topic {TOPIC}
+  - remove a kafka topic
+  - drop topic {TOPIC} from the cluster
+  - kafka-topics delete
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: kafka-topics.sh --bootstrap-server "$BOOTSTRAP" --delete --topic "$TOPIC"
+  destructive: true
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/TopicCommand.java
+  verified: source
+- id: kafka.consume.beginning
+  group: consume
+  intents:
+  - consume {TOPIC} from the beginning
+  - read all messages in a kafka topic
+  - tail a topic from the start with the console consumer
+  - kafka console consumer from beginning
+  - dump everything in {TOPIC}
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: kafka-console-consumer.sh --bootstrap-server "$BOOTSTRAP" --topic "$TOPIC" --from-beginning
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/consumer/ConsoleConsumerOptions.java
+  verified: source
+- id: kafka.consume.latest
+  group: consume
+  intents:
+  - watch new messages arriving on {TOPIC}
+  - consume only new messages from now on
+  - follow a kafka topic live
+  - console consumer tail latest
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: kafka-console-consumer.sh --bootstrap-server "$BOOTSTRAP" --topic "$TOPIC"
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/consumer/ConsoleConsumerOptions.java
+  verified: source
+- id: kafka.consume.max
+  group: consume
+  intents:
+  - read the first {N} messages of {TOPIC}
+  - peek at a few messages from a kafka topic
+  - consume {N} messages from the start and exit
+  - sample some records from a topic
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  - name: N
+    default: '10'
+    samples: ['1', '50', '100']
+  body: kafka-console-consumer.sh --bootstrap-server "$BOOTSTRAP" --topic "$TOPIC" --from-beginning --max-messages "$N"
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/consumer/ConsoleConsumerOptions.java
+  verified: source
+- id: kafka.consume.group
+  group: consume
+  intents:
+  - consume {TOPIC} as consumer group {GROUP}
+  - read a topic with a named consumer group so offsets are committed
+  - console consumer with group id
+  - join consumer group {GROUP} and print messages
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  - name: GROUP
+    default: orders-consumer
+    samples: [billing-service, etl-loader, fraud-detector]
+  body: kafka-console-consumer.sh --bootstrap-server "$BOOTSTRAP" --topic "$TOPIC" --group "$GROUP"
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/consumer/ConsoleConsumerOptions.java
+  verified: source
+- id: kafka.consume.keys_ts
+  group: consume
+  intents:
+  - consume {TOPIC} and print keys and timestamps
+  - show message key and timestamp with the console consumer
+  - read a topic with keys visible
+  - print key, timestamp and value for each kafka record
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: kafka-console-consumer.sh --bootstrap-server "$BOOTSTRAP" --topic "$TOPIC" --from-beginning --formatter-property print.key=true --formatter-property print.timestamp=true
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/consumer/DefaultMessageFormatter.java
+  verified: source
+- id: kafka.consume.key_separator
+  group: consume
+  intents:
+  - consume {TOPIC} printing key and value separated by a comma
+  - read keys and values as csv style lines
+  - console consumer with key separator
+  - print key,value for each message
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: kafka-console-consumer.sh --bootstrap-server "$BOOTSTRAP" --topic "$TOPIC" --from-beginning --formatter-property print.key=true --formatter-property key.separator=,
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/consumer/DefaultMessageFormatter.java
+  verified: source
+- id: kafka.consume.partition_offset
+  group: consume
+  intents:
+  - read partition {PARTITION} of {TOPIC} starting at offset {OFFSET}
+  - consume one partition from a specific offset
+  - replay messages from a given offset
+  - console consumer partition and offset
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  - name: PARTITION
+    default: '0'
+    samples: ['1', '3', '7']
+  - name: OFFSET
+    default: '100'
+    samples: ['0', '4200', '123456']
+  body: kafka-console-consumer.sh --bootstrap-server "$BOOTSTRAP" --topic "$TOPIC" --partition "$PARTITION" --offset "$OFFSET"
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/consumer/ConsoleConsumerOptions.java
+  verified: source
+- id: kafka.consume.jq
+  group: consume
+  intents:
+  - read {N} json messages from {TOPIC} and pretty print them
+  - consume json events and format with jq
+  - pretty-print kafka json values
+  - peek at json records in a topic
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  - name: N
+    default: '10'
+    samples: ['1', '50', '100']
+  body: kafka-console-consumer.sh --bootstrap-server "$BOOTSTRAP" --topic "$TOPIC" --from-beginning --max-messages "$N" | jq .
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/consumer/ConsoleConsumerOptions.java
+  verified: source
+- id: kafka.consume.count
+  group: consume
+  intents:
+  - count the messages in {TOPIC} by reading it
+  - how many records can i read from this topic
+  - consume everything and count lines
+  - read the topic until idle and count messages
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: kafka-console-consumer.sh --bootstrap-server "$BOOTSTRAP" --topic "$TOPIC" --from-beginning --timeout-ms 10000 | wc -l
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/consumer/ConsoleConsumerOptions.java
+  verified: source
+- id: kafka.consume.grep
+  group: consume
+  intents:
+  - search {TOPIC} for messages containing {PATTERN}
+  - find records matching a string in a kafka topic
+  - grep a topic for an id
+  - look for a value in kafka messages
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  - name: PATTERN
+    default: order-1234
+    samples: [user_42, ERROR, txn-9f8e]
+  body: kafka-console-consumer.sh --bootstrap-server "$BOOTSTRAP" --topic "$TOPIC" --from-beginning --timeout-ms 10000 | grep "$PATTERN"
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/consumer/ConsoleConsumerOptions.java
+  verified: source
+- id: kafka.consume.sasl
+  group: consume
+  intents:
+  - consume {TOPIC} from a sasl_ssl cluster using {CLIENT_CONFIG}
+  - console consumer with client properties for auth
+  - read a topic on a secured kafka cluster
+  - consume with --command-config
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  - name: CLIENT_CONFIG
+    default: client.properties
+    samples: [sasl_ssl.properties, config/client-ssl.properties]
+    ctx: local_file
+  body: kafka-console-consumer.sh --bootstrap-server "$BOOTSTRAP" --topic "$TOPIC" --command-config "$CLIENT_CONFIG" --from-beginning
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/consumer/ConsoleConsumerOptions.java
+  verified: source
+- id: kafka.produce.basic
+  group: produce
+  intents:
+  - produce messages to {TOPIC}
+  - send test messages to a kafka topic by typing them
+  - open a console producer
+  - kafka console producer
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: kafka-console-producer.sh --bootstrap-server "$BOOTSTRAP" --topic "$TOPIC"
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/ConsoleProducer.java
+  verified: source
+- id: kafka.produce.keys
+  group: produce
+  intents:
+  - produce keyed messages to {TOPIC} as key:value
+  - send messages with keys using the console producer
+  - console producer parse key with colon separator
+  - write key and value records
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: 'kafka-console-producer.sh --bootstrap-server "$BOOTSTRAP" --topic "$TOPIC" --reader-property parse.key=true --reader-property key.separator=:'
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/LineMessageReader.java
+  verified: source
+- id: kafka.produce.file
+  group: produce
+  intents:
+  - load {FILE} into topic {TOPIC} one message per line
+  - pipe a file into kafka
+  - produce every line of a file as a record
+  - bulk send messages from a file with the console producer
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  - name: FILE
+    default: orders.jsonl
+    samples: [events.txt, sample_messages.txt]
+    ctx: local_file
+  body: kafka-console-producer.sh --bootstrap-server "$BOOTSTRAP" --topic "$TOPIC" < "$FILE"
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/ConsoleProducer.java
+  verified: source
+- id: kafka.produce.echo
+  group: produce
+  intents:
+  - send one message {MESSAGE} to {TOPIC}
+  - publish a single test record to kafka
+  - echo a message into a topic
+  - quickly produce one message without typing interactively
+  vars:
+  - name: MESSAGE
+    default: hello kafka
+    samples: ['{"id":1,"status":"ok"}', ping]
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: echo "$MESSAGE" | kafka-console-producer.sh --bootstrap-server "$BOOTSTRAP" --topic "$TOPIC"
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/ConsoleProducer.java
+  verified: source
+- id: kafka.produce.sasl
+  group: produce
+  intents:
+  - produce to {TOPIC} on a secured cluster with {CLIENT_CONFIG}
+  - console producer with sasl ssl properties
+  - send messages to a cluster that needs auth
+  - kafka producer with command config file
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  - name: CLIENT_CONFIG
+    default: client.properties
+    samples: [sasl_ssl.properties, config/client-ssl.properties]
+    ctx: local_file
+  body: kafka-console-producer.sh --bootstrap-server "$BOOTSTRAP" --topic "$TOPIC" --command-config "$CLIENT_CONFIG"
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/ConsoleProducer.java
+  verified: source
+- id: kafka.groups.list
+  group: consumer-groups
+  intents:
+  - list consumer groups
+  - show all kafka consumer groups on {BOOTSTRAP}
+  - what consumer groups exist
+  - kafka-consumer-groups list
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  body: kafka-consumer-groups.sh --bootstrap-server "$BOOTSTRAP" --list
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/consumer/group/ConsumerGroupCommandOptions.java
+  verified: source
+- id: kafka.groups.describe
+  group: consumer-groups
+  intents:
+  - describe consumer group {GROUP}
+  - show lag per partition for group {GROUP}
+  - check consumer lag
+  - current offset vs log end offset for a group
+  - is my consumer group behind
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: GROUP
+    default: orders-consumer
+    samples: [billing-service, etl-loader, fraud-detector]
+  body: kafka-consumer-groups.sh --bootstrap-server "$BOOTSTRAP" --describe --group "$GROUP"
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/consumer/group/ConsumerGroupCommandOptions.java
+  verified: source
+- id: kafka.groups.total_lag
+  group: consumer-groups
+  intents:
+  - total lag of consumer group {GROUP}
+  - sum the lag across all partitions for a group
+  - how many messages behind is {GROUP} overall
+  - one number for consumer group lag
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: GROUP
+    default: orders-consumer
+    samples: [billing-service, etl-loader, fraud-detector]
+  body: kafka-consumer-groups.sh --bootstrap-server "$BOOTSTRAP" --describe --group "$GROUP" | awk '$6 ~ /^[0-9]+$/ {sum += $6} END {print sum}'
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/consumer/group/ConsumerGroupCommand.java
+  verified: source
+- id: kafka.groups.describe_all
+  group: consumer-groups
+  intents:
+  - describe all consumer groups
+  - show lag for every group on the cluster
+  - dump offsets for all consumer groups
+  - kafka consumer groups describe all
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  body: kafka-consumer-groups.sh --bootstrap-server "$BOOTSTRAP" --describe --all-groups
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/consumer/group/ConsumerGroupCommandOptions.java
+  verified: source
+- id: kafka.groups.members
+  group: consumer-groups
+  intents:
+  - show members of consumer group {GROUP}
+  - which consumers are in this group
+  - list active members and their hosts
+  - describe group members
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: GROUP
+    default: orders-consumer
+    samples: [billing-service, etl-loader, fraud-detector]
+  body: kafka-consumer-groups.sh --bootstrap-server "$BOOTSTRAP" --describe --group "$GROUP" --members
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/consumer/group/ConsumerGroupCommandOptions.java
+  verified: source
+- id: kafka.groups.state
+  group: consumer-groups
+  intents:
+  - what state is consumer group {GROUP} in
+  - is the group stable or rebalancing
+  - show consumer group state and coordinator
+  - check group state
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: GROUP
+    default: orders-consumer
+    samples: [billing-service, etl-loader, fraud-detector]
+  body: kafka-consumer-groups.sh --bootstrap-server "$BOOTSTRAP" --describe --group "$GROUP" --state
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/consumer/group/ConsumerGroupCommandOptions.java
+  verified: source
+- id: kafka.groups.reset_earliest_dry
+  group: consumer-groups
+  intents:
+  - preview resetting {GROUP} to the earliest offset on {TOPIC}
+  - dry run an offset reset to the beginning
+  - show what a reset to earliest would do without applying it
+  - plan rewinding a consumer group
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: GROUP
+    default: orders-consumer
+    samples: [billing-service, etl-loader, fraud-detector]
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: kafka-consumer-groups.sh --bootstrap-server "$BOOTSTRAP" --group "$GROUP" --topic "$TOPIC" --reset-offsets --to-earliest --dry-run
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/consumer/group/ConsumerGroupCommandOptions.java
+  verified: source
+- id: kafka.groups.reset_earliest
+  group: consumer-groups
+  intents:
+  - reset consumer group {GROUP} to earliest on {TOPIC}
+  - rewind a consumer group to the beginning of a topic
+  - make the group reprocess everything
+  - apply an offset reset to earliest
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: GROUP
+    default: orders-consumer
+    samples: [billing-service, etl-loader, fraud-detector]
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: kafka-consumer-groups.sh --bootstrap-server "$BOOTSTRAP" --group "$GROUP" --topic "$TOPIC" --reset-offsets --to-earliest --execute
+  destructive: true
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/consumer/group/ConsumerGroupCommandOptions.java
+  verified: source
+- id: kafka.groups.reset_latest
+  group: consumer-groups
+  intents:
+  - skip consumer group {GROUP} to the latest offset on {TOPIC}
+  - move a group to the end so it ignores the backlog
+  - reset offsets to latest and apply
+  - jump consumers past old messages
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: GROUP
+    default: orders-consumer
+    samples: [billing-service, etl-loader, fraud-detector]
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: kafka-consumer-groups.sh --bootstrap-server "$BOOTSTRAP" --group "$GROUP" --topic "$TOPIC" --reset-offsets --to-latest --execute
+  destructive: true
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/consumer/group/ConsumerGroupCommandOptions.java
+  verified: source
+- id: kafka.groups.reset_datetime_dry
+  group: consumer-groups
+  intents:
+  - preview resetting {GROUP} to {DATETIME}
+  - dry run rewinding a group to a point in time
+  - what offsets would a reset to a date give
+  - plan a time based offset reset
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: GROUP
+    default: orders-consumer
+    samples: [billing-service, etl-loader, fraud-detector]
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  - name: DATETIME
+    default: '2026-01-01T00:00:00.000'
+    samples: ['2026-11-25T08:00:00.000', '2026-06-30T23:59:59.000']
+  body: kafka-consumer-groups.sh --bootstrap-server "$BOOTSTRAP" --group "$GROUP" --topic "$TOPIC" --reset-offsets --to-datetime "$DATETIME" --dry-run
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/consumer/group/ConsumerGroupCommandOptions.java
+  verified: source
+- id: kafka.groups.reset_datetime
+  group: consumer-groups
+  intents:
+  - reset {GROUP} on {TOPIC} to offsets at {DATETIME}
+  - rewind a consumer group to a timestamp and apply
+  - replay messages since a given time
+  - execute a to-datetime offset reset
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: GROUP
+    default: orders-consumer
+    samples: [billing-service, etl-loader, fraud-detector]
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  - name: DATETIME
+    default: '2026-01-01T00:00:00.000'
+    samples: ['2026-11-25T08:00:00.000', '2026-06-30T23:59:59.000']
+  body: kafka-consumer-groups.sh --bootstrap-server "$BOOTSTRAP" --group "$GROUP" --topic "$TOPIC" --reset-offsets --to-datetime "$DATETIME" --execute
+  destructive: true
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/consumer/group/ConsumerGroupCommandOptions.java
+  verified: source
+- id: kafka.groups.reset_duration_dry
+  group: consumer-groups
+  intents:
+  - preview moving {GROUP} back by {DURATION}
+  - dry run rewinding a group by a duration
+  - what would rewinding one hour look like
+  - plan a by-duration offset reset
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: GROUP
+    default: orders-consumer
+    samples: [billing-service, etl-loader, fraud-detector]
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  - name: DURATION
+    default: PT1H
+    samples: [PT30M, P1D, PT6H]
+  body: kafka-consumer-groups.sh --bootstrap-server "$BOOTSTRAP" --group "$GROUP" --topic "$TOPIC" --reset-offsets --by-duration "$DURATION" --dry-run
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/consumer/group/ConsumerGroupCommandOptions.java
+  verified: source
+- id: kafka.groups.delete
+  group: consumer-groups
+  intents:
+  - delete consumer group {GROUP}
+  - remove an old inactive consumer group
+  - drop committed offsets by deleting the group
+  - kafka-consumer-groups delete
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: GROUP
+    default: orders-consumer
+    samples: [billing-service, etl-loader, fraud-detector]
+  body: kafka-consumer-groups.sh --bootstrap-server "$BOOTSTRAP" --delete --group "$GROUP"
+  destructive: true
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/consumer/group/ConsumerGroupCommandOptions.java
+  verified: source
+- id: kafka.configs.describe_topic
+  group: configs
+  intents:
+  - show config overrides for topic {TOPIC}
+  - describe topic configs
+  - what retention does {TOPIC} have
+  - kafka-configs describe topic
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: kafka-configs.sh --bootstrap-server "$BOOTSTRAP" --entity-type topics --entity-name "$TOPIC" --describe
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/ConfigCommand.java
+  verified: source
+- id: kafka.configs.describe_topic_all
+  group: configs
+  intents:
+  - show all configs including defaults for {TOPIC}
+  - full effective config of a topic
+  - list every topic setting, not just overrides
+  - describe all topic configs
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: kafka-configs.sh --bootstrap-server "$BOOTSTRAP" --entity-type topics --entity-name "$TOPIC" --describe --all
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/ConfigCommand.java
+  verified: source
+- id: kafka.configs.set_retention
+  group: configs
+  intents:
+  - set retention.ms of {TOPIC} to {RETENTION_MS}
+  - change how long a topic keeps data
+  - alter topic retention
+  - update retention on a kafka topic
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  - name: RETENTION_MS
+    default: '604800000'
+    samples: ['86400000', '259200000', '2592000000']
+  body: kafka-configs.sh --bootstrap-server "$BOOTSTRAP" --entity-type topics --entity-name "$TOPIC" --alter --add-config retention.ms="$RETENTION_MS"
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/ConfigCommand.java
+  verified: source
+- id: kafka.configs.remove_retention
+  group: configs
+  intents:
+  - remove the retention override on {TOPIC}
+  - reset topic retention back to the broker default
+  - delete the retention.ms config from a topic
+  - undo custom retention
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: kafka-configs.sh --bootstrap-server "$BOOTSTRAP" --entity-type topics --entity-name "$TOPIC" --alter --delete-config retention.ms
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/ConfigCommand.java
+  verified: source
+- id: kafka.configs.describe_broker
+  group: configs
+  intents:
+  - show configs of broker {BROKER_ID}
+  - describe broker settings
+  - what dynamic configs does this broker have
+  - kafka-configs describe broker
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: BROKER_ID
+    default: '1'
+    samples: ['0', '2', '3']
+  body: kafka-configs.sh --bootstrap-server "$BOOTSTRAP" --entity-type brokers --entity-name "$BROKER_ID" --describe
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/ConfigCommand.java
+  verified: source
+- id: kafka.offsets.latest
+  group: offsets
+  intents:
+  - get the latest offsets of {TOPIC}
+  - show end offsets per partition
+  - high watermark for each partition
+  - kafka-get-offsets latest
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: kafka-get-offsets.sh --bootstrap-server "$BOOTSTRAP" --topic "$TOPIC"
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/GetOffsetShell.java
+  verified: source
+- id: kafka.offsets.earliest
+  group: offsets
+  intents:
+  - get the earliest offsets of {TOPIC}
+  - show start offsets per partition
+  - lowest available offset in each partition
+  - where does retention start for this topic
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: kafka-get-offsets.sh --bootstrap-server "$BOOTSTRAP" --topic "$TOPIC" --time earliest
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/GetOffsetShell.java
+  verified: source
+- id: kafka.offsets.sum
+  group: offsets
+  intents:
+  - sum of end offsets for {TOPIC}
+  - roughly how many messages have been written to this topic
+  - add up latest offsets across partitions
+  - total offset count for a topic
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: 'kafka-get-offsets.sh --bootstrap-server "$BOOTSTRAP" --topic "$TOPIC" | awk -F: ''{sum += $3} END {print sum}'''
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/GetOffsetShell.java
+  verified: source
+- id: kafka.logdirs.topic_size
+  group: storage
+  intents:
+  - how much disk does {TOPIC} use
+  - total size in bytes of a topic across brokers
+  - topic size on disk
+  - sum log dir sizes for a topic
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  - name: TOPIC
+    default: orders
+    samples: [payments, clickstream.v1, user-events]
+  body: kafka-log-dirs.sh --bootstrap-server "$BOOTSTRAP" --describe --topic-list "$TOPIC" | grep '^{' | jq '[.brokers[].logDirs[].partitions[].size] | add'
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/LogDirsCommand.java
+  verified: source
+- id: kafka.logdirs.describe
+  group: storage
+  intents:
+  - describe log directories on all brokers
+  - show broker log dirs and partition sizes
+  - kafka-log-dirs describe
+  - what is stored in each broker's log directory
+  vars:
+  - name: BOOTSTRAP
+    default: localhost:9092
+    samples: ['broker1.example.com:9092', 'kafka.internal.example.com:9093', 'localhost:29092']
+    ctx: kafka_bootstrap
+  body: kafka-log-dirs.sh --bootstrap-server "$BOOTSTRAP" --describe
+  destructive: false
+  source: https://github.com/apache/kafka/blob/trunk/tools/src/main/java/org/apache/kafka/tools/LogDirsCommand.java
+  verified: source

@@ -1,0 +1,707 @@
+tool: gcloud
+binaries: [gcloud, bq, gsutil]
+category: cloud
+priority: standard
+target_pairs: 250
+version_note: "Google Cloud SDK 5xx (gcloud), bq 2.x, gsutil 5.x (legacy; gcloud storage preferred)"
+install:
+- macos: ["brew install --cask gcloud-cli"]
+  linux: ["sudo snap install google-cloud-cli --classic"]
+  source: ["https://github.com/Homebrew/homebrew-cask/blob/HEAD/Casks/g/gcloud-cli.rb", "https://docs.cloud.google.com/sdk/docs/downloads-snap"]
+sources:
+  - url: "local: gcloud <group> <command> --help (Google Cloud SDK 570.0.0)"
+    license: "vendor CLI help text; facts only"
+  - url: "local: bq help <command> (bq 2.1.32)"
+    license: "vendor CLI help text; facts only"
+  - url: "local: gsutil help rsync / du / options"
+    license: "Apache-2.0 (GoogleCloudPlatform/gsutil repo)"
+  - url: https://cloud.google.com/sdk/docs/install
+    license: "CC BY 4.0 (Google Cloud docs text; code samples Apache-2.0)"
+destructive_patterns:
+  - '\bbq\s+rm\b'
+  - '\bgcloud\s+storage\s+rm\b'
+  - '\bgsutil\s+(-m\s+)?rm\b'
+  - '\bdataflow\s+jobs\s+cancel\b'
+  - '--delete-unmatched-destination-objects'
+  - '\bgsutil\s+(-m\s+)?rsync\b.*\s-d\b'
+templates:
+  # ---------------------------------------------------------------- setup
+  - id: gcloud.setup.install
+    group: setup
+    intents:
+      - install the gcloud cli
+      - how do I install the google cloud sdk on linux or mac
+      - set up gcloud with the official installer script
+      - get gcloud, bq and gsutil on this machine
+      - install google cloud command line tools
+    body: curl https://sdk.cloud.google.com | bash
+    destructive: false
+    source: https://cloud.google.com/sdk/docs/install
+    verified: docs
+
+  - id: gcloud.setup.version
+    group: setup
+    intents:
+      - which gcloud version do I have
+      - check the google cloud sdk version
+      - gcloud version
+      - show installed gcloud components versions
+    body: gcloud --version
+    destructive: false
+    source: "local: gcloud --help"
+    verified: help
+
+  - id: gcloud.auth.login
+    group: auth
+    intents:
+      - log in to google cloud
+      - gcloud login in the browser
+      - authenticate my user account with gcloud
+      - sign in to gcp from the terminal
+    body: gcloud auth login
+    destructive: false
+    source: "local: gcloud auth login --help"
+    verified: help
+
+  - id: gcloud.auth.adc_login
+    group: auth
+    intents:
+      - set up application default credentials
+      - log in so python client libraries can use my google credentials
+      - create ADC credentials for local development
+      - gcloud application-default login
+      - give my local spark/python code access to gcp with my user
+    body: gcloud auth application-default login
+    destructive: false
+    source: "local: gcloud auth application-default login --help"
+    verified: help
+
+  - id: gcloud.auth.list
+    group: auth
+    intents:
+      - which google account am I logged in as
+      - list gcloud credentialed accounts
+      - show active gcloud account
+      - who am i in gcloud
+    body: gcloud auth list
+    destructive: false
+    source: "local: gcloud auth list --help"
+    verified: help
+
+  - id: gcloud.config.set_project
+    group: config
+    intents:
+      - set the default gcp project to {PROJECT}
+      - switch gcloud to project {PROJECT}
+      - make {PROJECT} my default project
+      - change the active google cloud project
+      - point gcloud at a different project
+    vars:
+      - {name: PROJECT, default: <project-id>, samples: [acme-analytics, data-platform-dev, etl-prod-4821], ctx: gcp_project}
+    body: gcloud config set project "$PROJECT"
+    destructive: false
+    source: "local: gcloud config set --help"
+    verified: help
+
+  - id: gcloud.config.list
+    group: config
+    intents:
+      - show my current gcloud config
+      - what project and account is gcloud using
+      - print gcloud settings
+      - gcloud config list
+    body: gcloud config list
+    destructive: false
+    source: "local: gcloud config list --help"
+    verified: help
+
+  - id: gcloud.config.configurations_create
+    group: config
+    intents:
+      - create a new gcloud configuration called {NAME}
+      - make a separate gcloud profile named {NAME}
+      - add a named gcloud configuration for another environment
+      - new gcloud config profile
+    vars:
+      - {name: NAME, default: dev, samples: [prod, staging, analytics-dev]}
+    body: gcloud config configurations create "$NAME"
+    destructive: false
+    source: "local: gcloud config configurations create --help"
+    verified: help
+
+  - id: gcloud.config.configurations_activate
+    group: config
+    intents:
+      - switch to the {NAME} gcloud configuration
+      - activate gcloud config {NAME}
+      - use my other gcloud profile
+      - change gcloud configuration
+    vars:
+      - {name: NAME, default: dev, samples: [prod, staging, analytics-dev]}
+    body: gcloud config configurations activate "$NAME"
+    destructive: false
+    source: "local: gcloud config configurations activate --help"
+    verified: help
+
+  - id: gcloud.projects.list
+    group: config
+    intents:
+      - list my gcp projects
+      - which google cloud projects can I see
+      - show all projects I have access to
+      - gcloud projects list
+    body: gcloud projects list
+    destructive: false
+    source: "local: gcloud projects list --help"
+    verified: help
+
+  # ---------------------------------------------------------------- dataproc
+  - id: gcloud.dataproc.submit_pyspark
+    group: dataproc
+    intents:
+      - submit {PY_FILE} as a pyspark job to dataproc cluster {CLUSTER}
+      - run a pyspark script on dataproc
+      - send my pyspark job to the {CLUSTER} cluster in {REGION}
+      - dataproc submit pyspark
+      - kick off a python spark job on a dataproc cluster
+    vars:
+      - {name: PY_FILE, default: gs://<bucket>/jobs/etl.py, samples: [gs://acme-artifacts/jobs/daily_sales.py, gs://etl-code/spark/clean_events.py, transform.py]}
+      - {name: CLUSTER, default: <cluster-name>, samples: [etl-cluster, adhoc-spark, reporting-dp]}
+      - {name: REGION, default: us-central1, samples: [us-central1, europe-west1, us-east4]}
+    body: gcloud dataproc jobs submit pyspark "$PY_FILE" --cluster="$CLUSTER" --region="$REGION"
+    destructive: false
+    source: "local: gcloud dataproc jobs submit pyspark --help"
+    verified: help
+
+  - id: gcloud.dataproc.submit_pyspark_args
+    group: dataproc
+    intents:
+      - submit a pyspark job to {CLUSTER} and pass --date {RUN_DATE} to the script
+      - run my dataproc pyspark job with a date argument
+      - pyspark on dataproc with job arguments
+      - submit dataproc pyspark job passing args after --
+    vars:
+      - {name: PY_FILE, default: gs://<bucket>/jobs/etl.py, samples: [gs://acme-artifacts/jobs/daily_sales.py, gs://etl-code/spark/backfill.py]}
+      - {name: CLUSTER, default: <cluster-name>, samples: [etl-cluster, adhoc-spark]}
+      - {name: REGION, default: us-central1, samples: [us-central1, europe-west1]}
+      - {name: RUN_DATE, default: "2026-01-01", samples: ["2026-03-15", "2025-12-31"]}
+    body: gcloud dataproc jobs submit pyspark "$PY_FILE" --cluster="$CLUSTER" --region="$REGION" -- --date "$RUN_DATE"
+    destructive: false
+    source: "local: gcloud dataproc jobs submit pyspark --help"
+    verified: help
+
+  - id: gcloud.dataproc.submit_spark_jar
+    group: dataproc
+    intents:
+      - submit a spark jar job with main class {CLASS} to dataproc
+      - run a scala spark job on the {CLUSTER} dataproc cluster
+      - dataproc submit spark with --class and --jars
+      - launch a java spark application on dataproc
+    vars:
+      - {name: CLASS, default: com.example.Main, samples: [com.acme.etl.DailyJob, org.example.spark.Aggregate]}
+      - {name: JAR, default: gs://<bucket>/jars/app.jar, samples: [gs://acme-artifacts/jars/etl-assembly-1.4.jar, gs://etl-code/spark-jobs.jar]}
+      - {name: CLUSTER, default: <cluster-name>, samples: [etl-cluster, adhoc-spark]}
+      - {name: REGION, default: us-central1, samples: [us-central1, europe-west1]}
+    body: gcloud dataproc jobs submit spark --class="$CLASS" --jars="$JAR" --cluster="$CLUSTER" --region="$REGION"
+    destructive: false
+    source: "local: gcloud dataproc jobs submit spark --help"
+    verified: help
+
+  - id: gcloud.dataproc.clusters_list
+    group: dataproc
+    intents:
+      - list dataproc clusters in {REGION}
+      - what dataproc clusters are running
+      - show my dataproc clusters
+      - gcloud dataproc clusters list
+    vars:
+      - {name: REGION, default: us-central1, samples: [us-central1, europe-west1, asia-southeast1]}
+    body: gcloud dataproc clusters list --region="$REGION"
+    destructive: false
+    source: "local: gcloud dataproc clusters list --help"
+    verified: help
+
+  - id: gcloud.dataproc.jobs_list
+    group: dataproc
+    intents:
+      - list active dataproc jobs in {REGION}
+      - which dataproc jobs are currently running
+      - show running spark jobs on dataproc
+      - dataproc jobs that are still active
+    vars:
+      - {name: REGION, default: us-central1, samples: [us-central1, europe-west1]}
+    body: gcloud dataproc jobs list --region="$REGION" --state-filter=active
+    destructive: false
+    source: "local: gcloud dataproc jobs list --help"
+    verified: help
+
+  - id: gcloud.dataproc.jobs_wait
+    group: dataproc
+    intents:
+      - stream the output of dataproc job {JOB_ID} until it finishes
+      - wait for my dataproc job and show its driver output
+      - follow logs of a dataproc job
+      - block until dataproc job completes
+    vars:
+      - {name: JOB_ID, default: <job-id>, samples: [8c1d4f2a9e3b4c6d, daily-sales-20260315]}
+      - {name: REGION, default: us-central1, samples: [us-central1, europe-west1]}
+    body: gcloud dataproc jobs wait "$JOB_ID" --region="$REGION"
+    destructive: false
+    source: "local: gcloud dataproc jobs wait --help"
+    verified: help
+
+  - id: gcloud.dataproc.batches_submit_pyspark
+    group: dataproc
+    intents:
+      - run {PY_FILE} on dataproc serverless
+      - submit a serverless spark batch with no cluster
+      - dataproc batches submit pyspark in {REGION}
+      - run a pyspark script without managing a dataproc cluster
+    vars:
+      - {name: PY_FILE, default: gs://<bucket>/jobs/etl.py, samples: [gs://acme-artifacts/jobs/daily_sales.py, gs://etl-code/spark/compact.py]}
+      - {name: REGION, default: us-central1, samples: [us-central1, europe-west1]}
+    body: gcloud dataproc batches submit pyspark "$PY_FILE" --region="$REGION"
+    destructive: false
+    source: "local: gcloud dataproc batches submit pyspark --help"
+    verified: help
+
+  # ---------------------------------------------------------------- dataflow / composer
+  - id: gcloud.dataflow.jobs_list_active
+    group: dataflow
+    intents:
+      - list running dataflow jobs in {REGION}
+      - which dataflow pipelines are active
+      - show active dataflow jobs
+      - gcloud dataflow jobs list only active ones
+    vars:
+      - {name: REGION, default: us-central1, samples: [us-central1, europe-west1, us-east1]}
+    body: gcloud dataflow jobs list --region="$REGION" --status=active
+    destructive: false
+    source: "local: gcloud dataflow jobs list --help"
+    verified: help
+
+  - id: gcloud.dataflow.jobs_cancel
+    group: dataflow
+    intents:
+      - cancel dataflow job {JOB_ID}
+      - stop a running dataflow pipeline
+      - kill the dataflow job in {REGION}
+      - gcloud dataflow jobs cancel
+    vars:
+      - {name: JOB_ID, default: <job-id>, samples: [2026-03-15_04_12_33-1234567890123456789, 2026-01-02_10_00_01-9876543210987654321]}
+      - {name: REGION, default: us-central1, samples: [us-central1, europe-west1]}
+    body: gcloud dataflow jobs cancel "$JOB_ID" --region="$REGION"
+    destructive: true
+    source: "local: gcloud dataflow jobs cancel --help"
+    verified: help
+
+  - id: gcloud.composer.trigger_dag
+    group: composer
+    intents:
+      - trigger dag {DAG_ID} in composer environment {COMPOSER_ENV}
+      - run an airflow dag on cloud composer
+      - kick off {DAG_ID} in composer from the cli
+      - composer environments run dags trigger
+    vars:
+      - {name: COMPOSER_ENV, default: <environment-name>, samples: [composer-prod, data-orchestrator]}
+      - {name: LOCATION, default: us-central1, samples: [us-central1, europe-west1]}
+      - {name: DAG_ID, default: <dag-id>, samples: [daily_sales_etl, ingest_events], ctx: airflow_dag}
+    body: gcloud composer environments run "$COMPOSER_ENV" --location="$LOCATION" dags trigger -- "$DAG_ID"
+    destructive: false
+    source: "local: gcloud composer environments run --help"
+    verified: help
+
+  - id: gcloud.composer.list_dags
+    group: composer
+    intents:
+      - list the airflow dags in composer environment {COMPOSER_ENV}
+      - which dags are deployed to cloud composer
+      - run airflow dags list on composer
+      - show composer dags
+    vars:
+      - {name: COMPOSER_ENV, default: <environment-name>, samples: [composer-prod, data-orchestrator]}
+      - {name: LOCATION, default: us-central1, samples: [us-central1, europe-west1]}
+    body: gcloud composer environments run "$COMPOSER_ENV" --location="$LOCATION" dags list
+    destructive: false
+    source: "local: gcloud composer environments run --help"
+    verified: help
+
+  # ---------------------------------------------------------------- storage (gcloud storage)
+  - id: gcloud.storage.ls
+    group: storage
+    intents:
+      - list files in {GCS_PATH}
+      - what's in this gcs bucket
+      - ls a google cloud storage path
+      - show objects under {GCS_PATH}
+      - browse a gcs folder
+    vars:
+      - {name: GCS_PATH, default: gs://<bucket>/, samples: [gs://acme-raw/events/, gs://etl-artifacts/jobs/, gs://analytics-exports/2026/]}
+    body: gcloud storage ls "$GCS_PATH"
+    destructive: false
+    source: "local: gcloud storage ls --help"
+    verified: help
+
+  - id: gcloud.storage.ls_long_recursive
+    group: storage
+    intents:
+      - recursively list everything under {GCS_PATH} with sizes
+      - list all objects in a gcs prefix with readable sizes
+      - show sizes and dates for files in a bucket path
+      - deep listing of a gcs folder
+    vars:
+      - {name: GCS_PATH, default: gs://<bucket>/, samples: [gs://acme-raw/events/, gs://analytics-exports/2026/]}
+    body: gcloud storage ls -l -r --readable-sizes "$GCS_PATH"
+    destructive: false
+    source: "local: gcloud storage ls --help"
+    verified: help
+
+  - id: gcloud.storage.buckets_list
+    group: storage
+    intents:
+      - list my gcs buckets
+      - which buckets exist in the project
+      - show all cloud storage buckets
+      - gcloud storage buckets list
+    body: gcloud storage buckets list --format="value(name)"
+    destructive: false
+    source: "local: gcloud storage buckets list --help"
+    verified: help
+
+  - id: gcloud.storage.cp_upload
+    group: storage
+    intents:
+      - upload {FILE} to {GCS_PATH}
+      - copy a local file into a gcs bucket
+      - put this csv on google cloud storage
+      - gcloud storage cp a file up to gcs
+    vars:
+      - {name: FILE, default: data.csv, samples: [sales_2026.csv, events.parquet, export.json.gz], ctx: local_file}
+      - {name: GCS_PATH, default: gs://<bucket>/, samples: [gs://acme-raw/uploads/, gs://etl-staging/incoming/]}
+    body: gcloud storage cp "$FILE" "$GCS_PATH"
+    destructive: false
+    source: "local: gcloud storage cp --help"
+    verified: help
+
+  - id: gcloud.storage.cp_download_recursive
+    group: storage
+    intents:
+      - download the whole {GCS_PATH} folder to {LOCAL_DIR}
+      - copy a gcs prefix down to my machine recursively
+      - pull a folder from cloud storage
+      - recursive download from gcs
+    vars:
+      - {name: GCS_PATH, default: gs://<bucket>/path/, samples: [gs://acme-raw/events/2026-03-15/, gs://analytics-exports/daily/]}
+      - {name: LOCAL_DIR, default: ./data, samples: [./downloads, /tmp/gcs-copy]}
+    body: gcloud storage cp -r "$GCS_PATH" "$LOCAL_DIR"
+    destructive: false
+    source: "local: gcloud storage cp --help"
+    verified: help
+
+  - id: gcloud.storage.rsync_dry_run
+    group: storage
+    intents:
+      - preview syncing {LOCAL_DIR} to {GCS_PATH} without copying
+      - dry run a gcs rsync
+      - what would rsync upload to the bucket
+      - check what's different before syncing a folder to gcs
+    vars:
+      - {name: LOCAL_DIR, default: ./data, samples: [./output, ./dist/dags]}
+      - {name: GCS_PATH, default: gs://<bucket>/path/, samples: [gs://acme-raw/landing/, gs://composer-dags-bucket/dags/]}
+    body: gcloud storage rsync -r --dry-run "$LOCAL_DIR" "$GCS_PATH"
+    destructive: false
+    source: "local: gcloud storage rsync --help"
+    verified: help
+
+  - id: gcloud.storage.rsync
+    group: storage
+    intents:
+      - sync local folder {LOCAL_DIR} up to {GCS_PATH}
+      - rsync a directory to a gcs bucket
+      - mirror my dags folder to cloud storage
+      - upload only changed files to gcs
+    vars:
+      - {name: LOCAL_DIR, default: ./data, samples: [./output, ./dags]}
+      - {name: GCS_PATH, default: gs://<bucket>/path/, samples: [gs://acme-raw/landing/, gs://composer-dags-bucket/dags/]}
+    body: gcloud storage rsync -r "$LOCAL_DIR" "$GCS_PATH"
+    destructive: false
+    source: "local: gcloud storage rsync --help"
+    verified: help
+
+  - id: gcloud.storage.du_summary
+    group: storage
+    intents:
+      - how big is {GCS_PATH}
+      - total size of a gcs folder
+      - disk usage of a bucket prefix in human readable form
+      - gcloud storage du summary
+    vars:
+      - {name: GCS_PATH, default: gs://<bucket>/, samples: [gs://acme-raw/events/, gs://analytics-exports/]}
+    body: gcloud storage du -s -r "$GCS_PATH"
+    destructive: false
+    source: "local: gcloud storage du --help"
+    verified: help
+
+  - id: gcloud.storage.cat_head
+    group: storage
+    intents:
+      - show the first lines of {GCS_FILE}
+      - peek at a csv sitting in gcs
+      - print the top of a cloud storage file
+      - cat a gcs object and head it
+    vars:
+      - {name: GCS_FILE, default: gs://<bucket>/file.csv, samples: [gs://acme-raw/uploads/customers.csv, gs://etl-staging/incoming/orders.jsonl]}
+    body: gcloud storage cat "$GCS_FILE" | head -n 20
+    destructive: false
+    source: "local: gcloud storage cat --help"
+    verified: help
+
+  - id: gcloud.storage.rm_recursive
+    group: storage
+    intents:
+      - delete everything under {GCS_PATH}
+      - remove a gcs folder recursively
+      - wipe a prefix in cloud storage
+      - gcloud storage rm -r
+    vars:
+      - {name: GCS_PATH, default: gs://<bucket>/path/, samples: [gs://etl-staging/tmp/, gs://acme-raw/old-exports/]}
+    body: gcloud storage rm -r "$GCS_PATH"
+    destructive: true
+    source: "local: gcloud storage rm --help"
+    verified: help
+
+  # ---------------------------------------------------------------- gsutil (legacy)
+  - id: gcloud.gsutil.ls
+    group: gsutil
+    intents:
+      - list a bucket with gsutil
+      - gsutil ls {GCS_PATH}
+      - old-style gsutil listing of a gcs path
+      - show gcs objects using gsutil
+    vars:
+      - {name: GCS_PATH, default: gs://<bucket>/, samples: [gs://acme-raw/events/, gs://etl-artifacts/]}
+    body: gsutil ls "$GCS_PATH"
+    destructive: false
+    source: "local: gsutil help ls"
+    verified: help
+
+  - id: gcloud.gsutil.cp_parallel
+    group: gsutil
+    intents:
+      - copy a folder to gcs in parallel with gsutil
+      - gsutil -m cp -r {LOCAL_DIR} to {GCS_PATH}
+      - fast multi-threaded upload with gsutil
+      - upload a directory using gsutil
+    vars:
+      - {name: LOCAL_DIR, default: ./data, samples: [./output, ./exports]}
+      - {name: GCS_PATH, default: gs://<bucket>/path/, samples: [gs://acme-raw/landing/, gs://etl-staging/batch/]}
+    body: gsutil -m cp -r "$LOCAL_DIR" "$GCS_PATH"
+    destructive: false
+    source: "local: gsutil help options; gsutil help cp"
+    verified: help
+
+  - id: gcloud.gsutil.rsync
+    group: gsutil
+    intents:
+      - gsutil rsync a local folder to a bucket
+      - sync {LOCAL_DIR} to gcs with gsutil
+      - parallel gsutil rsync recursive
+      - mirror a directory to gcs the old way
+    vars:
+      - {name: LOCAL_DIR, default: ./data, samples: [./output, ./dags]}
+      - {name: GCS_PATH, default: gs://<bucket>/path/, samples: [gs://acme-raw/landing/, gs://composer-dags-bucket/dags/]}
+    body: gsutil -m rsync -r "$LOCAL_DIR" "$GCS_PATH"
+    destructive: false
+    source: "local: gsutil help rsync"
+    verified: help
+
+  - id: gcloud.gsutil.du
+    group: gsutil
+    intents:
+      - total size of a bucket with gsutil
+      - gsutil du -sh {GCS_PATH}
+      - how much data is in this gcs path, gsutil
+      - human readable bucket size via gsutil
+    vars:
+      - {name: GCS_PATH, default: gs://<bucket>/, samples: [gs://acme-raw/, gs://analytics-exports/2026/]}
+    body: gsutil du -sh "$GCS_PATH"
+    destructive: false
+    source: "local: gsutil help du"
+    verified: help
+
+  # ---------------------------------------------------------------- bq
+  - id: gcloud.bq.query
+    group: bigquery
+    intents:
+      - run a standard sql query in bigquery
+      - bq query with standard sql
+      - query bigquery from the terminal
+      - count rows in {TABLE} using bq
+      - run a quick bigquery select
+    vars:
+      - {name: TABLE, default: dataset.table, samples: [analytics.events, sales.orders, raw.customers]}
+    body: bq query --use_legacy_sql=false "select count(*) from \`$TABLE\`"
+    destructive: false
+    source: "local: bq help query"
+    verified: help
+
+  - id: gcloud.bq.query_csv
+    group: bigquery
+    intents:
+      - run a bigquery query and save the result as {OUT_FILE}
+      - export query output to csv with bq
+      - bq query in csv format to a file
+      - dump the first {LIMIT} rows of {TABLE} into a csv
+    vars:
+      - {name: TABLE, default: dataset.table, samples: [analytics.events, sales.orders]}
+      - {name: LIMIT, default: "1000", samples: ["100", "5000"]}
+      - {name: OUT_FILE, default: result.csv, samples: [orders.csv, events_sample.csv]}
+    body: bq query --use_legacy_sql=false --format=csv --max_rows="$LIMIT" "select * from \`$TABLE\` limit $LIMIT" > "$OUT_FILE"
+    destructive: false
+    source: "local: bq help query; bq --help (--format)"
+    verified: help
+
+  - id: gcloud.bq.ls_datasets
+    group: bigquery
+    intents:
+      - list bigquery datasets
+      - which datasets are in my bq project
+      - bq ls
+      - show datasets in project {PROJECT}
+    vars:
+      - {name: PROJECT, default: <project-id>, samples: [acme-analytics, data-platform-dev], ctx: gcp_project}
+    body: bq ls --project_id="$PROJECT"
+    destructive: false
+    source: "local: bq help ls"
+    verified: help
+
+  - id: gcloud.bq.ls_tables
+    group: bigquery
+    intents:
+      - list tables in dataset {DATASET}
+      - what tables does {DATASET} have
+      - bq ls a dataset
+      - show bigquery tables in a dataset
+    vars:
+      - {name: DATASET, default: <dataset>, samples: [analytics, raw, staging]}
+    body: bq ls --max_results=1000 "$DATASET"
+    destructive: false
+    source: "local: bq help ls"
+    verified: help
+
+  - id: gcloud.bq.show_schema
+    group: bigquery
+    intents:
+      - show the schema of {TABLE}
+      - what columns does this bigquery table have
+      - print table schema as json
+      - bq show schema pretty json
+    vars:
+      - {name: TABLE, default: dataset.table, samples: [analytics.events, sales.orders, raw.customers]}
+    body: bq show --schema --format=prettyjson "$TABLE"
+    destructive: false
+    source: "local: bq help show; bq --help (--format)"
+    verified: help
+
+  - id: gcloud.bq.head
+    group: bigquery
+    intents:
+      - preview {LIMIT} rows of {TABLE} without running a query
+      - bq head a table
+      - peek at a bigquery table for free
+      - show sample rows from a bq table
+    vars:
+      - {name: TABLE, default: dataset.table, samples: [analytics.events, sales.orders]}
+      - {name: LIMIT, default: "10", samples: ["5", "20", "50"]}
+    body: bq head -n "$LIMIT" "$TABLE"
+    destructive: false
+    source: "local: bq help head"
+    verified: help
+
+  - id: gcloud.bq.load_csv
+    group: bigquery
+    intents:
+      - load {GCS_URI} csv files into {TABLE}
+      - import csv from gcs into bigquery with autodetect
+      - bq load csv skipping the header row
+      - load a csv into a bigquery table
+    vars:
+      - {name: TABLE, default: dataset.table, samples: [raw.orders, staging.customers]}
+      - {name: GCS_URI, default: gs://<bucket>/path/*.csv, samples: ["gs://acme-raw/orders/2026-03-15/*.csv", gs://etl-staging/customers.csv]}
+    body: bq load --source_format=CSV --autodetect --skip_leading_rows=1 "$TABLE" "$GCS_URI"
+    destructive: false
+    source: "local: bq help load"
+    verified: help
+
+  - id: gcloud.bq.load_parquet
+    group: bigquery
+    intents:
+      - load parquet files from gcs into bigquery
+      - bq load parquet into {TABLE}
+      - import {GCS_URI} parquet into a table
+      - load parquet data into bq
+    vars:
+      - {name: TABLE, default: dataset.table, samples: [raw.events, staging.page_views]}
+      - {name: GCS_URI, default: gs://<bucket>/path/*.parquet, samples: ["gs://acme-raw/events/dt=2026-03-15/*.parquet", "gs://etl-staging/views/*.parquet"]}
+    body: bq load --source_format=PARQUET "$TABLE" "$GCS_URI"
+    destructive: false
+    source: "local: bq help load"
+    verified: help
+
+  - id: gcloud.bq.extract
+    group: bigquery
+    intents:
+      - export {TABLE} to gcs as gzipped csv
+      - extract a bigquery table to cloud storage
+      - bq extract to {GCS_URI}
+      - unload a bq table to a bucket
+    vars:
+      - {name: TABLE, default: dataset.table, samples: [analytics.events, sales.orders]}
+      - {name: GCS_URI, default: gs://<bucket>/export/part-*.csv.gz, samples: ["gs://analytics-exports/orders/part-*.csv.gz", "gs://etl-staging/dump/events-*.csv.gz"]}
+    body: bq extract --destination_format=CSV --compression=GZIP "$TABLE" "$GCS_URI"
+    destructive: false
+    source: "local: bq help extract"
+    verified: help
+
+  - id: gcloud.bq.mk_dataset
+    group: bigquery
+    intents:
+      - create bigquery dataset {DATASET}
+      - make a new bq dataset in {LOCATION}
+      - bq mk dataset
+      - add a dataset for staging tables
+    vars:
+      - {name: LOCATION, default: US, samples: [US, EU, us-central1]}
+      - {name: DATASET, default: <dataset>, samples: [staging, sandbox_ana, marts]}
+    body: bq mk --dataset --location="$LOCATION" "$DATASET"
+    destructive: false
+    source: "local: bq help mk; bq --help (--location)"
+    verified: help
+
+  - id: gcloud.bq.rm_table
+    group: bigquery
+    intents:
+      - delete bigquery table {TABLE}
+      - drop a bq table without a prompt
+      - remove a table in bigquery
+      - bq rm table force
+    vars:
+      - {name: TABLE, default: dataset.table, samples: [staging.tmp_orders, sandbox.test_events]}
+    body: bq rm -f -t "$TABLE"
+    destructive: true
+    source: "local: bq help rm"
+    verified: help
+
+  - id: gcloud.bq.rm_dataset
+    group: bigquery
+    intents:
+      - delete dataset {DATASET} and all its tables
+      - drop a whole bigquery dataset
+      - bq rm recursive dataset
+      - remove a bq dataset including contents
+    vars:
+      - {name: DATASET, default: <dataset>, samples: [sandbox_old, tmp_staging]}
+    body: bq rm -r -f -d "$DATASET"
+    destructive: true
+    source: "local: bq help rm"
+    verified: help

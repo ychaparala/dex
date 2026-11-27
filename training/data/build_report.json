@@ -1,0 +1,630 @@
+{
+ "built_at": "2026-11-27T01:48:16Z",
+ "train": 6215,
+ "eval": 246,
+ "system_prompt": "Turn the request into one bash command. Put editable values first as VAR=value, then && and the command.",
+ "per_tool": {
+  "airbyte": {
+   "train": 48,
+   "eval": 2,
+   "destructive_train": 7,
+   "templates": 12,
+   "versions_pinned": [],
+   "versions_checked": [],
+   "per_version_status": {
+    "None": {
+     "ok": 50
+    }
+   },
+   "dropped_templates": {}
+  },
+  "airflow": {
+   "train": 413,
+   "eval": 20,
+   "destructive_train": 35,
+   "templates": 73,
+   "versions_pinned": [
+    "3.4.0",
+    "2.10.5"
+   ],
+   "versions_checked": [
+    "3.4.0",
+    "2.10.5"
+   ],
+   "per_version_status": {
+    "3.4.0": {
+     "ok": 321,
+     "fail": 30
+    },
+    "2.10.5": {
+     "ok": 306,
+     "fail": 45
+    }
+   },
+   "dropped_templates": {}
+  },
+  "argo": {
+   "train": 121,
+   "eval": 3,
+   "destructive_train": 12,
+   "templates": 27,
+   "versions_pinned": [
+    "4.1.7",
+    "3.7.18"
+   ],
+   "versions_checked": [
+    "4.1.7",
+    "3.7.18"
+   ],
+   "per_version_status": {
+    "4.1.7": {
+     "ok": 108
+    },
+    "3.7.18": {
+     "ok": 108
+    }
+   },
+   "dropped_templates": {}
+  },
+  "astro": {
+   "train": 165,
+   "eval": 8,
+   "destructive_train": 4,
+   "templates": 39,
+   "versions_pinned": [
+    "1.48.0"
+   ],
+   "versions_checked": [
+    "1.48.0"
+   ],
+   "per_version_status": {
+    "1.48.0": {
+     "ok": 155,
+     "skipped-passthrough": 18
+    }
+   },
+   "dropped_templates": {}
+  },
+  "aws-core": {
+   "train": 195,
+   "eval": 9,
+   "destructive_train": 0,
+   "templates": 33,
+   "versions_pinned": [],
+   "versions_checked": [],
+   "per_version_status": {
+    "None": {
+     "ok": 120,
+     "skipped": 32,
+     "skipped-v2-only": 53
+    }
+   },
+   "dropped_templates": {}
+  },
+  "aws-data": {
+   "train": 224,
+   "eval": 11,
+   "destructive_train": 5,
+   "templates": 42,
+   "versions_pinned": [],
+   "versions_checked": [],
+   "per_version_status": {
+    "None": {
+     "ok": 229,
+     "skipped-v2-only": 7
+    }
+   },
+   "dropped_templates": {}
+  },
+  "aws-emr": {
+   "train": 362,
+   "eval": 18,
+   "destructive_train": 18,
+   "templates": 55,
+   "versions_pinned": [],
+   "versions_checked": [],
+   "per_version_status": {
+    "None": {
+     "ok": 329,
+     "skipped-v2-only": 58
+    }
+   },
+   "dropped_templates": {}
+  },
+  "aws-s3": {
+   "train": 235,
+   "eval": 11,
+   "destructive_train": 37,
+   "templates": 26,
+   "versions_pinned": [],
+   "versions_checked": [],
+   "per_version_status": {
+    "None": {
+     "ok": 244,
+     "skipped-v2-only": 10
+    }
+   },
+   "dropped_templates": {}
+  },
+  "azure": {
+   "train": 109,
+   "eval": 2,
+   "destructive_train": 0,
+   "templates": 20,
+   "versions_pinned": [],
+   "versions_checked": [],
+   "per_version_status": {
+    "None": {
+     "ok": 111
+    }
+   },
+   "dropped_templates": {}
+  },
+  "clickhouse": {
+   "train": 62,
+   "eval": 2,
+   "destructive_train": 0,
+   "templates": 11,
+   "versions_pinned": [],
+   "versions_checked": [],
+   "per_version_status": {
+    "None": {
+     "ok": 64
+    }
+   },
+   "dropped_templates": {}
+  },
+  "confluent": {
+   "train": 233,
+   "eval": 11,
+   "destructive_train": 11,
+   "templates": 47,
+   "versions_pinned": [
+    "4.83.0"
+   ],
+   "versions_checked": [
+    "4.83.0"
+   ],
+   "per_version_status": {
+    "4.83.0": {
+     "ok": 246,
+     "fail": 4
+    }
+   },
+   "dropped_templates": {
+    "confluent.cluster.list_all": "confluent-help-parse on confluent 4.83.0: Error: unknown flag: --all"
+   }
+  },
+  "csvkit": {
+   "train": 98,
+   "eval": 2,
+   "destructive_train": 0,
+   "templates": 17,
+   "versions_pinned": [],
+   "versions_checked": [],
+   "per_version_status": {
+    "None": {
+     "ok": 100
+    }
+   },
+   "dropped_templates": {}
+  },
+  "curl": {
+   "train": 242,
+   "eval": 11,
+   "destructive_train": 5,
+   "templates": 49,
+   "versions_pinned": [],
+   "versions_checked": [],
+   "per_version_status": {
+    "None": {
+     "ok": 255
+    }
+   },
+   "dropped_templates": {}
+  },
+  "dagster": {
+   "train": 85,
+   "eval": 2,
+   "destructive_train": 0,
+   "templates": 17,
+   "versions_pinned": [],
+   "versions_checked": [],
+   "per_version_status": {
+    "None": {
+     "ok": 87
+    }
+   },
+   "dropped_templates": {}
+  },
+  "databricks": {
+   "train": 332,
+   "eval": 16,
+   "destructive_train": 38,
+   "templates": 54,
+   "versions_pinned": [
+    "1.28.0",
+    "0.299.2"
+   ],
+   "versions_checked": [
+    "1.28.0",
+    "0.299.2"
+   ],
+   "per_version_status": {
+    "1.28.0": {
+     "ok": 298
+    },
+    "0.299.2": {
+     "ok": 298
+    }
+   },
+   "dropped_templates": {}
+  },
+  "dbt": {
+   "train": 300,
+   "eval": 14,
+   "destructive_train": 14,
+   "templates": 54,
+   "versions_pinned": [
+    "1.12.7",
+    "1.9.11"
+   ],
+   "versions_checked": [
+    "1.12.7",
+    "1.9.11"
+   ],
+   "per_version_status": {
+    "1.12.7": {
+     "ok": 273
+    },
+    "1.9.11": {
+     "ok": 273
+    }
+   },
+   "dropped_templates": {}
+  },
+  "dlt": {
+   "train": 69,
+   "eval": 2,
+   "destructive_train": 10,
+   "templates": 15,
+   "versions_pinned": [],
+   "versions_checked": [],
+   "per_version_status": {
+    "None": {
+     "ok": 71
+    }
+   },
+   "dropped_templates": {}
+  },
+  "docker": {
+   "train": 89,
+   "eval": 2,
+   "destructive_train": 8,
+   "templates": 19,
+   "versions_pinned": [],
+   "versions_checked": [],
+   "per_version_status": {
+    "None": {
+     "ok": 91
+    }
+   },
+   "dropped_templates": {}
+  },
+  "duckdb": {
+   "train": 282,
+   "eval": 14,
+   "destructive_train": 16,
+   "templates": 43,
+   "versions_pinned": [],
+   "versions_checked": [],
+   "per_version_status": {
+    "None": {
+     "ok": 272,
+     "skipped": 27
+    }
+   },
+   "dropped_templates": {}
+  },
+  "flink": {
+   "train": 98,
+   "eval": 3,
+   "destructive_train": 5,
+   "templates": 19,
+   "versions_pinned": [],
+   "versions_checked": [],
+   "per_version_status": {
+    "None": {
+     "ok": 101
+    }
+   },
+   "dropped_templates": {}
+  },
+  "gcloud": {
+   "train": 224,
+   "eval": 5,
+   "destructive_train": 20,
+   "templates": 47,
+   "versions_pinned": [],
+   "versions_checked": [],
+   "per_version_status": {
+    "None": {
+     "ok": 229
+    }
+   },
+   "dropped_templates": {}
+  },
+  "helm": {
+   "train": 72,
+   "eval": 2,
+   "destructive_train": 4,
+   "templates": 14,
+   "versions_pinned": [],
+   "versions_checked": [],
+   "per_version_status": {
+    "None": {
+     "ok": 74
+    }
+   },
+   "dropped_templates": {}
+  },
+  "jq": {
+   "train": 140,
+   "eval": 3,
+   "destructive_train": 0,
+   "templates": 25,
+   "versions_pinned": [],
+   "versions_checked": [],
+   "per_version_status": {
+    "None": {
+     "ok": 144
+    }
+   },
+   "dropped_templates": {}
+  },
+  "kafka": {
+   "train": 278,
+   "eval": 13,
+   "destructive_train": 28,
+   "templates": 60,
+   "versions_pinned": [],
+   "versions_checked": [],
+   "per_version_status": {
+    "None": {
+     "ok": 296
+    }
+   },
+   "dropped_templates": {}
+  },
+  "kcat": {
+   "train": 109,
+   "eval": 3,
+   "destructive_train": 0,
+   "templates": 23,
+   "versions_pinned": [],
+   "versions_checked": [],
+   "per_version_status": {
+    "None": {
+     "ok": 113
+    }
+   },
+   "dropped_templates": {}
+  },
+  "kubectl": {
+   "train": 163,
+   "eval": 4,
+   "destructive_train": 20,
+   "templates": 34,
+   "versions_pinned": [],
+   "versions_checked": [],
+   "per_version_status": {
+    "None": {
+     "ok": 167
+    }
+   },
+   "dropped_templates": {}
+  },
+  "meltano": {
+   "train": 74,
+   "eval": 2,
+   "destructive_train": 0,
+   "templates": 19,
+   "versions_pinned": [],
+   "versions_checked": [],
+   "per_version_status": {
+    "None": {
+     "ok": 76
+    }
+   },
+   "dropped_templates": {}
+  },
+  "mysql": {
+   "train": 70,
+   "eval": 2,
+   "destructive_train": 16,
+   "templates": 12,
+   "versions_pinned": [],
+   "versions_checked": [],
+   "per_version_status": {
+    "None": {
+     "ok": 73
+    }
+   },
+   "dropped_templates": {}
+  },
+  "prefect": {
+   "train": 94,
+   "eval": 2,
+   "destructive_train": 0,
+   "templates": 21,
+   "versions_pinned": [],
+   "versions_checked": [],
+   "per_version_status": {
+    "None": {
+     "ok": 96
+    }
+   },
+   "dropped_templates": {}
+  },
+  "psql": {
+   "train": 108,
+   "eval": 2,
+   "destructive_train": 5,
+   "templates": 22,
+   "versions_pinned": [],
+   "versions_checked": [],
+   "per_version_status": {
+    "None": {
+     "ok": 110
+    }
+   },
+   "dropped_templates": {}
+  },
+  "rclone": {
+   "train": 59,
+   "eval": 2,
+   "destructive_train": 7,
+   "templates": 11,
+   "versions_pinned": [],
+   "versions_checked": [],
+   "per_version_status": {
+    "None": {
+     "ok": 61
+    }
+   },
+   "dropped_templates": {}
+  },
+  "rpk": {
+   "train": 101,
+   "eval": 2,
+   "destructive_train": 14,
+   "templates": 22,
+   "versions_pinned": [
+    "26.2.2"
+   ],
+   "versions_checked": [
+    "26.2.2"
+   ],
+   "per_version_status": {
+    "26.2.2": {
+     "ok": 103
+    }
+   },
+   "dropped_templates": {}
+  },
+  "snowflake-cli": {
+   "train": 185,
+   "eval": 9,
+   "destructive_train": 7,
+   "templates": 27,
+   "versions_pinned": [
+    "3.7.1"
+   ],
+   "versions_checked": [
+    "3.7.1"
+   ],
+   "per_version_status": {
+    "3.7.1": {
+     "ok": 199,
+     "fail": 9
+    }
+   },
+   "dropped_templates": {
+    "snowflake-cli.sql.csv": "snow-click on snowflake-cli 3.7.1: Invalid value for '--format': 'csv' is not one of 'table', 'json'."
+   }
+  },
+  "snowsql": {
+   "train": 112,
+   "eval": 5,
+   "destructive_train": 0,
+   "templates": 17,
+   "versions_pinned": [],
+   "versions_checked": [],
+   "per_version_status": {
+    "None": {
+     "ok": 122
+    }
+   },
+   "dropped_templates": {}
+  },
+  "spark": {
+   "train": 395,
+   "eval": 19,
+   "destructive_train": 13,
+   "templates": 56,
+   "versions_pinned": [
+    "4.3.0",
+    "3.5.10"
+   ],
+   "versions_checked": [
+    "4.3.0",
+    "3.5.10"
+   ],
+   "per_version_status": {
+    "4.3.0": {
+     "ok": 372
+    },
+    "3.5.10": {
+     "ok": 372
+    }
+   },
+   "dropped_templates": {}
+  },
+  "sqlite3": {
+   "train": 74,
+   "eval": 2,
+   "destructive_train": 0,
+   "templates": 10,
+   "versions_pinned": [],
+   "versions_checked": [],
+   "per_version_status": {
+    "None": {
+     "ok": 79
+    }
+   },
+   "dropped_templates": {}
+  },
+  "terraform": {
+   "train": 77,
+   "eval": 2,
+   "destructive_train": 4,
+   "templates": 16,
+   "versions_pinned": [],
+   "versions_checked": [],
+   "per_version_status": {
+    "None": {
+     "ok": 79
+    }
+   },
+   "dropped_templates": {}
+  },
+  "trino": {
+   "train": 44,
+   "eval": 2,
+   "destructive_train": 0,
+   "templates": 9,
+   "versions_pinned": [],
+   "versions_checked": [],
+   "per_version_status": {
+    "None": {
+     "ok": 46
+    }
+   },
+   "dropped_templates": {}
+  },
+  "yq": {
+   "train": 74,
+   "eval": 2,
+   "destructive_train": 16,
+   "templates": 10,
+   "versions_pinned": [],
+   "versions_checked": [],
+   "per_version_status": {
+    "None": {
+     "ok": 76
+    }
+   },
+   "dropped_templates": {}
+  }
+ }
+}

@@ -1,0 +1,218 @@
+tool: helm
+binaries: [helm]
+category: infra
+priority: standard
+target_pairs: 80
+version_note: "Helm 4.x (flags shared with Helm 3 except --atomic, renamed --rollback-on-failure in v4; not used here)"
+install:
+- macos: ["brew install helm"]
+  docs: "https://helm.sh/docs/intro/install/"
+  source: ["https://helm.sh/docs/intro/install/"]
+sources:
+  - url: https://github.com/helm/helm-www/tree/main/docs/helm
+    license: "MIT (helm/helm-www repo LICENSE)"
+  - url: https://github.com/helm/helm-www/blob/main/docs/intro/install.mdx
+    license: "MIT (helm/helm-www repo LICENSE)"
+  - url: https://github.com/kubeflow/spark-operator/blob/master/README.md
+    license: "Apache-2.0 (kubeflow/spark-operator repo)"
+destructive_patterns:
+  - '\bhelm\s+(uninstall|delete|del|un)\b'
+templates:
+  - id: helm.setup.install
+    group: setup
+    intents:
+      - install helm
+      - get the helm cli with the official script
+      - set up helm 4 on linux or mac
+      - install the latest helm binary
+    body: curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-4 | bash
+    destructive: false
+    source: https://github.com/helm/helm-www/blob/main/docs/intro/install.mdx
+    verified: docs
+
+  - id: helm.setup.version
+    group: setup
+    intents:
+      - which helm version is installed
+      - helm version
+      - check the helm client version
+      - show helm version
+    body: helm version
+    destructive: false
+    source: https://github.com/helm/helm-www/blob/main/docs/helm/helm_version.md
+    verified: docs
+
+  - id: helm.repo.add
+    group: repo
+    intents:
+      - add the {REPO_NAME} helm repo from {REPO_URL}
+      - register a chart repository
+      - helm repo add the airflow charts
+      - add the spark operator helm repository
+    vars:
+      - {name: REPO_NAME, default: apache-airflow, samples: [apache-airflow, spark-operator, bitnami]}
+      - {name: REPO_URL, default: "https://airflow.apache.org", samples: ["https://airflow.apache.org", "https://kubeflow.github.io/spark-operator", "https://charts.bitnami.com/bitnami"]}
+    body: helm repo add "$REPO_NAME" "$REPO_URL"
+    destructive: false
+    source: https://github.com/helm/helm-www/blob/main/docs/helm/helm_repo_add.md
+    verified: docs
+
+  - id: helm.repo.update
+    group: repo
+    intents:
+      - update helm repos
+      - refresh chart index from all repositories
+      - helm repo update
+      - pull the latest chart versions list
+    body: helm repo update
+    destructive: false
+    source: https://github.com/helm/helm-www/blob/main/docs/helm/helm_repo_update.md
+    verified: docs
+
+  - id: helm.search.repo
+    group: repo
+    intents:
+      - search my helm repos for {KEYWORD} charts
+      - find a chart and list its versions
+      - which versions of the {KEYWORD} chart exist
+      - helm search repo
+    vars:
+      - {name: KEYWORD, default: airflow, samples: [airflow, spark-operator, kafka]}
+    body: helm search repo "$KEYWORD" --versions | head -n 15
+    destructive: false
+    source: https://github.com/helm/helm-www/blob/main/docs/helm/helm_search_repo.md
+    verified: docs
+
+  - id: helm.upgrade_install
+    group: release
+    intents:
+      - install or upgrade release {RELEASE} from chart {CHART} with {VALUES_FILE}
+      - deploy the airflow chart with my values file
+      - helm upgrade --install into namespace {NAMESPACE}
+      - roll out chart changes, creating the release if missing
+      - idempotent helm deploy with values
+    vars:
+      - {name: RELEASE, default: airflow, samples: [airflow, spark-operator, kafka-ui]}
+      - {name: CHART, default: apache-airflow/airflow, samples: [apache-airflow/airflow, spark-operator/spark-operator]}
+      - {name: VALUES_FILE, default: values.yaml, samples: [values-prod.yaml, helm/airflow-values.yaml], ctx: local_file}
+      - {name: NAMESPACE, default: default, samples: [airflow, spark-operator, data], ctx: k8s_namespace}
+    body: helm upgrade --install "$RELEASE" "$CHART" -f "$VALUES_FILE" -n "$NAMESPACE" --create-namespace
+    destructive: false
+    source: https://github.com/helm/helm-www/blob/main/docs/helm/helm_upgrade.md
+    verified: docs
+
+  - id: helm.install_spark_operator
+    group: release
+    intents:
+      - install the spark operator with helm and wait for it
+      - deploy kubeflow spark-operator into its own namespace
+      - helm install spark-operator
+      - set up the spark operator on the cluster
+    body: helm install spark-operator spark-operator/spark-operator --namespace spark-operator --create-namespace --wait
+    destructive: false
+    source: https://github.com/kubeflow/spark-operator/blob/master/README.md
+    verified: docs
+
+  - id: helm.list
+    group: release
+    intents:
+      - list helm releases in all namespaces
+      - what charts are installed on the cluster
+      - helm list everything
+      - show deployed helm releases
+    body: helm list -A
+    destructive: false
+    source: https://github.com/helm/helm-www/blob/main/docs/helm/helm_list.md
+    verified: docs
+
+  - id: helm.history
+    group: release
+    intents:
+      - show revision history of release {RELEASE}
+      - which helm revisions exist for this release
+      - helm history
+      - find the revision number to roll back to
+    vars:
+      - {name: RELEASE, default: airflow, samples: [airflow, kafka-ui]}
+      - {name: NAMESPACE, default: default, samples: [airflow, data], ctx: k8s_namespace}
+    body: helm history "$RELEASE" -n "$NAMESPACE"
+    destructive: false
+    source: https://github.com/helm/helm-www/blob/main/docs/helm/helm_history.md
+    verified: docs
+
+  - id: helm.rollback
+    group: release
+    intents:
+      - roll back {RELEASE} to revision {REVISION}
+      - undo the last bad helm upgrade
+      - helm rollback a release
+      - revert the airflow release to an earlier version
+    vars:
+      - {name: RELEASE, default: airflow, samples: [airflow, spark-operator]}
+      - {name: REVISION, default: "1", samples: ["2", "5", "11"]}
+      - {name: NAMESPACE, default: default, samples: [airflow, spark-operator], ctx: k8s_namespace}
+    body: helm rollback "$RELEASE" "$REVISION" -n "$NAMESPACE"
+    destructive: false
+    source: https://github.com/helm/helm-www/blob/main/docs/helm/helm_rollback.md
+    verified: docs
+
+  - id: helm.uninstall
+    group: release
+    intents:
+      - uninstall helm release {RELEASE}
+      - remove the chart deployment from the cluster
+      - helm uninstall in {NAMESPACE}
+      - delete a helm release
+    vars:
+      - {name: RELEASE, default: <release>, samples: [airflow-test, kafka-ui]}
+      - {name: NAMESPACE, default: default, samples: [airflow, data], ctx: k8s_namespace}
+    body: helm uninstall "$RELEASE" -n "$NAMESPACE"
+    destructive: true
+    source: https://github.com/helm/helm-www/blob/main/docs/helm/helm_uninstall.md
+    verified: docs
+
+  - id: helm.show_values
+    group: inspect
+    intents:
+      - show the default values of chart {CHART}
+      - dump chart defaults to a values file I can edit
+      - what can I configure in this helm chart
+      - helm show values into {OUT_FILE}
+    vars:
+      - {name: CHART, default: apache-airflow/airflow, samples: [apache-airflow/airflow, spark-operator/spark-operator]}
+      - {name: OUT_FILE, default: values.yaml, samples: [airflow-defaults.yaml, values.yaml]}
+    body: helm show values "$CHART" > "$OUT_FILE"
+    destructive: false
+    source: https://github.com/helm/helm-www/blob/main/docs/helm/helm_show_values.md
+    verified: docs
+
+  - id: helm.get_values
+    group: inspect
+    intents:
+      - what values is release {RELEASE} running with
+      - show the user supplied values of a deployed release
+      - helm get values
+      - see overrides on the installed chart
+    vars:
+      - {name: RELEASE, default: airflow, samples: [airflow, spark-operator]}
+      - {name: NAMESPACE, default: default, samples: [airflow, spark-operator], ctx: k8s_namespace}
+    body: helm get values "$RELEASE" -n "$NAMESPACE"
+    destructive: false
+    source: https://github.com/helm/helm-www/blob/main/docs/helm/helm_get_values.md
+    verified: docs
+
+  - id: helm.template
+    group: inspect
+    intents:
+      - render chart {CHART} locally with {VALUES_FILE} without installing
+      - see the manifests a helm chart would produce
+      - helm template to stdout and page it
+      - dry render the kubernetes yaml for a chart
+    vars:
+      - {name: RELEASE, default: airflow, samples: [airflow, spark-operator]}
+      - {name: CHART, default: apache-airflow/airflow, samples: [apache-airflow/airflow, ./charts/etl]}
+      - {name: VALUES_FILE, default: values.yaml, samples: [values-prod.yaml, values-dev.yaml], ctx: local_file}
+    body: helm template "$RELEASE" "$CHART" -f "$VALUES_FILE" | less
+    destructive: false
+    source: https://github.com/helm/helm-www/blob/main/docs/helm/helm_template.md
+    verified: docs
