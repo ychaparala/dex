@@ -74,21 +74,22 @@ def default_threads() -> int:
             if out.isdigit() and int(out) > 0:
                 return min(int(out), logical)
         return logical
-    cores: set[tuple[str, str]] = set()
-    physical = core = ""
-    try:
-        with open("/proc/cpuinfo", encoding="ascii", errors="replace") as f:
-            for line in f:
-                key, _, val = line.partition(":")
-                key = key.strip()
-                if key == "physical id":
-                    physical = val.strip()
-                elif key == "core id":
-                    core = val.strip()
-                    cores.add((physical, core))
-    except OSError:
-        pass
-    return min(len(cores), logical) if cores else logical
+    else:
+        cores: set[tuple[str, str]] = set()
+        physical = core = ""
+        try:
+            with open("/proc/cpuinfo", encoding="ascii", errors="replace") as f:
+                for line in f:
+                    key, _, val = line.partition(":")
+                    key = key.strip()
+                    if key == "physical id":
+                        physical = val.strip()
+                    elif key == "core id":
+                        core = val.strip()
+                        cores.add((physical, core))
+        except OSError:
+            pass
+        return min(len(cores), logical) if cores else logical
 
 
 class LlamaEngine:
