@@ -278,7 +278,11 @@ def test_help_parse_puts_help_before_passed_on_arguments(tmp_path: Path) -> None
     v = nl2sh.Validators(None, True)
     assert v.help_parse(str(exe), ["fake", "run", "--rm", "alpine", "echo", "hi"]) == ("ok", None)
     # --help right after the command path, so it can't reach the program the command runs
-    assert "run --help --rm alpine echo hi" in (tmp_path / "fake.log").read_text().splitlines()
+    assert v.help_parse(str(exe), ["fake", "run", "alpine", "echo", "hi"]) == ("ok", None)
+    calls = (tmp_path / "fake.log").read_text().splitlines()
+    assert "run --help --rm alpine echo hi" in calls
+    # run has no subcommands, so its positionals are never tried as one: no --help after the image
+    assert [c for c in calls if c.startswith("run ") and not c.startswith("run --help")] == []
     assert v.help_parse(str(exe), ["fake", "run", "--bogus", "alpine"])[0] == "fail"
     assert v.help_parse(str(exe), ["fake", "bogus", "x"]) == (
         "fail",
@@ -290,3 +294,11 @@ def test_usage_depth_counts_command_words() -> None:
     assert nl2sh.usage_depth("Usage:  docker image ls [OPTIONS]") == 3
     assert nl2sh.usage_depth("Usage:\n  databricks fs [command]\n") == 2
     assert nl2sh.usage_depth("no help here") is None
+
+
+@pytest.mark.parametrize(
+    "heading", ["Available Commands:", "Commands:", "Basic Commands (Beginner):"]
+)
+def test_subcommand_headings_of_cobra_docker_and_kubectl(heading: str) -> None:
+    assert nl2sh.HAS_SUBCOMMANDS.search(f"Usage:\n  x [command]\n\n{heading}\n  ls  List\n")
+    assert not nl2sh.HAS_SUBCOMMANDS.search("Usage:\n  x run [flags] IMAGE\n\nFlags:\n  --rm\n")

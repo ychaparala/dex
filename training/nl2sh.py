@@ -101,6 +101,9 @@ AWS_V2_ONLY = [("logs", "tail"), ("logs", "start-live-tail"), ("sso", "login"), 
 # every flag before honouring --help, so an unknown subcommand or flag fails while a valid line prints help. No
 # credentials are set and --help never contacts a service.
 HELP_PARSE_BINS = {"databricks", "confluent", "astro", "argo", "rpk"}
+# a help heading that lists subcommands: cobra's "Available Commands:", docker's "Commands:", kubectl's
+# "Basic Commands (Beginner):"
+HAS_SUBCOMMANDS = re.compile(r"(?m)^(?:[A-Z][\w ]* )?Commands\b[^\n]*:\s*$")
 
 
 def usage_depth(help_text: str) -> int | None:
@@ -609,15 +612,16 @@ class Validators:
             code, out = self._help(exe, ["--help"])
             path: list[str] = []
             for w in argv[1:]:
-                if w.startswith("-"):
+                # a command without subcommands ends the walk: trying a positional (docker run IMAGE --help)
+                # as a subcommand would run it
+                if w.startswith("-") or not HAS_SUBCOMMANDS.search(out):
                     break
                 c, o = self._help(exe, path + [w, "--help"])
                 if c != 0 or usage_depth(o) != (usage_depth(out) or 0) + 1:
                     break
                 path, out = path + [w], o
             rest = argv[1 + len(path):]
-            if rest and not rest[0].startswith("-") and (
-                    re.search(r"(?m)^[A-Z][\w ]*Commands\b[^\n]*:\s*$", out)):
+            if rest and not rest[0].startswith("-") and HAS_SUBCOMMANDS.search(out):
                 return "fail", f"unknown command {rest[0]!r} under {' '.join([Path(exe).name] + path)}"
             code, out = self._help(exe, path + ["--help"] + rest)
         except subprocess.TimeoutExpired:
