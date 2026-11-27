@@ -1,5 +1,10 @@
 # dex
 
+[![CI](https://github.com/ychaparala/dex/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ychaparala/dex/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/dex-cli)](https://pypi.org/project/dex-cli/)
+[![Python](https://img.shields.io/pypi/pyversions/dex-cli)](https://pypi.org/project/dex-cli/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](https://github.com/ychaparala/dex/blob/main/LICENSE)
+
 Type what you want in plain English and get back one ready-to-edit shell command for the data engineering CLIs you
 use every day. A tiny fine-tuned model ships with dex and runs on your machine: no network, no API key, no server
 to set up.
@@ -32,14 +37,12 @@ dex: duckdb isn't installed. Install it with: brew install duckdb (Homebrew may 
 
 Airflow and Astronomer, Databricks, Snowflake (`snow` and SnowSQL), Confluent, Kafka and Redpanda, AWS (S3, EMR,
 Glue, Athena and more), Spark, DuckDB, dbt, curl, and about 25 more everyday data tools: kubectl, helm, gcloud, jq,
-yq, psql, Trino and others. The full list, with counts, is in [training/README.md](training/README.md).
+yq, psql, Trino and others. The full list, with counts, is in [training/README.md](https://github.com/ychaparala/dex/blob/main/training/README.md).
 
 ## Install
 
-dex isn't on PyPI yet. Until it is, install it from this repo:
-
 ```sh
-uv tool install git+https://github.com/ychaparala/dex   # or: pipx install git+https://github.com/ychaparala/dex
+uv tool install dex-cli   # or: pipx install dex-cli
 ```
 
 The fine-tuned model isn't published yet. Until it is, point dex at any GGUF file:
@@ -103,7 +106,7 @@ dex (standard library only, about 30 ms)              warm process (keeps the mo
 dex reads a few facts about your environment (only for the tools your request mentions, from env vars and config
 files, never by running programs) so the model fills in real values. The model runs in a background process that
 starts on the first request and exits after 15 idle minutes, so later requests skip loading it. Details are in
-[docs/architecture.md](docs/architecture.md).
+[docs/architecture.md](https://github.com/ychaparala/dex/blob/main/docs/architecture.md).
 
 ## Develop
 
@@ -113,11 +116,11 @@ uv run pre-commit install
 uv run pytest             # tests need no model
 ```
 
-[CONTRIBUTING.md](CONTRIBUTING.md) has the checks and conventions, [docs/adding-a-tool.md](docs/adding-a-tool.md)
-how to teach dex a new CLI, and [docs/training.md](docs/training.md) how the model is built. The design and its
-reviews are in [docs/designs/](docs/designs/).
+[CONTRIBUTING.md](https://github.com/ychaparala/dex/blob/main/CONTRIBUTING.md) has the checks and conventions, [docs/adding-a-tool.md](https://github.com/ychaparala/dex/blob/main/docs/adding-a-tool.md)
+how to teach dex a new CLI, and [docs/training.md](https://github.com/ychaparala/dex/blob/main/docs/training.md) how the model is built. The design and its
+reviews are in [docs/designs/](https://github.com/ychaparala/dex/tree/main/docs/designs).
 
 ## License
 
-MIT, see [LICENSE](LICENSE). The training templates follow each CLI's own docs or source; the licenses of those
-sources are listed in [training/README.md](training/README.md).
+MIT, see [LICENSE](https://github.com/ychaparala/dex/blob/main/LICENSE). The training templates follow each CLI's own docs or source; the licenses of those
+sources are listed in [training/README.md](https://github.com/ychaparala/dex/blob/main/training/README.md).
