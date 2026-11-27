@@ -103,8 +103,9 @@ def _peer_uid(sock: socket.socket) -> int:
             # LOCAL_PEERCRED (1) at level SOL_LOCAL (0) returns a struct xucred.
             raw = sock.getsockopt(0, 1, struct.calcsize("IIh16I"))
             return int(struct.unpack_from("II", raw)[1])
-        raw = sock.getsockopt(socket.SOL_SOCKET, socket.SO_PEERCRED, struct.calcsize("3i"))
-        return int(struct.unpack("3i", raw)[1])
+        else:
+            raw = sock.getsockopt(socket.SOL_SOCKET, socket.SO_PEERCRED, struct.calcsize("3i"))
+            return int(struct.unpack("3i", raw)[1])
     except (OSError, struct.error, AttributeError):
         return -1
 
