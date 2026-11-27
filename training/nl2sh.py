@@ -1136,12 +1136,16 @@ def normalize(cmd: str) -> str:
         return re.sub(r"\s+", " ", cmd)
 
 
+# An unquoted value can't start with a quote, so each value matches one way only (no ReDoS backtracking).
+_VALUE = r"""(?:'[^']*'|"(?:[^"\\]|\\.)*"|[^\s'"]\S*)"""
+
+
 def parse_line(cmd: str) -> tuple[dict, str]:
     """Split 'A=1 B=2 && body' into ({A:1,B:2}, body)."""
-    m = re.match(r"^((?:[A-Z][A-Z0-9_]*=(?:'[^']*'|\"(?:[^\"\\]|\\.)*\"|\S+)\s+)+)&&\s*(.*)$", cmd.strip())
+    m = re.match(rf"^((?:[A-Z][A-Z0-9_]*={_VALUE}\s+)+)&&\s*(.*)$", cmd.strip())
     if not m:
         return {}, cmd.strip()
-    return ({k: v.strip("'\"") for k, v in re.findall(r"([A-Z][A-Z0-9_]*)=('[^']*'|\"(?:[^\"\\]|\\.)*\"|\S+)",
+    return ({k: v.strip("'\"") for k, v in re.findall(rf"([A-Z][A-Z0-9_]*)=({_VALUE})",
                                                        m.group(1))}, m.group(2).strip())
 
 

@@ -250,3 +250,10 @@ def test_merge_holds_out_every_variant_of_an_intent(
     assert run() == (train, evals)  # deterministic
     assert "do 2" in evals and "do 2" not in train
     assert train.count("\n") == 4  # both variants of intents 0 and 1
+
+
+def test_parse_line_splits_values_and_resists_redos() -> None:
+    line = 'Q=\'a b\' R="x \\" y" N=20 && echo $Q'
+    assert nl2sh.parse_line(line) == ({"Q": "a b", "R": 'x \\" y', "N": "20"}, "echo $Q")
+    # CodeQL py/redos: this used to backtrack exponentially; it must finish (and not match) at once.
+    assert nl2sh.parse_line("A=" + '"" A=' * 5000) == ({}, "A=" + '"" A=' * 5000)
